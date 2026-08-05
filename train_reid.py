@@ -263,6 +263,8 @@ def main():
     args.data_dir       = cfg.get('paths', {}).get('data_dir', 'processed')
     args.pairs_json     = os.path.join(args.data_dir, 'pairs_train.json')
     args.gasnet_weights = cfg.get('paths', {}).get('gasnet_weights', '')
+    args.checkpoint_dir = cfg.get('paths', {}).get('checkpoint_dir', 'checkpoints')
+    args.log_dir        = cfg.get('paths', {}).get('log_dir', 'logs')
     
     args.gpu_jetson     = cfg.get('device', {}).get('gpu_jetson', False)
     
@@ -300,8 +302,8 @@ def main():
 
     train_dir = os.path.join(args.data_dir, "train")
     
-    os.makedirs("logs", exist_ok=True)
-    log_path = os.path.join("logs", f"train_{time.strftime('%Y%m%d_%H%M%S')}.log")
+    os.makedirs(args.log_dir, exist_ok=True)
+    log_path = os.path.join(args.log_dir, f"train_{time.strftime('%Y%m%d_%H%M%S')}.log")
     sys.stdout = Logger(log_path)
     
     print(f"=== Bắt đầu huấn luyện lúc {time.strftime('%Y-%m-%d %H:%M:%S')} ===")
@@ -359,7 +361,7 @@ def main():
     epochs_stage1 = args.epochs_stage1
     epochs_stage2 = args.epochs_stage2
     
-    os.makedirs("checkpoints", exist_ok=True)
+    os.makedirs(args.checkpoint_dir, exist_ok=True)
     
     def train_epoch(epoch, stage_name, optim, lr_scheduler=None, lam1=1.0, lam2=0.5, lam3=0.005):
         model.train()
@@ -446,10 +448,10 @@ def main():
                 'optimizer_state_dict': optimizer.state_dict(),
                 'loss': avg_loss
             }
-            torch.save(checkpoint_data, "checkpoints/last_model.pth")
+            torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"))
             if avg_loss < best_loss:
                 best_loss = avg_loss
-                torch.save(checkpoint_data, "checkpoints/best_model.pth")
+                torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
                 print(f"[*] New best model saved at Stage 1, epoch {epoch} with loss {best_loss:.4f}")
         
     if start_epoch_stage2 <= epochs_stage2:
@@ -492,11 +494,11 @@ def main():
                 'optimizer_state_dict': optimizer2.state_dict(),
                 'loss': avg_loss
             }
-            torch.save(checkpoint_data, "checkpoints/last_model.pth")
+            torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"))
             
             if avg_loss < best_loss:
                 best_loss = avg_loss
-                torch.save(checkpoint_data, "checkpoints/best_model.pth")
+                torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
                 print(f"[*] New best model saved at Stage 2, epoch {epoch} with loss {best_loss:.4f}")
         
     print("Training Complete!")
