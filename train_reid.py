@@ -281,6 +281,7 @@ def main():
     args.num_workers    = tc.get('num_workers', 4)
     args.use_amp        = tc.get('use_amp', False)
     args.pin_memory     = tc.get('pin_memory', False)
+    args.use_compile    = tc.get('use_compile', False) # Thêm cờ bật/tắt compile
 
     
     args.epochs_stage1      = tc.get('stage1', {}).get('epochs', 30)
@@ -332,7 +333,7 @@ def main():
     model.cuda()
     
     # --- torch.compile cho tốc độ tối đa trên A100/H100 ---
-    if not args.gpu_jetson and hasattr(torch, 'compile'):
+    if not args.gpu_jetson and args.use_compile and hasattr(torch, 'compile'):
         print("Bật torch.compile() để tối ưu model...")
         try:
             model = torch.compile(model)
