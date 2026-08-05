@@ -10,9 +10,9 @@ device:
 # --- Paths (Lưu ý: Thay đổi đường dẫn Google Drive cho phù hợp) ---
 paths:
   # Nơi chứa thư mục UAV-Anti-UAV gốc trên Google Drive
-  raw_data_dir: /content/drive/MyDrive/UA/UAV-Anti-UAV
+  raw_data_dir: /content/UAV-Anti-UAV
   # Trọng số pre-train của mạng GASNet trên Google Drive
-  gasnet_weights: /content/drive/MyDrive/UAV_Data/gasnet.best.pth
+  gasnet_weights: /content/gasnet.best.pth
   
   # Đường dẫn thư mục chứa mã nguồn GASNet (4 file python bạn vừa copy vào)
   gasnet_dir: /content/UAVAntiUAV/gasnet
@@ -65,7 +65,7 @@ train:
 
 # --- Evaluation ---
 eval:
-  model_path: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/best_model.pth
+  model_path: /content/best_model.pth
   pairs_json: /content/processed/pairs_test.json
   output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results
   batch_size: 128             # Khi test không cần tính gradient nên để batch size rất lớn
