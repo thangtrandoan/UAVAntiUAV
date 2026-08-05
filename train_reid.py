@@ -16,7 +16,7 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.sampler import Sampler
 from torchvision import transforms
-from torch.cuda.amp import autocast, GradScaler
+# (Removed deprecated torch.cuda.amp import)
 
 # model import moved to main() to allow config parsing first
 class Logger(object):
@@ -354,7 +354,7 @@ def main():
                                   lr=args.lr_stage1, weight_decay=args.weight_decay)
     optimizer_center = torch.optim.SGD(criterion_center.parameters(), lr=args.lr_center)
     
-    scaler = GradScaler(enabled=args.use_amp)
+    scaler = torch.amp.GradScaler('cuda', enabled=args.use_amp)
 
     epochs_stage1 = args.epochs_stage1
     epochs_stage2 = args.epochs_stage2
@@ -372,7 +372,7 @@ def main():
             optim.zero_grad()
             optimizer_center.zero_grad()
             
-            with autocast(enabled=args.use_amp):
+            with torch.amp.autocast('cuda', enabled=args.use_amp):
                 (feat_b, bn_b, logit_b), (feat_a, bn_a, logit_a) = model(before, after)
                 
                 bn_b_norm = F.normalize(bn_b, p=2, dim=1)
