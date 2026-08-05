@@ -267,6 +267,12 @@ def main():
     
     args.gpu_jetson     = cfg.get('device', {}).get('gpu_jetson', False)
     
+    # --- A100/H100/Colab Optimizations ---
+    if not args.gpu_jetson:
+        torch.backends.cudnn.benchmark = True
+        if hasattr(torch, 'set_float32_matmul_precision'):
+            torch.set_float32_matmul_precision('high') # TF32 for Ampere+ GPUs
+            
     tc = cfg.get('train', {})
     args.resume         = tc.get('resume', '')
     args.batch_size     = tc.get('batch_size', 32)
@@ -324,6 +330,14 @@ def main():
 
     model = UAVReIDNet(gasnet_weights_path=args.gasnet_weights or None, num_identities=num_identities, freeze_backbone=True)
     model.cuda()
+    
+    # --- torch.compile cho tốc độ tối đa trên A100/H100 ---
+    if not args.gpu_jetson and hasattr(torch, 'compile'):
+        print("Bật torch.compile() để tối ưu model...")
+        try:
+            model = torch.compile(model)
+        except Exception as e:
+            print(f"Cảnh báo: torch.compile() thất bại: {e}. Sẽ chạy mode bình thường.")
 
     criterion_id = LabelSmoothCrossEntropy()
     criterion_triplet = HardTripletLoss(margin=0.3)
