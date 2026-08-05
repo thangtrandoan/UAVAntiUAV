@@ -372,7 +372,8 @@ def main():
             optim.zero_grad()
             optimizer_center.zero_grad()
             
-            with torch.amp.autocast('cuda', enabled=args.use_amp):
+            amp_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+            with torch.amp.autocast('cuda', dtype=amp_dtype, enabled=args.use_amp):
                 (feat_b, bn_b, logit_b), (feat_a, bn_a, logit_a) = model(before, after)
                 
                 bn_b_norm = F.normalize(bn_b, p=2, dim=1)
