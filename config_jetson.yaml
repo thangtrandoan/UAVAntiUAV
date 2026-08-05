@@ -1,0 +1,64 @@
+# ============================================================
+# UAVAntiUAV — Jetson AGX Orin Config
+# Mục đích: Train/eval thật trên thiết bị Jetson (unified memory)
+# ============================================================
+
+device:
+  platform: jetson            # jetson | local | server
+  gpu_jetson: true
+
+# --- Paths ---
+paths:
+  data_dir: ./processed
+  raw_data_dir: ../UAV-Anti-UAV
+  gasnet_weights: ../UAV/gasnet_project/test/gasnet.best.pth
+  checkpoint_dir: ./checkpoints
+  log_dir: ./logs
+
+# --- Data Pipeline ---
+data_pipeline:
+  num_before_frames: 16
+  num_after_frames: 16
+  bbox_padding: 0.2
+  crop_size: 256
+  num_workers: 2
+
+# --- Training ---
+train:
+  resume: ""
+  batch_size: 8
+  num_instances: 2
+  num_frames: 16
+  num_workers: 2
+  use_amp: false              # Jetson unified memory -> AMP dễ gây NaN
+  pin_memory: true
+
+  stage1:
+    epochs: 30
+    lr: 3.5e-4
+    weight_decay: 5e-4
+
+  stage2:
+    epochs: 20
+    lr_backbone: 1.0e-5
+    lr_temporal: 1.0e-4
+    lr_head: 1.0e-4
+    weight_decay: 5e-4
+
+  loss:
+    lam1: 1.0                 # triplet weight
+    lam2: 0.5                 # temporal consistency weight (chưa dùng)
+    lam3: 0.05                # center loss weight
+    lr_center: 0.5
+    triplet_margin: 0.3
+    label_smooth: 0.1
+
+# --- Evaluation ---
+eval:
+  model_path: checkpoints/best_model.pth
+  pairs_json: ./processed/pairs_test.json
+  output_dir: ./eval_results
+  batch_size: 4
+  num_workers: 2
+  backbone_only: false
+  reid_threshold: 0.7

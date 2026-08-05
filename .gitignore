@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data and Checkpoints (Large files that shouldn't be pushed)
+processed/
+checkpoints/
+logs/
+eval_results/
+*.pth
+*.pt
+*.onnx
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/

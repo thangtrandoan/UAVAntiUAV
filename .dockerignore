@@ -1,0 +1,9 @@
+processed/
+__pycache__/
+*.pyc
+checkpoints/
+logs/
+eval_results/
+.git/
+*.tar.gz
+*.onnx

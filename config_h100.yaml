@@ -1,0 +1,64 @@
+# ============================================================
+# UAVAntiUAV — H100 Server Config (Docker, Offline)
+# Mục đích: Train production trên server H100 80GB
+# ============================================================
+
+device:
+  platform: server            # jetson | local | server
+  gpu_jetson: false
+
+# --- Paths (trong Docker container) ---
+paths:
+  data_dir: /data/processed
+  raw_data_dir: /data/raw       # không dùng trên server, data đã processed
+  gasnet_weights: /workspace/gasnet_project/test/gasnet.best.pth
+  checkpoint_dir: /workspace/UAVAntiUAV/checkpoints
+  log_dir: /workspace/UAVAntiUAV/logs
+
+# --- Data Pipeline (không dùng trên server, data đã xử lý sẵn) ---
+data_pipeline:
+  num_before_frames: 16
+  num_after_frames: 16
+  bbox_padding: 0.2
+  crop_size: 256
+  num_workers: 8
+
+# --- Training ---
+train:
+  resume: ""
+  batch_size: 128
+  num_instances: 8
+  num_frames: 16
+  num_workers: 8
+  use_amp: true
+  pin_memory: true
+
+  stage1:
+    epochs: 30
+    lr: 3.5e-4
+    weight_decay: 5e-4
+
+  stage2:
+    epochs: 20
+    lr_backbone: 1.0e-5
+    lr_temporal: 1.0e-4
+    lr_head: 1.0e-4
+    weight_decay: 5e-4
+
+  loss:
+    lam1: 1.0
+    lam2: 0.5
+    lam3: 0.05
+    lr_center: 0.5
+    triplet_margin: 0.3
+    label_smooth: 0.1
+
+# --- Evaluation ---
+eval:
+  model_path: checkpoints/best_model.pth
+  pairs_json: /data/processed/pairs_test.json
+  output_dir: /workspace/UAVAntiUAV/eval_results
+  batch_size: 128
+  num_workers: 8
+  backbone_only: false
+  reid_threshold: 0.7
