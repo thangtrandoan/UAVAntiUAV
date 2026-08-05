@@ -18,8 +18,7 @@ from torch.utils.data.sampler import Sampler
 from torchvision import transforms
 from torch.cuda.amp import autocast, GradScaler
 
-from model import UAVReIDNet
-
+# model import moved to main() to allow config parsing first
 class Logger(object):
     def __init__(self, filename):
         self.terminal = sys.stdout
@@ -329,6 +328,12 @@ def main():
     sampler = ReIDBatchSampler(dataset, batch_size=batch_size, num_instances=num_instances)
     dataloader = DataLoader(dataset, batch_sampler=sampler, num_workers=args.num_workers, pin_memory=args.pin_memory)
 
+    # --- Setup GASNet Path ---
+    gasnet_dir = cfg.get('paths', {}).get('gasnet_dir', '')
+    if gasnet_dir:
+        os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
+        
+    from model import UAVReIDNet
     model = UAVReIDNet(gasnet_weights_path=args.gasnet_weights or None, num_identities=num_identities, freeze_backbone=True)
     model.cuda()
     

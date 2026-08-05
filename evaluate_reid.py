@@ -11,8 +11,7 @@ from torchvision import transforms
 from PIL import Image, ImageDraw
 import numpy as np
 
-from model import UAVReIDNet
-
+# model import moved to main()
 class Logger(object):
     def __init__(self, filename):
         self.terminal = sys.stdout
@@ -177,6 +176,12 @@ def main():
     dataset = EvalDataset(test_dir, args.pairs_json, transform=transform_test, num_frames=args.num_frames)
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
     
+    # --- Setup GASNet Path ---
+    gasnet_dir = cfg.get('paths', {}).get('gasnet_dir', '')
+    if gasnet_dir:
+        os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
+        
+    from model import UAVReIDNet
     model = UAVReIDNet(freeze_backbone=False)
     if not args.backbone_only:
         if os.path.exists(args.model_path):
