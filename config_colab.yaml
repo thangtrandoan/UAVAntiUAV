@@ -41,7 +41,7 @@ train:
   num_workers: 8              # Tăng worker để cấp đủ data cho GPU
   use_amp: true               # BẮT BUỘC BẬT: A100 tận dụng Tensor Cores train cực nhanh với AMP
   pin_memory: true
-  use_compile: false          # Tắt compile mặc định cho an toàn (tránh lỗi với custom CUDA kernels/Mamba)
+  use_compile: true          # Tắt compile mặc định cho an toàn (tránh lỗi với custom CUDA kernels/Mamba)
 
   stage1:
     epochs: 30
