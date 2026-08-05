@@ -261,7 +261,7 @@ def main():
     with open(args.config, 'r', encoding='utf-8') as f:
         cfg = yaml.safe_load(f)
 
-    args.data_dir       = cfg.get('paths', {}).get('data_dir', './processed')
+    args.data_dir       = cfg.get('paths', {}).get('data_dir', 'processed')
     args.pairs_json     = os.path.join(args.data_dir, 'pairs_train.json')
     args.gasnet_weights = cfg.get('paths', {}).get('gasnet_weights', '')
     

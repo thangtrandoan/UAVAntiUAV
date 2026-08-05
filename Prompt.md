@@ -73,7 +73,7 @@ Viết file `data_pipeline.py` đặt tại `/thang/UAVAntiUAV/data_pipeline.py`
      ```
    - **Quan trọng:** `identity_id` — mỗi sequence chỉ chứa 1 drone mục tiêu, nên tất cả các event trong cùng 1 sequence chia sẻ cùng 1 `identity_id`. Gán `identity_id` tăng dần từ 0 đến N-1 (N = số sequence có ít nhất 1 event).
 
-5. **Thống kê báo cáo:** In ra console:
+5. **Thống kê báo cáo:** In ra console và lưu:
    - Tổng số sequence đã xử lý / bị bỏ qua (do không có sự kiện biến mất).
    - Tổng số cặp (T_before, T_after) được tạo.
    - Thống kê thời gian biến mất: trung bình, min, max (tính bằng số frame).

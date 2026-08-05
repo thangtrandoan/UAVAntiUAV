@@ -5,6 +5,7 @@ __pycache__/
 
 # Data and Checkpoints (Large files that shouldn't be pushed)
 processed/
+*.zip
 checkpoints/
 logs/
 eval_results/
