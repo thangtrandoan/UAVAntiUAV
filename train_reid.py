@@ -410,6 +410,9 @@ def main():
         model.train()
         start_time = time.time()
         epoch_loss = 0.0
+        epoch_loss_id = 0.0
+        epoch_loss_tri = 0.0
+        epoch_loss_center = 0.0
         
         for i, (before, after, pids) in enumerate(dataloader):
             before, after, pids = before.cuda(), after.cuda(), pids.cuda()
@@ -437,6 +440,9 @@ def main():
             scaler.step(optimizer_center)
             scaler.update()
             epoch_loss += loss.item()
+            epoch_loss_id += loss_id.item()
+            epoch_loss_tri += loss_tri.item()
+            epoch_loss_center += loss_center.item()
             if (i+1) % 1 == 0:
                 elapsed = time.time() - start_time
                 lr = optim.param_groups[0]['lr']
@@ -447,7 +453,15 @@ def main():
                 
         if lr_scheduler:
             lr_scheduler.step()
-        return epoch_loss / max(1, len(dataloader))
+            
+        num_batches = max(1, len(dataloader))
+        print(f"\n---> TỔNG KẾT [{stage_name}] Epoch {epoch}: "
+              f"Tổng Loss = {epoch_loss/num_batches:.4f} | "
+              f"ID = {epoch_loss_id/num_batches:.4f} | "
+              f"Triplet = {epoch_loss_tri/num_batches:.4f} | "
+              f"Center = {epoch_loss_center/num_batches:.4f}\n")
+              
+        return epoch_loss / num_batches
 
     start_epoch_stage1 = 1
     start_epoch_stage2 = 1
