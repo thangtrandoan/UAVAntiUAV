@@ -414,7 +414,9 @@ def main():
         epoch_loss_tri = 0.0
         epoch_loss_center = 0.0
         
-        for i, (before, after, pids) in enumerate(dataloader):
+        from tqdm import tqdm
+        pbar = tqdm(enumerate(dataloader), total=len(dataloader), desc=f"[{stage_name}] Epoch {epoch}", leave=False, dynamic_ncols=True)
+        for i, (before, after, pids) in pbar:
             before, after, pids = before.cuda(), after.cuda(), pids.cuda()
             
             optim.zero_grad()
@@ -444,12 +446,14 @@ def main():
             epoch_loss_tri += loss_tri.item()
             epoch_loss_center += loss_center.item()
             if (i+1) % 1 == 0:
-                elapsed = time.time() - start_time
                 lr = optim.param_groups[0]['lr']
-                print(f"[{stage_name}] Epoch {epoch} Step {i+1}/{len(dataloader)} "
-                      f"LR: {lr:.2e} Time: {elapsed:.2f}s "
-                      f"Loss: {loss.item():.4f} (ID: {loss_id.item():.4f} Tri: {loss_tri.item():.4f} Cen: {loss_center.item():.4f})")
-                start_time = time.time()
+                pbar.set_postfix({
+                    'Loss': f"{loss.item():.3f}",
+                    'ID': f"{loss_id.item():.3f}",
+                    'Tri': f"{loss_tri.item():.3f}",
+                    'Cen': f"{loss_center.item():.3f}",
+                    'LR': f"{lr:.1e}"
+                })
                 
         if lr_scheduler:
             lr_scheduler.step()
