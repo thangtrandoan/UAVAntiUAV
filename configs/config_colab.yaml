@@ -42,6 +42,7 @@ train:
   use_amp: true               # BẮT BUỘC BẬT: A100 tận dụng Tensor Cores train cực nhanh với AMP
   pin_memory: true
   use_compile: true          # Tắt compile mặc định cho an toàn (tránh lỗi với custom CUDA kernels/Mamba)
+  val_freq: 5                # Số epoch giữa các lần chạy validation (để là 1 nếu muốn test mỗi epoch)
 
   stage1:
     epochs: 30

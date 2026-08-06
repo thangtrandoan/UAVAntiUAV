@@ -32,6 +32,7 @@ train:
   num_workers: 4
   use_amp: true
   pin_memory: true
+  val_freq: 1                 # Local test/smoke test thì chạy val mỗi epoch để dễ debug
 
   stage1:
     epochs: 1                 # chỉ 1 epoch để test

@@ -283,6 +283,7 @@ def main():
     args.use_amp        = tc.get('use_amp', False)
     args.pin_memory     = tc.get('pin_memory', False)
     args.use_compile    = tc.get('use_compile', False) # Thêm cờ bật/tắt compile
+    args.val_freq       = tc.get('val_freq', 5) # Đọc số epoch đánh giá từ config (mặc định 5)
 
     
     args.epochs_stage1      = tc.get('stage1', {}).get('epochs', 30)
@@ -492,8 +493,8 @@ def main():
             }
             torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"))
             
-            # Validation sau mỗi 5 epoch hoặc epoch cuối cùng
-            if has_val and (epoch % 5 == 0 or epoch == epochs_stage1):
+            # Validation sau mỗi args.val_freq epoch hoặc epoch cuối cùng
+            if has_val and (epoch % args.val_freq == 0 or epoch == epochs_stage1):
                 val_rank1 = validate(model, val_loader)
                 if val_rank1 > best_val_rank1:
                     best_val_rank1 = val_rank1
@@ -542,8 +543,8 @@ def main():
             }
             torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"))
             
-            # Validation sau mỗi 5 epoch hoặc epoch cuối cùng
-            if has_val and (epoch % 5 == 0 or epoch == epochs_stage2):
+            # Validation sau mỗi args.val_freq epoch hoặc epoch cuối cùng
+            if has_val and (epoch % args.val_freq == 0 or epoch == epochs_stage2):
                 val_rank1 = validate(model, val_loader)
                 if val_rank1 > best_val_rank1:
                     best_val_rank1 = val_rank1
