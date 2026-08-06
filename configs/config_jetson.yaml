@@ -55,10 +55,10 @@ train:
 
 # --- Evaluation ---
 eval:
-  model_path: checkpoints/best_model.pth
+  model_path: /home/namm/thang/UAV/gasnet_project/test/gasnet.best.pth
   pairs_json: ./processed/pairs_test.json
-  output_dir: ./eval_results
+  output_dir: ./eval_results/backbone
   batch_size: 4
   num_workers: 2
-  backbone_only: false
+  backbone_only: true
   reid_threshold: 0.7

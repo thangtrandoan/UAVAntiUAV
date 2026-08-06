@@ -120,7 +120,7 @@ class TemporalMambaEncoder(nn.Module):
     """
     Temporal Memory Engine: Xử lý chuỗi frame N chiều thời gian
     """
-    def __init__(self, d_in=2560, d_model=512, d_out=256, max_seq_len=64, num_layers=2):
+    def __init__(self, d_in=2560, d_model=512, d_out=512, max_seq_len=64, num_layers=2):
         super().__init__()
         self.d_model = d_model
         
@@ -157,11 +157,13 @@ class TemporalMambaEncoder(nn.Module):
         
         for mamba_layer, norm in zip(self.layers, self.norm_layers):
             res = x
-            x = mamba_layer(x)
-            x = norm(x + res)
+            # Bidirectional processing
+            x_fwd = mamba_layer(x)
+            x_bwd = mamba_layer(x.flip(dims=[1])).flip(dims=[1])
+            x = norm(x_fwd + x_bwd + res)
             
-        # Lấy hidden state của frame cuối cùng
-        x = x[:, -1, :] # [B, d_model]
+        # Mean pooling thay vì chỉ lấy frame cuối cùng
+        x = x.mean(dim=1) # [B, d_model]
         
         # MLP Head
         x = self.out_mlp(x) # [B, d_out]
@@ -193,9 +195,9 @@ def weights_init_classifier(m):
 class ReIDHead(nn.Module):
     """
     Classifer cho UAV ReID.
-    Input = Visual (2560) + Temporal (256) = 2816
+    Input = Visual (2560) + Temporal (512) = 3072
     """
-    def __init__(self, in_dim=2816, num_identities=1000):
+    def __init__(self, in_dim=3072, num_identities=1000):
         super().__init__()
         self.bnneck = nn.BatchNorm1d(in_dim)
         self.bnneck.bias.requires_grad_(False)  # no shift
@@ -253,11 +255,11 @@ class UAVReIDNet(nn.Module):
             
         # 2. Temporal Memory Engine
         self.temporal_encoder = TemporalMambaEncoder(
-            d_in=2560, d_model=512, d_out=256, max_seq_len=64, num_layers=2
+            d_in=2560, d_model=512, d_out=512, max_seq_len=64, num_layers=2
         )
         
         # 3. ReID Head
-        self.head = ReIDHead(in_dim=2816, num_identities=num_identities)
+        self.head = ReIDHead(in_dim=3072, num_identities=num_identities)
         
     def freeze_backbone(self):
         """Đóng băng trọng số của Visual Backbone."""

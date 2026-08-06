@@ -330,6 +330,48 @@ def main():
     sampler = ReIDBatchSampler(dataset, batch_size=batch_size, num_instances=num_instances)
     dataloader = DataLoader(dataset, batch_sampler=sampler, num_workers=args.num_workers, pin_memory=args.pin_memory)
 
+    # --- Setup Validation ---
+    try:
+        from evaluate_reid import EvalDataset, eval_map_cmc
+        transform_test = transforms.Compose([
+            transforms.Resize((256, 256)),
+            transforms.CenterCrop((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+        test_dir = os.path.join(args.data_dir, "test")
+        if not os.path.exists(test_dir):
+            test_dir = os.path.join(args.data_dir, "train")
+        val_pairs_json = args.pairs_json.replace('pairs_train', 'pairs_test')
+        val_dataset = EvalDataset(test_dir, val_pairs_json, transform=transform_test, num_frames=args.num_frames)
+        val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=2)
+        has_val = True
+    except Exception as e:
+        print(f"Cảnh báo: Không thể setup validation, sẽ bỏ qua bước này. Lỗi: {e}")
+        has_val = False
+
+    def validate(model, loader):
+        print(" --- Đang chạy Validation trên tập Test ---")
+        model.eval()
+        qf, gf, q_pids, g_pids = [], [], [], []
+        start_t = time.time()
+        with torch.no_grad():
+            for before, after, pids, _, _, _ in loader:
+                before, after = before.cuda(), after.cuda()
+                bn_feat_g = model(before)
+                bn_feat_q = model(after)
+                gf.append(bn_feat_g)
+                qf.append(bn_feat_q)
+                g_pids.extend(pids.numpy())
+                q_pids.extend(pids.numpy())
+        qf = torch.cat(qf, dim=0)
+        gf = torch.cat(gf, dim=0)
+        cmc, mAP, mINP, _, _ = eval_map_cmc(qf, gf, q_pids, g_pids)
+        print(f" -> Val Time: {time.time() - start_t:.2f}s | Rank-1: {cmc[0]*100:.2f}% | mAP: {mAP*100:.2f}%")
+        model.train()
+        return float(cmc[0]) # Trả về Rank-1
+
+
     # --- Setup GASNet Path ---
     gasnet_dir = cfg.get('paths', {}).get('gasnet_dir', '')
     if gasnet_dir:
@@ -349,7 +391,7 @@ def main():
 
     criterion_id = LabelSmoothCrossEntropy()
     criterion_triplet = HardTripletLoss(margin=0.3)
-    criterion_center = CenterLoss(num_classes=num_identities, feat_dim=2816).cuda()
+    criterion_center = CenterLoss(num_classes=num_identities, feat_dim=3072).cuda()
 
     # Stage 1 Optimizer (Backbone frozen)
     optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), 
@@ -408,7 +450,7 @@ def main():
 
     start_epoch_stage1 = 1
     start_epoch_stage2 = 1
-    best_loss = 999.0
+    best_val_rank1 = 0.0 # Theo dõi bằng Rank-1 thay vì Loss
 
     scheduler1 = get_warmup_cosine_scheduler(optimizer, warmup_epochs=5, total_epochs=epochs_stage1)
 
@@ -449,10 +491,14 @@ def main():
                 'loss': avg_loss
             }
             torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"))
-            if avg_loss < best_loss:
-                best_loss = avg_loss
-                torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
-                print(f"[*] New best model saved at Stage 1, epoch {epoch} with loss {best_loss:.4f}")
+            
+            # Validation sau mỗi 5 epoch hoặc epoch cuối cùng
+            if has_val and (epoch % 5 == 0 or epoch == epochs_stage1):
+                val_rank1 = validate(model, val_loader)
+                if val_rank1 > best_val_rank1:
+                    best_val_rank1 = val_rank1
+                    torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
+                    print(f"[*] New best model saved at Stage 1, epoch {epoch} with Rank-1: {best_val_rank1*100:.2f}%")
         
     if start_epoch_stage2 <= epochs_stage2:
         print("=== START STAGE 2: End-to-End Fine-tuning ===")
@@ -496,10 +542,13 @@ def main():
             }
             torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"))
             
-            if avg_loss < best_loss:
-                best_loss = avg_loss
-                torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
-                print(f"[*] New best model saved at Stage 2, epoch {epoch} with loss {best_loss:.4f}")
+            # Validation sau mỗi 5 epoch hoặc epoch cuối cùng
+            if has_val and (epoch % 5 == 0 or epoch == epochs_stage2):
+                val_rank1 = validate(model, val_loader)
+                if val_rank1 > best_val_rank1:
+                    best_val_rank1 = val_rank1
+                    torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
+                    print(f"[*] New best model saved at Stage 2, epoch {epoch} with Rank-1: {best_val_rank1*100:.2f}%")
         
     print("Training Complete!")
 

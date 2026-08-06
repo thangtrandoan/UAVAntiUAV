@@ -35,8 +35,8 @@ data_pipeline:
 # --- Training (Tối ưu cho A100) ---
 train:
   resume: ""
-  batch_size: 16              # A100 có VRAM khổng lồ, thoải mái set 64 hoặc thậm chí 128
-  num_instances: 4            # 4 ảnh cho mỗi đối tượng -> Rất tốt cho Triplet Loss
+  batch_size: 12              # A100 có VRAM khổng lồ, thoải mái set 64 hoặc thậm chí 128
+  num_instances: 3            # 4 ảnh cho mỗi đối tượng -> Rất tốt cho Triplet Loss
   num_frames: 12
   num_workers: 8              # Tăng worker để cấp đủ data cho GPU
   use_amp: true               # BẮT BUỘC BẬT: A100 tận dụng Tensor Cores train cực nhanh với AMP
