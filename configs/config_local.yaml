@@ -17,8 +17,13 @@ paths:
 
 # --- Data Pipeline ---
 data_pipeline:
+  uav_anti_uav_dir: ./data/UAV-Anti-UAV
+  anti_uav_rgbt_dir: ./data/Anti-UAV-RGBT
+  uav123_dir: ./data/UAV123
+  output_dir: ./processed
   num_before_frames: 16
   num_after_frames: 16
+  frame_stride: 4
   bbox_padding: 0.2
   crop_size: 256
   num_workers: 4
@@ -57,7 +62,8 @@ train:
 # --- Evaluation ---
 eval:
   model_path: checkpoints/best_model.pth
-  pairs_json: ./processed/pairs_test.json
+  query_json: ./processed/query_test.json
+  gallery_json: ./processed/gallery_test.json
   output_dir: ./eval_results
   batch_size: 16
   num_workers: 4

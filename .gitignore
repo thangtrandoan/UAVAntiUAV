@@ -12,6 +12,7 @@ eval_results/
 *.pth
 *.pt
 *.onnx
+data/
 
 # IDE and OS files
 .vscode/

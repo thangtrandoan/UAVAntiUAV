@@ -27,13 +27,32 @@ class Logger(object):
         self.log.flush()
 
 class EvalDataset(Dataset):
-    def __init__(self, data_dir, json_path, transform=None, num_frames=16):
+    def __init__(self, data_dir, query_json, gallery_json, transform=None, num_frames=16):
         self.data_dir = data_dir
-        with open(json_path, 'r') as f:
-            self.pairs = json.load(f)
+        with open(query_json, 'r') as f:
+            queries = json.load(f)
+        with open(gallery_json, 'r') as f:
+            galleries = json.load(f)
+            
         self.transform = transform
         self.num_frames = num_frames
-        self.valid_pairs = [p for p in self.pairs if p['identity_id'] is not None]
+        
+        g_dict = {(g['sequence_id'], g['event_index']): g for g in galleries}
+        self.valid_pairs = []
+        for q in queries:
+            key = (q['sequence_id'], q['event_index'])
+            if key in g_dict:
+                g = g_dict[key]
+                if q.get('identity_id') is not None:
+                    self.valid_pairs.append({
+                        'identity_id': q['identity_id'],
+                        'gallery_frames': g['frames'],
+                        'gallery_dir': g['frame_dir'],
+                        'query_frames': q['frames'],
+                        'query_dir': q['frame_dir'],
+                        'attributes': q.get('attributes', []),
+                        'sequence_id': q['sequence_id']
+                    })
 
     def __len__(self):
         return len(self.valid_pairs)
@@ -62,18 +81,15 @@ class EvalDataset(Dataset):
 
     def __getitem__(self, idx):
         pair = self.valid_pairs[idx]
-        seq_event = f"{pair['sequence_id']}_event_{pair['event_index']}"
-        before_dir = os.path.join(seq_event, "before")
-        after_dir = os.path.join(seq_event, "after")
         
-        before_frames = pair['before_frames']
-        after_frames = pair['after_frames']
+        before_frames = pair['gallery_frames']
+        after_frames = pair['query_frames']
         
-        vis_path_b = os.path.join(self.data_dir, before_dir, before_frames[len(before_frames)//2]) if before_frames else ""
-        vis_path_a = os.path.join(self.data_dir, after_dir, after_frames[len(after_frames)//2]) if after_frames else ""
+        vis_path_b = os.path.join(self.data_dir, pair['gallery_dir'], before_frames[len(before_frames)//2]) if before_frames else ""
+        vis_path_a = os.path.join(self.data_dir, pair['query_dir'], after_frames[len(after_frames)//2]) if after_frames else ""
         
-        before_clip = self._load_clip(before_dir, before_frames)
-        after_clip = self._load_clip(after_dir, after_frames)
+        before_clip = self._load_clip(pair['gallery_dir'], before_frames)
+        after_clip = self._load_clip(pair['query_dir'], after_frames)
         
         pid = pair['identity_id']
         attrs = pair.get('attributes', [])
@@ -145,7 +161,8 @@ def main():
     ec = cfg.get('eval', {})
     args.model_path    = ec.get('model_path', 'checkpoints/best_model.pth')
     args.data_dir      = cfg.get('paths', {}).get('data_dir', './processed')
-    args.pairs_json    = ec.get('pairs_json', './processed/pairs_test.json')
+    args.query_json    = ec.get('query_json', './processed/query_test.json')
+    args.gallery_json  = ec.get('gallery_json', './processed/gallery_test.json')
     args.output_dir    = ec.get('output_dir', 'eval_results')
     args.batch_size    = ec.get('batch_size', 32)
     args.num_workers   = ec.get('num_workers', 4)
@@ -173,7 +190,7 @@ def main():
     if not os.path.exists(test_dir):
         test_dir = os.path.join(args.data_dir, "train")
         
-    dataset = EvalDataset(test_dir, args.pairs_json, transform=transform_test, num_frames=args.num_frames)
+    dataset = EvalDataset(test_dir, args.query_json, args.gallery_json, transform=transform_test, num_frames=args.num_frames)
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
     
     # --- Setup GASNet Path ---

@@ -15,9 +15,11 @@ def parse_args():
     parser.add_argument("--output-dir", type=str, default="./processed", help="Path to output processed data")
     parser.add_argument("--num-before-frames", type=int, default=16, help="Number of frames before disappearance")
     parser.add_argument("--num-after-frames", type=int, default=16, help="Number of frames after reappearance")
+    parser.add_argument("--frame-stride", type=int, default=1, help="Interval between sampled frames (e.g. 2 means t, t-2, t-4...)")
     parser.add_argument("--bbox-padding", type=float, default=0.2, help="Padding ratio for bounding box")
     parser.add_argument("--crop-size", type=int, default=256, help="Size to resize the cropped image")
     parser.add_argument("--num-workers", type=int, default=4, help="Number of processes to use")
+    parser.add_argument("--config", type=str, default=None, help="Path to yaml config")
     return parser.parse_args()
 
 def crop_and_resize(frame, bbox, padding, crop_size):
@@ -112,14 +114,19 @@ def process_sequence(seq_path, output_base, split, args):
     pairs = []
     
     for event_idx, (start_idx, end_idx) in enumerate(events):
-        before_start = max(0, start_idx - args.num_before_frames)
-        before_end = start_idx
+        # Gallery: before disappearance (t1, t1-s, t1-2s...)
+        t1 = start_idx - 1
+        before_sampled = [t1 - i * args.frame_stride for i in range(args.num_before_frames)]
+        before_sampled = [f for f in before_sampled if f >= 0]
+        before_sampled.sort()
         
-        after_start = end_idx
-        after_end = min(total_frames, end_idx + args.num_after_frames)
+        # Query: after reappearance (t2, t2+s, t2+2s...)
+        t2 = end_idx
+        after_sampled = [t2 + i * args.frame_stride for i in range(args.num_after_frames)]
+        after_sampled = [f for f in after_sampled if f < total_frames]
+        after_sampled.sort()
         
-        needed_frames = list(range(before_start, before_end)) + list(range(after_start, after_end))
-        needed_frames = sorted(list(set(needed_frames)))
+        needed_frames = sorted(list(set(before_sampled + after_sampled)))
         
         if not needed_frames:
             continue
@@ -166,8 +173,10 @@ def process_sequence(seq_path, output_base, split, args):
                 "sequence_id": seq_name,
                 "event_index": event_idx,
                 "identity_id": None, # Will be assigned later globally
-                "before_frames": before_frames_files,
-                "after_frames": after_frames_files,
+                "gallery_frames": before_frames_files,
+                "query_frames": after_frames_files,
+                "gallery_dir": f"{seq_name}_event_{event_idx}/before",
+                "query_dir": f"{seq_name}_event_{event_idx}/after",
                 "disappearance_duration_frames": end_idx - start_idx,
                 "language_description": language,
                 "attributes": attributes
@@ -183,7 +192,22 @@ def process_sequence(seq_path, output_base, split, args):
     }
 
 def main():
+    import yaml
     args = parse_args()
+    
+    if args.config and os.path.exists(args.config):
+        with open(args.config, "r") as f:
+            cfg = yaml.safe_load(f)
+        if "data_pipeline" in cfg:
+            dp = cfg["data_pipeline"]
+            args.data_dir = dp.get("uav_anti_uav_dir", args.data_dir)
+            args.output_dir = dp.get("output_dir", args.output_dir)
+            args.num_before_frames = dp.get("num_before_frames", args.num_before_frames)
+            args.num_after_frames = dp.get("num_after_frames", args.num_after_frames)
+            args.frame_stride = dp.get("frame_stride", args.frame_stride)
+            args.bbox_padding = dp.get("bbox_padding", args.bbox_padding)
+            args.crop_size = dp.get("crop_size", args.crop_size)
+            args.num_workers = dp.get("num_workers", args.num_workers)
     
     train_dir = os.path.join(args.data_dir, "Train")
     test_dir = os.path.join(args.data_dir, "Test")
@@ -261,12 +285,44 @@ def main():
     for p in all_pairs_test:
         p["identity_id"] = seq_to_id[p["sequence_id"]]
     
+    # Build Query and Gallery JSONs
+    def build_qg(pairs_list):
+        queries, galleries = [], []
+        for p in pairs_list:
+            # Gallery item (before disappearance)
+            galleries.append({
+                "sequence_id": p["sequence_id"],
+                "event_index": p["event_index"],
+                "identity_id": p["identity_id"],
+                "frames": p["gallery_frames"],
+                "frame_dir": p["gallery_dir"]
+            })
+            # Query item (after reappearance)
+            queries.append({
+                "sequence_id": p["sequence_id"],
+                "event_index": p["event_index"],
+                "identity_id": p["identity_id"],
+                "frames": p["query_frames"],
+                "frame_dir": p["query_dir"],
+                "disappearance_duration_frames": p["disappearance_duration_frames"],
+                "language_description": p["language_description"],
+                "attributes": p["attributes"]
+            })
+        return queries, galleries
+
+    query_train, gallery_train = build_qg(all_pairs_train)
+    query_test, gallery_test = build_qg(all_pairs_test)
+    
     # Save metadata
-    with open(os.path.join(args.output_dir, "pairs_train.json"), "w") as f:
-        json.dump(all_pairs_train, f, indent=4)
+    with open(os.path.join(args.output_dir, "query_train.json"), "w") as f:
+        json.dump(query_train, f, indent=4)
+    with open(os.path.join(args.output_dir, "gallery_train.json"), "w") as f:
+        json.dump(gallery_train, f, indent=4)
         
-    with open(os.path.join(args.output_dir, "pairs_test.json"), "w") as f:
-        json.dump(all_pairs_test, f, indent=4)
+    with open(os.path.join(args.output_dir, "query_test.json"), "w") as f:
+        json.dump(query_test, f, indent=4)
+    with open(os.path.join(args.output_dir, "gallery_test.json"), "w") as f:
+        json.dump(gallery_test, f, indent=4)
         
     # Print stats
     print("\n" + "="*50)

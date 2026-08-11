@@ -4,6 +4,7 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import cv2
 from tqdm import tqdm
+import yaml
 
 def crop_and_resize(frame, bbox, padding, crop_size):
     h, w = frame.shape[:2]
@@ -27,24 +28,49 @@ def crop_and_resize(frame, bbox, padding, crop_size):
     except Exception as e:
         return None
 
-def process_sequence(seq_path, output_base, split, num_before_frames=16, num_after_frames=16, frame_stride=1, bbox_padding=0.2, crop_size=256):
-    seq_name = os.path.basename(seq_path)
+def process_sequence(anno_name, uav123_data_dir, output_base, split, num_before_frames=16, num_after_frames=16, frame_stride=1, bbox_padding=0.2, crop_size=256):
+    anno_dir = os.path.join(uav123_data_dir, "anno", "UAV123")
+    seq_dir_base = os.path.join(uav123_data_dir, "data_seq", "UAV123")
     
-    video_path = os.path.join(seq_path, "visible.mp4")
-    json_path = os.path.join(seq_path, "visible.json")
+    anno_path = os.path.join(anno_dir, f"{anno_name}.txt")
+    att_path = os.path.join(anno_dir, "att", f"{anno_name}.txt")
     
-    if not os.path.exists(video_path) or not os.path.exists(json_path):
-        return {"status": "error", "message": f"Missing files in {seq_path}"}
+    # Determine image folder
+    img_folder = os.path.join(seq_dir_base, anno_name)
+    if not os.path.exists(img_folder):
+        base_name = anno_name.rsplit('_', 1)[0]
+        img_folder = os.path.join(seq_dir_base, base_name)
+        
+    if not os.path.exists(img_folder) or not os.path.exists(anno_path):
+        return {"status": "error", "message": f"Missing files for {anno_name}"}
+        
+    # Find exact frame files
+    all_imgs = sorted([f for f in os.listdir(img_folder) if f.endswith('.jpg')])
+    total_frames = len(all_imgs)
+    
+    if total_frames == 0:
+        return {"status": "error", "message": f"No images found in {img_folder}"}
         
     try:
-        with open(json_path, "r") as f:
-            data = json.load(f)
-        exist = data.get("exist", [])
-        bboxes = data.get("gt_rect", [])
-        
-        absent = [1 if e == 0 else 0 for e in exist]
+        bboxes = []
+        absent = []
+        with open(anno_path, "r") as f:
+            for line in f:
+                if "NaN" in line:
+                    absent.append(1)
+                    bboxes.append([0, 0, 0, 0])
+                else:
+                    absent.append(0)
+                    bboxes.append([int(float(x)) for x in line.strip().split(',')[:4]])
+                    
+        attributes = []
+        if os.path.exists(att_path):
+            with open(att_path, "r") as f:
+                parts = f.read().strip().split(',')
+                attributes = [int(x) for x in parts if x.strip().isdigit()]
+                
     except Exception as e:
-        return {"status": "error", "message": f"Error reading json in {seq_path}: {e}"}
+        return {"status": "error", "message": f"Error reading annotations for {anno_name}: {e}"}
 
     events = []
     in_disappearance = False
@@ -60,27 +86,19 @@ def process_sequence(seq_path, output_base, split, num_before_frames=16, num_aft
             events.append((disappear_start, disappear_end))
             
     if not events:
-        return {"status": "skipped", "message": f"No disappearance in {seq_path}", "seq_name": seq_name}
-        
-    cap = cv2.VideoCapture(video_path)
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    
-    if total_frames == 0:
-        return {"status": "error", "message": f"Could not read video {video_path}"}
+        return {"status": "skipped", "message": f"No disappearance in {anno_name}", "seq_name": anno_name}
         
     pairs = []
     
     for event_idx, (start_idx, end_idx) in enumerate(events):
-        # Gallery: before disappearance
         t1 = start_idx - 1
         before_sampled = [t1 - i * frame_stride for i in range(num_before_frames)]
         before_sampled = [f for f in before_sampled if f >= 0]
         before_sampled.sort()
         
-        # Query: after reappearance
         t2 = end_idx
         after_sampled = [t2 + i * frame_stride for i in range(num_after_frames)]
-        after_sampled = [f for f in after_sampled if f < total_frames]
+        after_sampled = [f for f in after_sampled if f < min(total_frames, len(bboxes))]
         after_sampled.sort()
         
         needed_frames = sorted(list(set(before_sampled + after_sampled)))
@@ -88,7 +106,7 @@ def process_sequence(seq_path, output_base, split, num_before_frames=16, num_aft
         if not needed_frames:
             continue
             
-        event_out_dir = os.path.join(output_base, split, f"{seq_name}_event_{event_idx}")
+        event_out_dir = os.path.join(output_base, split, f"{anno_name}_event_{event_idx}")
         before_dir = os.path.join(event_out_dir, "before")
         after_dir = os.path.join(event_out_dir, "after")
         os.makedirs(before_dir, exist_ok=True)
@@ -98,16 +116,12 @@ def process_sequence(seq_path, output_base, split, num_before_frames=16, num_aft
         after_frames_files = []
         
         for frame_idx in needed_frames:
-            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
-            ret, frame = cap.read()
-            if not ret:
-                continue
-                
-            if frame_idx >= len(bboxes):
+            img_path = os.path.join(img_folder, all_imgs[frame_idx])
+            frame = cv2.imread(img_path)
+            if frame is None:
                 continue
                 
             bbox = bboxes[frame_idx]
-            # [x, y, w, h] format
             if len(bbox) < 4 or bbox[2] <= 0 or bbox[3] <= 0:
                 continue
                 
@@ -127,45 +141,51 @@ def process_sequence(seq_path, output_base, split, num_before_frames=16, num_aft
                 
         if before_frames_files and after_frames_files:
             pairs.append({
-                "sequence_id": seq_name,
+                "sequence_id": anno_name,
                 "event_index": event_idx,
-                "identity_id": None, # Will be assigned later globally
+                "identity_id": None, 
                 "gallery_frames": before_frames_files,
                 "query_frames": after_frames_files,
-                "gallery_dir": f"{seq_name}_event_{event_idx}/before",
-                "query_dir": f"{seq_name}_event_{event_idx}/after",
+                "gallery_dir": f"{anno_name}_event_{event_idx}/before",
+                "query_dir": f"{anno_name}_event_{event_idx}/after",
                 "disappearance_duration_frames": end_idx - start_idx,
                 "language_description": "",
-                "attributes": []
+                "attributes": attributes
             })
             
-    cap.release()
-    
     return {
         "status": "success",
-        "seq_name": seq_name,
+        "seq_name": anno_name,
         "pairs": pairs
     }
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--rgbt-data-dir", default="../Anti-UAV-RGBT")
-    parser.add_argument("--processed-dir", default="../UAVAntiUAV/processed")
+    parser.add_argument("--uav123-data-dir", default="./data/UAV123")
+    parser.add_argument("--processed-dir", default="./processed")
+    parser.add_argument("--config", type=str, default=None, help="Path to yaml config (overrides args)")
+    
+    # Fallback default args if config not provided
+    parser.add_argument("--num-before-frames", type=int, default=16)
+    parser.add_argument("--num-after-frames", type=int, default=16)
     parser.add_argument("--frame-stride", type=int, default=1)
-    parser.add_argument("--config", type=str, default=None)
+    parser.add_argument("--bbox-padding", type=float, default=0.2)
+    parser.add_argument("--crop-size", type=int, default=256)
+    
     args = parser.parse_args()
     
-    import yaml
     if args.config and os.path.exists(args.config):
         with open(args.config, "r") as f:
             cfg = yaml.safe_load(f)
         if "data_pipeline" in cfg:
             dp = cfg["data_pipeline"]
-            args.rgbt_data_dir = dp.get("anti_uav_rgbt_dir", args.rgbt_data_dir)
-            args.processed_dir = dp.get("output_dir", args.processed_dir)
+            args.num_before_frames = dp.get("num_before_frames", args.num_before_frames)
+            args.num_after_frames = dp.get("num_after_frames", args.num_after_frames)
             args.frame_stride = dp.get("frame_stride", args.frame_stride)
+            args.bbox_padding = dp.get("bbox_padding", args.bbox_padding)
+            args.crop_size = dp.get("crop_size", args.crop_size)
     
-    rgbt_data_dir = args.rgbt_data_dir
+    uav123_data_dir = args.uav123_data_dir
     processed_dir = args.processed_dir
     
     query_train_json = os.path.join(processed_dir, "query_train.json")
@@ -174,51 +194,66 @@ def main():
     gallery_test_json = os.path.join(processed_dir, "gallery_test.json")
     
     print(f"Loading existing JSON files...")
-    with open(query_train_json, "r") as f:
-        existing_query_train = json.load(f)
-    with open(gallery_train_json, "r") as f:
-        existing_gallery_train = json.load(f)
-    with open(query_test_json, "r") as f:
-        existing_query_test = json.load(f)
-    with open(gallery_test_json, "r") as f:
-        existing_gallery_test = json.load(f)
+    if os.path.exists(query_train_json):
+        with open(query_train_json, "r") as f:
+            existing_query_train = json.load(f)
+    else:
+        existing_query_train = []
+        
+    if os.path.exists(gallery_train_json):
+        with open(gallery_train_json, "r") as f:
+            existing_gallery_train = json.load(f)
+    else:
+        existing_gallery_train = []
+
+    if os.path.exists(query_test_json):
+        with open(query_test_json, "r") as f:
+            existing_query_test = json.load(f)
+    else:
+        existing_query_test = []
+        
+    if os.path.exists(gallery_test_json):
+        with open(gallery_test_json, "r") as f:
+            existing_gallery_test = json.load(f)
+    else:
+        existing_gallery_test = []
         
     all_existing_pids = [p["identity_id"] for p in existing_query_train + existing_query_test if p["identity_id"] is not None]
     max_id = max(all_existing_pids) if all_existing_pids else -1
     print(f"Current maximum identity_id: {max_id}")
     
-    splits = {
-        "train": ["train", "val"],
-        "test": ["test"]
-    }
+    anno_dir = os.path.join(uav123_data_dir, "anno", "UAV123")
+    seqs = sorted([f[:-4] for f in os.listdir(anno_dir) if f.endswith('.txt')])
     
+    import hashlib
+    tasks = []
+    
+    for anno_name in seqs:
+        # Deterministic split: 80% train, 20% test
+        # Group by base name (e.g., group1) so sub-sequences (group1_1, group1_2) fall into the same split
+        base_name = anno_name.rsplit('_', 1)[0]
+        hash_val = int(hashlib.md5(base_name.encode()).hexdigest(), 16)
+        out_split = "test" if hash_val % 5 == 0 else "train"
+        
+        tasks.append((anno_name, uav123_data_dir, processed_dir, out_split, args.num_before_frames, args.num_after_frames, args.frame_stride, args.bbox_padding, args.crop_size))
+            
     new_train_pairs = []
     new_test_pairs = []
     
-    for out_split, rgbt_splits in splits.items():
-        tasks = []
-        for rgbt_split in rgbt_splits:
-            split_dir = os.path.join(rgbt_data_dir, rgbt_split)
-            if not os.path.exists(split_dir):
-                continue
+    print(f"Start processing {len(tasks)} sequences...")
+    
+    # We map futures to their out_split so we know where to append results
+    with ProcessPoolExecutor(max_workers=8) as executor:
+        future_to_split = {executor.submit(process_sequence, *task): task[3] for task in tasks}
+        for future in tqdm(as_completed(future_to_split), total=len(tasks), desc="Processing UAV123"):
+            out_split = future_to_split[future]
+            res = future.result()
+            if res["status"] == "success" and res["pairs"]:
+                if out_split == "train":
+                    new_train_pairs.extend(res["pairs"])
+                else:
+                    new_test_pairs.extend(res["pairs"])
                 
-            seqs = sorted([d for d in os.listdir(split_dir) if os.path.isdir(os.path.join(split_dir, d))])
-            for seq_name in seqs:
-                seq_path = os.path.join(split_dir, seq_name)
-                tasks.append((seq_path, processed_dir, out_split, 16, 16, args.frame_stride))
-                
-        out_list = new_train_pairs if out_split == "train" else new_test_pairs
-        
-        print(f"Start processing {len(tasks)} sequences for {out_split}...")
-        with ProcessPoolExecutor(max_workers=8) as executor:
-            futures = {executor.submit(process_sequence, *task): task for task in tasks}
-            
-            for future in tqdm(as_completed(futures), total=len(tasks), desc=f"Processing {out_split}"):
-                res = future.result()
-                if res["status"] == "success" and res["pairs"]:
-                    out_list.extend(res["pairs"])
-                    
-    # Assign unique IDs
     unique_new_seqs = set()
     for p in new_train_pairs + new_test_pairs:
         unique_new_seqs.add(p["sequence_id"])
@@ -270,13 +305,12 @@ def main():
         json.dump(existing_query_train, f, indent=4)
     with open(gallery_train_json, "w") as f:
         json.dump(existing_gallery_train, f, indent=4)
-        
     with open(query_test_json, "w") as f:
         json.dump(existing_query_test, f, indent=4)
     with open(gallery_test_json, "w") as f:
         json.dump(existing_gallery_test, f, indent=4)
         
-    print(f"DONE! Added {len(new_train_pairs)} pairs to train and {len(new_test_pairs)} pairs to test.")
+    print(f"DONE! Added {len(new_train_pairs)} pairs to UAV123 train and {len(new_test_pairs)} pairs to UAV123 test.")
 
 if __name__ == "__main__":
     main()

@@ -129,14 +129,31 @@ class TemporalConsistencyLoss(nn.Module):
 # ==========================================
 
 class UAVReIDDataset(Dataset):
-    def __init__(self, data_dir, json_path, transform=None, num_frames=16):
+    def __init__(self, data_dir, query_json, gallery_json, transform=None, num_frames=16):
         self.data_dir = data_dir
-        with open(json_path, 'r') as f:
-            self.pairs = json.load(f)
+        with open(query_json, 'r') as f:
+            queries = json.load(f)
+        with open(gallery_json, 'r') as f:
+            galleries = json.load(f)
+            
         self.transform = transform
         self.num_frames = num_frames
         
-        self.valid_pairs = [p for p in self.pairs if p['identity_id'] is not None]
+        g_dict = {(g['sequence_id'], g['event_index']): g for g in galleries}
+        self.valid_pairs = []
+        for q in queries:
+            key = (q['sequence_id'], q['event_index'])
+            if key in g_dict:
+                g = g_dict[key]
+                if q.get('identity_id') is not None:
+                    self.valid_pairs.append({
+                        'identity_id': q['identity_id'],
+                        'gallery_frames': g['frames'],
+                        'gallery_dir': g['frame_dir'],
+                        'query_frames': q['frames'],
+                        'query_dir': q['frame_dir']
+                    })
+        
         self.identities = sorted(list(set(p['identity_id'] for p in self.valid_pairs)))
         self.id_to_idx = {pid: i for i, pid in enumerate(self.identities)}
         self.num_identities = len(self.identities)
@@ -168,12 +185,9 @@ class UAVReIDDataset(Dataset):
 
     def __getitem__(self, idx):
         pair = self.valid_pairs[idx]
-        seq_event = f"{pair['sequence_id']}_event_{pair['event_index']}"
-        before_dir = os.path.join(seq_event, "before")
-        after_dir = os.path.join(seq_event, "after")
         
-        before_clip = self._load_clip(before_dir, pair['before_frames'])
-        after_clip = self._load_clip(after_dir, pair['after_frames'])
+        before_clip = self._load_clip(pair['gallery_dir'], pair['gallery_frames'])
+        after_clip = self._load_clip(pair['query_dir'], pair['query_frames'])
         
         pid = self.id_to_idx[pair['identity_id']]
         return before_clip, after_clip, pid
@@ -261,7 +275,8 @@ def main():
         cfg = yaml.safe_load(f)
 
     args.data_dir       = cfg.get('paths', {}).get('data_dir', 'processed')
-    args.pairs_json     = os.path.join(args.data_dir, 'pairs_train.json')
+    args.query_json     = os.path.join(args.data_dir, 'query_train.json')
+    args.gallery_json   = os.path.join(args.data_dir, 'gallery_train.json')
     args.gasnet_weights = cfg.get('paths', {}).get('gasnet_weights', '')
     args.checkpoint_dir = cfg.get('paths', {}).get('checkpoint_dir', 'checkpoints')
     args.log_dir        = cfg.get('paths', {}).get('log_dir', 'logs')
@@ -323,7 +338,7 @@ def main():
         transforms.RandomErasing(p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3))
     ])
 
-    dataset = UAVReIDDataset(train_dir, args.pairs_json, transform=transform_train, num_frames=args.num_frames)
+    dataset = UAVReIDDataset(train_dir, args.query_json, args.gallery_json, transform=transform_train, num_frames=args.num_frames)
     num_identities = dataset.num_identities
     
     batch_size = args.batch_size
@@ -343,8 +358,9 @@ def main():
         test_dir = os.path.join(args.data_dir, "test")
         if not os.path.exists(test_dir):
             test_dir = os.path.join(args.data_dir, "train")
-        val_pairs_json = args.pairs_json.replace('pairs_train', 'pairs_test')
-        val_dataset = EvalDataset(test_dir, val_pairs_json, transform=transform_test, num_frames=args.num_frames)
+        val_query_json = args.query_json.replace('query_train', 'query_test')
+        val_gallery_json = args.gallery_json.replace('gallery_train', 'gallery_test')
+        val_dataset = EvalDataset(test_dir, val_query_json, val_gallery_json, transform=transform_test, num_frames=args.num_frames)
         val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=2)
         has_val = True
     except Exception as e:
