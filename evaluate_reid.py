@@ -206,11 +206,13 @@ def main():
             state_dict = checkpoint.get('model_state_dict', checkpoint)
             # Remove '_orig_mod.' prefix added by torch.compile
             new_state_dict = {}
+            model_state = model.state_dict()
             for k, v in state_dict.items():
-                if k.startswith('_orig_mod.'):
-                    new_state_dict[k.replace('_orig_mod.', '')] = v
-                else:
-                    new_state_dict[k] = v
+                new_k = k.replace('_orig_mod.', '') if k.startswith('_orig_mod.') else k
+                # Only load if the shape matches, to avoid strict=False still raising size mismatch
+                if new_k in model_state and v.shape != model_state[new_k].shape:
+                    continue
+                new_state_dict[new_k] = v
             model.load_state_dict(new_state_dict, strict=False)
             print(f"Loaded {args.model_path}")
         else:
@@ -270,6 +272,7 @@ def main():
         
     # Visualization for error cases
     print("\nGenerating visualization for error cases (Contact Sheets)...")
+    error_info = {}
     for q_idx in range(len(q_pids)):
         if matches[q_idx].sum() > 0 and not matches[q_idx][0]:
             q_img_path = vis_paths_q[q_idx]
@@ -282,15 +285,25 @@ def main():
             sheet.paste(q_img, (0, 0))
             
             top5_idx = indices[q_idx][:5]
+            top5_paths = []
             for k, g_idx in enumerate(top5_idx):
                 g_img_path = vis_paths_g[g_idx]
+                top5_paths.append(g_img_path)
                 if os.path.exists(g_img_path):
                     g_img = Image.open(g_img_path).resize((128, 128))
                     color = "green" if g_pids[g_idx] == q_pids[q_idx] else "red"
                     g_img = draw_border(g_img, color, width=5)
                     sheet.paste(g_img, (128 * (k+1) + 20, 0))
             
-            sheet.save(os.path.join(args.output_dir, f"error_q{q_idx}.jpg"))
+            error_filename = f"error_q{q_idx}.jpg"
+            sheet.save(os.path.join(args.output_dir, error_filename))
+            error_info[error_filename] = {
+                "query_path": q_img_path,
+                "top5_gallery_paths": top5_paths
+            }
+            
+    with open(os.path.join(args.output_dir, "error_cases_info.json"), "w") as f:
+        json.dump(error_info, f, indent=4)
 
     print("\n=== ONLINE SEQUENTIAL EVALUATION (STREAM PROTOCOL) ===")
     threshold = 0.7
