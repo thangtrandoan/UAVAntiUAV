@@ -28,7 +28,7 @@ def crop_and_resize(frame, bbox, padding, crop_size):
     except Exception as e:
         return None
 
-def process_sequence(anno_name, uav123_data_dir, output_base, split, num_before_frames=16, num_after_frames=16, frame_stride=1, bbox_padding=0.2, crop_size=256):
+def process_sequence(anno_name, uav123_data_dir, output_base, split, start_frame=1, num_before_frames=16, num_after_frames=16, frame_stride=1, bbox_padding=0.2, crop_size=256):
     anno_dir = os.path.join(uav123_data_dir, "anno", "UAV123")
     seq_dir_base = os.path.join(uav123_data_dir, "data_seq", "UAV123")
     
@@ -116,7 +116,10 @@ def process_sequence(anno_name, uav123_data_dir, output_base, split, num_before_
         after_frames_files = []
         
         for frame_idx in needed_frames:
-            img_path = os.path.join(img_folder, all_imgs[frame_idx])
+            img_idx = start_frame - 1 + frame_idx
+            if img_idx < 0 or img_idx >= total_frames:
+                continue
+            img_path = os.path.join(img_folder, all_imgs[img_idx])
             frame = cv2.imread(img_path)
             if frame is None:
                 continue
@@ -218,6 +221,15 @@ def main():
     else:
         existing_gallery_test = []
         
+    anno_dir = os.path.join(uav123_data_dir, "anno", "UAV123")
+    seqs = sorted([f[:-4] for f in os.listdir(anno_dir) if f.endswith('.txt')])
+    
+    # Lọc bỏ các dữ liệu UAV123 cũ (nếu có) trong JSON để tránh bị duplicate khi chạy lại
+    existing_query_train = [p for p in existing_query_train if p["sequence_id"] not in seqs]
+    existing_gallery_train = [p for p in existing_gallery_train if p["sequence_id"] not in seqs]
+    existing_query_test = [p for p in existing_query_test if p["sequence_id"] not in seqs]
+    existing_gallery_test = [p for p in existing_gallery_test if p["sequence_id"] not in seqs]
+
     all_existing_pids = [p["identity_id"] for p in existing_query_train + existing_query_test if p["identity_id"] is not None]
     max_id = max(all_existing_pids) if all_existing_pids else -1
     print(f"Current maximum identity_id: {max_id}")
@@ -226,16 +238,28 @@ def main():
     seqs = sorted([f[:-4] for f in os.listdir(anno_dir) if f.endswith('.txt')])
     
     import hashlib
+    import re
+    
+    start_frames = {}
+    config_path = os.path.join(uav123_data_dir, 'configSeqs.m')
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as f:
+            content = f.read()
+            matches = re.finditer(r"struct\('name','([^']+)'.*?'startFrame',(\d+)", content)
+            for m in matches:
+                start_frames[m.group(1)] = int(m.group(2))
+                
     tasks = []
     
     for anno_name in seqs:
+        start_frame = start_frames.get(anno_name, 1)
         # Deterministic split: 80% train, 20% test
         # Group by base name (e.g., group1) so sub-sequences (group1_1, group1_2) fall into the same split
         base_name = anno_name.rsplit('_', 1)[0]
         hash_val = int(hashlib.md5(base_name.encode()).hexdigest(), 16)
         out_split = "test" if hash_val % 5 == 0 else "train"
         
-        tasks.append((anno_name, uav123_data_dir, processed_dir, out_split, args.num_before_frames, args.num_after_frames, args.frame_stride, args.bbox_padding, args.crop_size))
+        tasks.append((anno_name, uav123_data_dir, processed_dir, out_split, start_frame, args.num_before_frames, args.num_after_frames, args.frame_stride, args.bbox_padding, args.crop_size))
             
     new_train_pairs = []
     new_test_pairs = []
