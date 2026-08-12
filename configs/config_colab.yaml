@@ -67,9 +67,11 @@ train:
 # --- Evaluation ---
 eval:
   model_path: /content/best_model.pth
-  pairs_json: /content/processed/pairs_test.json
+  query_json: /content/processed/query_test.json
+  gallery_json: /content/processed/gallery_test.json
   output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results
   batch_size: 128             # Khi test không cần tính gradient nên để batch size rất lớn
   num_workers: 8
   backbone_only: false
+
   reid_threshold: 0.7

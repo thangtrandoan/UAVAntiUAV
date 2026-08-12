@@ -202,7 +202,8 @@ def main():
     model = UAVReIDNet(freeze_backbone=False)
     if not args.backbone_only:
         if os.path.exists(args.model_path):
-            model.load_state_dict(torch.load(args.model_path, map_location='cpu'), strict=False)
+            checkpoint = torch.load(args.model_path, map_location='cpu')
+            model.load_state_dict(checkpoint.get('model_state_dict', checkpoint), strict=False)
             print(f"Loaded {args.model_path}")
         else:
             print(f"Warning: {args.model_path} not found! Mamba head has random weights. (Use --backbone-only to evaluate pure GASNet)")
