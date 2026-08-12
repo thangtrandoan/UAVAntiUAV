@@ -203,7 +203,15 @@ def main():
     if not args.backbone_only:
         if os.path.exists(args.model_path):
             checkpoint = torch.load(args.model_path, map_location='cpu')
-            model.load_state_dict(checkpoint.get('model_state_dict', checkpoint), strict=False)
+            state_dict = checkpoint.get('model_state_dict', checkpoint)
+            # Remove '_orig_mod.' prefix added by torch.compile
+            new_state_dict = {}
+            for k, v in state_dict.items():
+                if k.startswith('_orig_mod.'):
+                    new_state_dict[k.replace('_orig_mod.', '')] = v
+                else:
+                    new_state_dict[k] = v
+            model.load_state_dict(new_state_dict, strict=False)
             print(f"Loaded {args.model_path}")
         else:
             print(f"Warning: {args.model_path} not found! Mamba head has random weights. (Use --backbone-only to evaluate pure GASNet)")
