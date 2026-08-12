@@ -176,6 +176,7 @@ def main():
     args.num_workers   = ec.get('num_workers', 4)
     args.backbone_only = ec.get('backbone_only', False)
     args.intra_sequence = ec.get('intra_sequence', False)
+    args.max_correct_vis = ec.get('max_correct_vis', -1)
     args.num_frames    = cfg.get('train', {}).get('num_frames', 16)
     args.gpu_jetson    = cfg.get('device', {}).get('gpu_jetson', False)
 
@@ -287,17 +288,24 @@ def main():
     gf_norm = F.normalize(gf, p=2, dim=1)
     sim_matrix = torch.mm(qf_norm, gf_norm.t()).cpu().numpy()
 
-    # Visualization for error cases
-    print("\nGenerating visualization for error cases (Contact Sheets)...")
+    # Visualization for all evaluation cases
+    print("\nGenerating visualization for all evaluated cases (Contact Sheets)...")
     from PIL import ImageDraw, ImageFont
     try:
         font = ImageFont.truetype("arial.ttf", 14)
     except IOError:
         font = ImageFont.load_default()
         
-    error_info = {}
+    eval_info = {}
+    saved_correct_count = 0
     for q_idx in range(len(q_pids)):
-        if matches[q_idx].sum() > 0 and not matches[q_idx][0]:
+        if matches[q_idx].sum() > 0:
+            is_correct = matches[q_idx][0]
+            if is_correct and args.max_correct_vis >= 0 and saved_correct_count >= args.max_correct_vis:
+                continue
+            if is_correct:
+                saved_correct_count += 1
+                
             q_img_path = vis_paths_q[q_idx]
             if not os.path.exists(q_img_path): continue
             
@@ -338,31 +346,37 @@ def main():
                 seq_id = q_seq_ids[q_idx]
                 seq_out_dir = os.path.join(args.output_dir, seq_id)
                 os.makedirs(seq_out_dir, exist_ok=True)
-                error_filename = f"error_q{q_idx}.jpg"
-                sheet.save(os.path.join(seq_out_dir, error_filename))
                 
-                if seq_id not in error_info:
-                    error_info[seq_id] = {}
+                # Highlight if correct or error in filename
+                prefix = "correct" if is_correct else "error"
+                result_filename = f"{prefix}_q{q_idx}.jpg"
+                sheet.save(os.path.join(seq_out_dir, result_filename))
+                
+                if seq_id not in eval_info:
+                    eval_info[seq_id] = {}
                     
-                error_info[seq_id][error_filename] = {
+                eval_info[seq_id][result_filename] = {
                     "query_path": q_img_path,
-                    "top5_gallery_paths": top5_paths
+                    "top5_gallery_paths": top5_paths,
+                    "is_rank1_correct": bool(is_correct)
                 }
             else:
-                error_filename = f"error_q{q_idx}.jpg"
-                sheet.save(os.path.join(args.output_dir, error_filename))
-                error_info[error_filename] = {
+                prefix = "correct" if is_correct else "error"
+                result_filename = f"{prefix}_q{q_idx}.jpg"
+                sheet.save(os.path.join(args.output_dir, result_filename))
+                eval_info[result_filename] = {
                     "query_path": q_img_path,
-                    "top5_gallery_paths": top5_paths
+                    "top5_gallery_paths": top5_paths,
+                    "is_rank1_correct": bool(is_correct)
                 }
             
     if args.intra_sequence:
-        for seq_id, info in error_info.items():
-            with open(os.path.join(args.output_dir, seq_id, "error_cases_info.json"), "w") as f:
+        for seq_id, info in eval_info.items():
+            with open(os.path.join(args.output_dir, seq_id, "eval_cases_info.json"), "w") as f:
                 json.dump(info, f, indent=4)
     else:
-        with open(os.path.join(args.output_dir, "error_cases_info.json"), "w") as f:
-            json.dump(error_info, f, indent=4)
+        with open(os.path.join(args.output_dir, "eval_cases_info.json"), "w") as f:
+            json.dump(eval_info, f, indent=4)
 
     print("\n=== ONLINE SEQUENTIAL EVALUATION (STREAM PROTOCOL) ===")
     threshold = 0.7
