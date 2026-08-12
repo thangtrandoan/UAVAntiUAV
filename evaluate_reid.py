@@ -93,19 +93,27 @@ class EvalDataset(Dataset):
         
         pid = pair['identity_id']
         attrs = pair.get('attributes', [])
-        return before_clip, after_clip, pid, str(attrs), vis_path_a, vis_path_b
+        seq_id = pair['sequence_id']
+        return before_clip, after_clip, pid, str(attrs), vis_path_a, vis_path_b, seq_id
 
 def draw_border(image, color, width=5):
     draw = ImageDraw.Draw(image)
     draw.rectangle([(0, 0), (image.size[0]-1, image.size[1]-1)], outline=color, width=width)
     return image
 
-def eval_map_cmc(qf, gf, q_pids, g_pids):
+def eval_map_cmc(qf, gf, q_pids, g_pids, q_seq_ids=None, g_seq_ids=None, intra_sequence=False):
     qf = F.normalize(qf, p=2, dim=1)
     gf = F.normalize(gf, p=2, dim=1)
     
     distmat = 1 - torch.mm(qf, gf.t())
     distmat = distmat.cpu().numpy()
+    
+    if intra_sequence and q_seq_ids is not None and g_seq_ids is not None:
+        q_seqs = np.asarray(q_seq_ids)
+        g_seqs = np.asarray(g_seq_ids)
+        mask = (q_seqs[:, np.newaxis] != g_seqs[np.newaxis, :])
+        distmat[mask] = np.inf
+        
     q_pids = np.asarray(q_pids)
     g_pids = np.asarray(g_pids)
     
@@ -167,6 +175,7 @@ def main():
     args.batch_size    = ec.get('batch_size', 32)
     args.num_workers   = ec.get('num_workers', 4)
     args.backbone_only = ec.get('backbone_only', False)
+    args.intra_sequence = ec.get('intra_sequence', False)
     args.num_frames    = cfg.get('train', {}).get('num_frames', 16)
     args.gpu_jetson    = cfg.get('device', {}).get('gpu_jetson', False)
 
@@ -224,13 +233,14 @@ def main():
     
     qf, gf = [], []
     q_pids, g_pids = [], []
+    q_seq_ids, g_seq_ids = [], []
     attributes_list = []
     vis_paths_q, vis_paths_g = [], []
     
     print("Extracting features...")
     start_time = time.time()
     with torch.no_grad():
-        for i, (before, after, pids, attrs, v_q, v_g) in enumerate(dataloader):
+        for i, (before, after, pids, attrs, v_q, v_g, seq_ids) in enumerate(dataloader):
             before, after = before.cuda(), after.cuda()
             bn_feat_g = model(before, backbone_only=args.backbone_only)
             bn_feat_q = model(after, backbone_only=args.backbone_only)
@@ -239,6 +249,8 @@ def main():
             qf.append(bn_feat_q)
             g_pids.extend(pids.numpy())
             q_pids.extend(pids.numpy())
+            q_seq_ids.extend(seq_ids)
+            g_seq_ids.extend(seq_ids)
             attributes_list.extend(attrs)
             vis_paths_q.extend(v_q)
             vis_paths_g.extend(v_g)
@@ -252,7 +264,7 @@ def main():
     gf = torch.cat(gf, dim=0)
     
     print("Computing metrics...")
-    cmc, mAP, mINP, indices, matches = eval_map_cmc(qf, gf, q_pids, g_pids)
+    cmc, mAP, mINP, indices, matches = eval_map_cmc(qf, gf, q_pids, g_pids, q_seq_ids, g_seq_ids, args.intra_sequence)
     
     print("\n=== OFFLINE REID EVALUATION (STATIC PROTOCOL) ===")
     print(f"Rank-1 Accuracy: {cmc[0]*100:.2f}%")
@@ -270,8 +282,19 @@ def main():
     with open(os.path.join(args.output_dir, "evaluation_report.json"), "w") as f:
         json.dump(report, f, indent=4)
         
+    # Pre-calculate similarity matrix for visualization and online eval
+    qf_norm = F.normalize(qf, p=2, dim=1)
+    gf_norm = F.normalize(gf, p=2, dim=1)
+    sim_matrix = torch.mm(qf_norm, gf_norm.t()).cpu().numpy()
+
     # Visualization for error cases
     print("\nGenerating visualization for error cases (Contact Sheets)...")
+    from PIL import ImageDraw, ImageFont
+    try:
+        font = ImageFont.truetype("arial.ttf", 14)
+    except IOError:
+        font = ImageFont.load_default()
+        
     error_info = {}
     for q_idx in range(len(q_pids)):
         if matches[q_idx].sum() > 0 and not matches[q_idx][0]:
@@ -293,27 +316,65 @@ def main():
                     g_img = Image.open(g_img_path).resize((128, 128))
                     color = "green" if g_pids[g_idx] == q_pids[q_idx] else "red"
                     g_img = draw_border(g_img, color, width=5)
+                    
+                    # Draw confidence score
+                    conf_score = sim_matrix[q_idx][g_idx]
+                    draw = ImageDraw.Draw(g_img)
+                    text = f"{conf_score:.2f}"
+                    
+                    if hasattr(draw, 'textbbox'):
+                        bbox = draw.textbbox((0, 0), text, font=font)
+                        text_w = bbox[2] - bbox[0]
+                        text_h = bbox[3] - bbox[1]
+                    else:
+                        text_w, text_h = draw.textsize(text, font=font)
+                        
+                    draw.rectangle([(0, 0), (text_w + 4, text_h + 4)], fill="black")
+                    draw.text((2, 2), text, fill="white", font=font)
+                    
                     sheet.paste(g_img, (128 * (k+1) + 20, 0))
+                    
+            if args.intra_sequence:
+                seq_id = q_seq_ids[q_idx]
+                seq_out_dir = os.path.join(args.output_dir, seq_id)
+                os.makedirs(seq_out_dir, exist_ok=True)
+                error_filename = f"error_q{q_idx}.jpg"
+                sheet.save(os.path.join(seq_out_dir, error_filename))
+                
+                if seq_id not in error_info:
+                    error_info[seq_id] = {}
+                    
+                error_info[seq_id][error_filename] = {
+                    "query_path": q_img_path,
+                    "top5_gallery_paths": top5_paths
+                }
+            else:
+                error_filename = f"error_q{q_idx}.jpg"
+                sheet.save(os.path.join(args.output_dir, error_filename))
+                error_info[error_filename] = {
+                    "query_path": q_img_path,
+                    "top5_gallery_paths": top5_paths
+                }
             
-            error_filename = f"error_q{q_idx}.jpg"
-            sheet.save(os.path.join(args.output_dir, error_filename))
-            error_info[error_filename] = {
-                "query_path": q_img_path,
-                "top5_gallery_paths": top5_paths
-            }
-            
-    with open(os.path.join(args.output_dir, "error_cases_info.json"), "w") as f:
-        json.dump(error_info, f, indent=4)
+    if args.intra_sequence:
+        for seq_id, info in error_info.items():
+            with open(os.path.join(args.output_dir, seq_id, "error_cases_info.json"), "w") as f:
+                json.dump(info, f, indent=4)
+    else:
+        with open(os.path.join(args.output_dir, "error_cases_info.json"), "w") as f:
+            json.dump(error_info, f, indent=4)
 
     print("\n=== ONLINE SEQUENTIAL EVALUATION (STREAM PROTOCOL) ===")
     threshold = 0.7
     latencies = []
     false_alarms = 0
     
-    qf_norm = F.normalize(qf, p=2, dim=1)
-    gf_norm = F.normalize(gf, p=2, dim=1)
-    sim_matrix = torch.mm(qf_norm, gf_norm.t()).cpu().numpy()
-    
+    if args.intra_sequence and q_seq_ids and g_seq_ids:
+        q_seqs = np.asarray(q_seq_ids)
+        g_seqs = np.asarray(g_seq_ids)
+        mask = (q_seqs[:, np.newaxis] != g_seqs[np.newaxis, :])
+        sim_matrix[mask] = -np.inf
+        
     for i in range(len(q_pids)):
         true_pid = q_pids[i]
         sims = sim_matrix[i]

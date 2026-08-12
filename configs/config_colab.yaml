@@ -73,5 +73,5 @@ eval:
   batch_size: 128             # Khi test không cần tính gradient nên để batch size rất lớn
   num_workers: 8
   backbone_only: false
-
   reid_threshold: 0.7
+  intra_sequence: true
