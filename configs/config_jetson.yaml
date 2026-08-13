@@ -62,3 +62,12 @@ eval:
   num_workers: 2
   backbone_only: false
   reid_threshold: 0.7
+
+# --- Inference ---
+infer:
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  model_path: ./best_model.pth
+  output_video: results_demo.mp4
+  reid_threshold: 0.75
+  num_frames: 16
+  bbox_padding: 0.2

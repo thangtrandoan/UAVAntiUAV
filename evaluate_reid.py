@@ -318,6 +318,9 @@ def main():
             top5_idx = indices[q_idx][:5]
             top5_paths = []
             for k, g_idx in enumerate(top5_idx):
+                if args.intra_sequence and q_seq_ids[q_idx] != g_seq_ids[g_idx]:
+                    continue
+                    
                 g_img_path = vis_paths_g[g_idx]
                 top5_paths.append(g_img_path)
                 if os.path.exists(g_img_path):

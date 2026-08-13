@@ -1,0 +1,5 @@
+--- PERFORMANCE METRICS ---
+Average Inference Time (per 16 frames): 611.09 ms
+Average FPS (System throughput)                 : 1.64 FPS
+Re-acquisition Latency                          : 16 frames
+Total False Alarms / Ignored Detections         : 2

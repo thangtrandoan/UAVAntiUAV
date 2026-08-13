@@ -84,28 +84,49 @@ class SimpleS6Block(nn.Module):
         
         A = -torch.exp(self.A_log.float()) # [d_inner, d_state]
         
-        # 4. Selective Scan (Sequential Scan for simplicity/fallback)
-        # LƯU Ý CRITICAL: Bắt buộc phải tính toán chuỗi bằng float32 để tránh sinh ra NaN khi dùng AMP
+        # 4. Selective Scan (Vectorized Parallel Scan)
+        # Thay vì viết C++, ta sử dụng thủ thuật Toán học (Parallel Cumsum) 
+        # để biến vòng lặp tuần tự thành tính toán ma trận song song 100% trên GPU.
         dt = dt.float()
         B_mat = B_mat.float()
         C_mat = C_mat.float()
         x_conv_f32 = x_conv.float()
         
-        h = torch.zeros(B, self.d_inner, self.d_state, device=x.device, dtype=torch.float32)
-        y = []
+        # W = dt * A
+        W = dt.unsqueeze(-1) * A.unsqueeze(0).unsqueeze(0) # [B, L, d_inner, d_state]
         
-        for i in range(L):
-            dt_i = dt[:, i, :].unsqueeze(-1)
-            dA = torch.exp(dt_i * A)
-            dB = dt_i * B_mat[:, i, :].unsqueeze(1)
-            
-            x_i = x_conv_f32[:, i, :].unsqueeze(-1)
-            h = dA * h + dB * x_i
-            
-            y_i = (h * C_mat[:, i, :].unsqueeze(1)).sum(dim=-1)
-            y.append(y_i)
-            
-        y = torch.stack(y, dim=1).to(x.dtype) # [B, L, d_inner]
+        # V = (dt * B) * x
+        dB = dt.unsqueeze(-1) * B_mat.unsqueeze(2) # [B, L, d_inner, d_state]
+        V = dB * x_conv_f32.unsqueeze(-1) # [B, L, d_inner, d_state]
+        
+        # Giải quyết NaN bằng ma trận (Attention-like formulation)
+        # Thay vì exp(-P) gây tràn số dương, ta tính trực tiếp P_i - P_j <= 0
+        W_t = W.permute(0, 2, 3, 1) # [B, d_inner, d_state, L]
+        V_t = V.permute(0, 2, 3, 1) # [B, d_inner, d_state, L]
+        
+        P = torch.cumsum(W_t, dim=-1) # [B, d_inner, d_state, L]
+        
+        # Tạo ma trận mask tam giác dưới (j <= i)
+        mask = torch.tril(torch.ones(L, L, device=x.device)).view(1, 1, 1, L, L)
+        
+        # Tính M_{i,j} = P_i - P_j
+        # P.unsqueeze(-1) shape: [..., L, 1] (ứng với i)
+        # P.unsqueeze(-2) shape: [..., 1, L] (ứng với j)
+        M = P.unsqueeze(-1) - P.unsqueeze(-2)
+        
+        # Dùng masked_fill để tránh tính exp(số dương) gây inf, sau đó inf * 0 = nan
+        M = M.masked_fill(mask == 0, float('-inf'))
+        weights = torch.exp(M) # Các vị trí j > i sẽ thành exp(-inf) = 0
+        
+        # Tính h_i = sum_j weights_{i,j} V_j
+        h_t = (weights * V_t.unsqueeze(-2)).sum(dim=-1) # [B, d_inner, d_state, L]
+        
+        h = h_t.permute(0, 3, 1, 2) # Trả về [B, L, d_inner, d_state]
+        
+        # Output y_i = (h_i * C_i)
+        y = (h * C_mat.unsqueeze(2)).sum(dim=-1) # [B, L, d_inner]
+        
+        y = y.to(x.dtype) # [B, L, d_inner]
         y = y + x_conv * self.D
         
         # 5. Output gating

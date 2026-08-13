@@ -1,0 +1,6 @@
+--- PERFORMANCE METRICS ---
+Average CNN Feature Extraction (per frame) : 49.25 ms
+Average Mamba + Head Time (per 16 frames)  : 0.00 ms
+Average FPS (System throughput)            : 20.30 FPS
+Re-acquisition Latency                          : N/A (Never recovered)
+Total False Alarms / Ignored Detections         : 0
