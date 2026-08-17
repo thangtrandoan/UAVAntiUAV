@@ -75,3 +75,23 @@ eval:
   backbone_only: false
   reid_threshold: 0.7
   intra_sequence: true
+
+# --- Inference ---
+infer:
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  model_path: ./best_model.pth
+  output_video: results_demo.mp4
+  reid_threshold: 0.75
+  num_frames: 16
+  bbox_padding: 0.2
+
+# --- Inference Robustness Test ---
+infer_robustness:
+  seq_dir: /content/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  data_root: /content/UAV-Anti-UAV/Test
+  model_path: /content/best_model.pth
+  output_video: output_robustness.mp4
+  reid_threshold: 0.7
+  num_frames: 16
+  bbox_padding: 0.2
+  num_imposters: 10

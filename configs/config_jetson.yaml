@@ -71,3 +71,14 @@ infer:
   reid_threshold: 0.75
   num_frames: 16
   bbox_padding: 0.2
+
+# --- Inference Robustness Test ---
+infer_robustness:
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  data_root: ./data/UAV-Anti-UAV/Test
+  model_path: ./best_model.pth
+  output_video: output_robustness.mp4
+  reid_threshold: 0.75
+  num_frames: 16
+  bbox_padding: 0.2
+  num_imposters: 5
