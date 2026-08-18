@@ -11,6 +11,7 @@ from PIL import Image
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import builtins
 
 from model import UAVReIDNet
 
@@ -46,6 +47,8 @@ def parse_args():
     parser.add_argument("--num-frames", type=int, default=16, help="Number of frames for temporal modeling")
     parser.add_argument("--bbox-padding", type=float, default=0.2, help="BBox padding ratio")
     parser.add_argument("--num-imposters", type=int, default=5, help="Number of imposter videos to sample per verification")
+    parser.add_argument("--max-anchor-size", type=int, default=5)
+    parser.add_argument("--max-recent-size", type=int, default=15)
     return parser.parse_args()
 
 def crop_and_resize(frame, bbox, padding, crop_size=256, final_size=224):
@@ -163,6 +166,8 @@ def main():
                 args.num_frames = inf.get('num_frames', args.num_frames)
                 args.bbox_padding = inf.get('bbox_padding', args.bbox_padding)
                 args.num_imposters = inf.get('num_imposters', args.num_imposters)
+                args.max_anchor_size = inf.get('max_anchor_size', args.max_anchor_size)
+                args.max_recent_size = inf.get('max_recent_size', args.max_recent_size)
             elif 'infer' in cfg:
                 inf = cfg['infer']
                 args.seq_dir = inf.get('seq_dir', args.seq_dir)
@@ -182,8 +187,24 @@ def main():
     
     out_dir = os.path.join("infer_robustness", seq_name)
     os.makedirs(out_dir, exist_ok=True)
+    
+    with open(os.path.join(out_dir, "config_used.yaml"), "w") as f:
+        yaml.dump(vars(args), f, default_flow_style=False)
+        
     final_output_path = os.path.join(out_dir, args.output_video)
     log_path = os.path.join(out_dir, "robustness_log.txt")
+    log_file = open(log_path, "w")
+    
+    _orig_print = builtins.print
+    def custom_print(*args_p, **kwargs_p):
+        msg = " ".join(str(a) for a in args_p)
+        _orig_print(msg, **kwargs_p)
+        if not log_file.closed:
+            log_file.write(msg + "\n")
+            log_file.flush()
+    globals()['print'] = custom_print
+    
+    log_file.write("--- CSV DATA: Frame, Genuine_Sim, Imposter_Sims ---\n")
     
     if not os.path.exists(video_path):
         print(f"Error: Video not found at {video_path}")
@@ -236,8 +257,26 @@ def main():
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out_vid = cv2.VideoWriter(final_output_path, fourcc, fps_video, (width, height))
     
-    memory_bank = []
+    anchor_bank = []
+    recent_bank = []
     feature_buffer = []
+    
+    def update_memory_banks(feat):
+        if len(anchor_bank) > 0:
+            sim_to_anchors = [torch.mm(feat, g_feat.t()).item() for g_feat in anchor_bank]
+            if max(sim_to_anchors) < 0.40:
+                return True # Hijacked
+                
+        if len(anchor_bank) < args.max_anchor_size:
+            anchor_bank.append(feat)
+        else:
+            all_feats = anchor_bank + recent_bank
+            sims = [torch.mm(feat, g_feat.t()).item() for g_feat in all_feats]
+            if not sims or max(sims) < 0.95:
+                recent_bank.append(feat)
+                if len(recent_bank) > args.max_recent_size:
+                    recent_bank.pop(0)
+        return False
     
     status = "INITIAL_TRACKING"
     frame_idx = 0
@@ -245,9 +284,6 @@ def main():
     # Store metrics for final report
     all_genuine_scores = []
     all_imposter_scores = []
-    
-    log_file = open(log_path, "w")
-    log_file.write("Frame, Genuine_Sim, Imposter_Sims\n")
     
     print(f"Starting Robustness Inference on {seq_name}...")
     
@@ -277,8 +313,7 @@ def main():
                         
                     seq_feats = torch.stack(feature_buffer, dim=1)
                     gallery_feat = compute_reid_embedding(model, seq_feats)
-                    memory_bank.append(gallery_feat)
-                    if len(memory_bank) > 50: memory_bank.pop(0)
+                    update_memory_banks(gallery_feat)
                 status = "LOST"
                 feature_buffer = []
             elif valid_bbox:
@@ -293,17 +328,20 @@ def main():
                         if frame_idx % 60 == 0 and len(feature_buffer) == args.num_frames:
                             seq_feats = torch.stack(feature_buffer, dim=1)
                             gallery_feat = compute_reid_embedding(model, seq_feats)
-                            memory_bank.append(gallery_feat)
-                            if len(memory_bank) > 50: memory_bank.pop(0)
+                            if update_memory_banks(gallery_feat):
+                                status = "LOST"
+                                feature_buffer = []
                         
-                cv2.rectangle(display_frame, (bbox[0], bbox[1]), (bbox[0]+bbox[2], bbox[1]+bbox[3]), (255, 0, 0), 2)
-                cv2.putText(display_frame, "Tracking (Building Gallery)", (bbox[0], bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+                if status != "LOST":
+                    cv2.rectangle(display_frame, (bbox[0], bbox[1]), (bbox[0]+bbox[2], bbox[1]+bbox[3]), (255, 0, 0), 2)
+                    cv2.putText(display_frame, "Tracking (Building Gallery)", (bbox[0], bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
         elif status == "LOST":
             cv2.putText(display_frame, "TARGET LOST", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
             if not is_absent and valid_bbox:
                 status = "REAPPEARED_VERIFYING"
                 feature_buffer = []
+                if hasattr(model, 'cached_imposters'): model.cached_imposters = []
                 print(f"[{frame_idx}] Re-appeared! Collecting frames...")
 
         elif status == "REAPPEARED_VERIFYING":
@@ -327,16 +365,26 @@ def main():
                     seq_feats = torch.stack(feature_buffer, dim=1)
                     query_feature = compute_reid_embedding(model, seq_feats)
                     
-                    genuine_sims = [torch.mm(query_feature, g_feat.t()).item() for g_feat in memory_bank]
-                    best_genuine = max(genuine_sims) if genuine_sims else 0.0
+                    anchor_sims = [torch.mm(query_feature, g_feat.t()).item() for g_feat in anchor_bank]
+                    recent_sims = [torch.mm(query_feature, g_feat.t()).item() for g_feat in recent_bank]
+                    max_anc = max(anchor_sims) if anchor_sims else 0.0
+                    max_rec = max(recent_sims) if recent_sims else 0.0
+                    best_genuine = max(max_anc, max_rec)
+                    
                     all_genuine_scores.append(best_genuine)
                     
-                    # 2. Imposter Queries
-                    imposter_feats = sample_imposters(args.data_root, seq_name, args.num_imposters, model, transform, device, args)
+                    # 2. Imposter Queries (Cached during rolling window)
+                    if not hasattr(model, 'cached_imposters') or len(model.cached_imposters) == 0:
+                        model.cached_imposters = sample_imposters(args.data_root, seq_name, args.num_imposters, model, transform, device, args)
+                    
                     imposter_best_sims = []
-                    for imp_feat in imposter_feats:
-                        imp_sims = [torch.mm(imp_feat, g_feat.t()).item() for g_feat in memory_bank]
-                        imposter_best_sims.append(max(imp_sims) if imp_sims else 0.0)
+                    for imp_feat in model.cached_imposters:
+                        imp_anc_sims = [torch.mm(imp_feat, g_feat.t()).item() for g_feat in anchor_bank]
+                        imp_rec_sims = [torch.mm(imp_feat, g_feat.t()).item() for g_feat in recent_bank]
+                        i_max_anc = max(imp_anc_sims) if imp_anc_sims else 0.0
+                        i_max_rec = max(imp_rec_sims) if imp_rec_sims else 0.0
+                        imp_best = max(i_max_anc, i_max_rec)
+                        imposter_best_sims.append(imp_best)
                     
                     all_imposter_scores.extend(imposter_best_sims)
                     
@@ -351,15 +399,20 @@ def main():
                     max_imposter = max(imposter_best_sims) if imposter_best_sims else 0.0
                     
                     overlay_timer = 90 # show result for ~3 seconds (at 30fps)
-                    if best_genuine > args.threshold:
+                    if max_imposter > args.threshold and max_imposter > best_genuine:
+                        print(f"Result: HIJACKED BY IMPOSTER!")
+                        feature_buffer.pop(0)
+                        last_verification_text = f"HIJACKED! | Gen: {best_genuine:.2f} (A:{max_anc:.2f}|R:{max_rec:.2f}) < Imp: {max_imposter:.2f}"
+                        last_verification_color = (255, 0, 255) # Purple (BGR)
+                    elif best_genuine > args.threshold:
                         status = "REID_SUCCESS"
                         print(f"Result: REID SUCCESS (Threshold {args.threshold})")
-                        last_verification_text = f"ReID Pass | Genuine: {best_genuine:.2f} | Max Imposter: {max_imposter:.2f}"
+                        last_verification_text = f"ReID Pass | Gen: {best_genuine:.2f} (A:{max_anc:.2f}|R:{max_rec:.2f}) | Imp: {max_imposter:.2f}"
                         last_verification_color = (0, 255, 0)
                     else:
                         print(f"Result: REID FAILED. Rolling window...")
                         feature_buffer.pop(0)
-                        last_verification_text = f"ReID Fail | Genuine: {best_genuine:.2f} | Max Imposter: {max_imposter:.2f}"
+                        last_verification_text = f"ReID Fail | Gen: {best_genuine:.2f} (A:{max_anc:.2f}|R:{max_rec:.2f}) | Imp: {max_imposter:.2f}"
                         last_verification_color = (0, 0, 255)
 
         elif status == "REID_SUCCESS":
@@ -371,8 +424,7 @@ def main():
                         feature_buffer = [feature_buffer[i] for i in indices]
                     seq_feats = torch.stack(feature_buffer, dim=1)
                     gallery_feat = compute_reid_embedding(model, seq_feats)
-                    memory_bank.append(gallery_feat)
-                    if len(memory_bank) > 50: memory_bank.pop(0)
+                    update_memory_banks(gallery_feat)
                 status = "LOST"
                 feature_buffer = []
             elif valid_bbox:
@@ -387,11 +439,13 @@ def main():
                         if frame_idx % 60 == 0 and len(feature_buffer) == args.num_frames:
                             seq_feats = torch.stack(feature_buffer, dim=1)
                             gallery_feat = compute_reid_embedding(model, seq_feats)
-                            memory_bank.append(gallery_feat)
-                            if len(memory_bank) > 50: memory_bank.pop(0)
+                            if update_memory_banks(gallery_feat):
+                                status = "LOST"
+                                feature_buffer = []
                         
-                cv2.rectangle(display_frame, (bbox[0], bbox[1]), (bbox[0]+bbox[2], bbox[1]+bbox[3]), (0, 255, 0), 2)
-                cv2.putText(display_frame, "ReID Tracked", (bbox[0], bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                if status != "LOST":
+                    cv2.rectangle(display_frame, (bbox[0], bbox[1]), (bbox[0]+bbox[2], bbox[1]+bbox[3]), (0, 255, 0), 2)
+                    cv2.putText(display_frame, "ReID Tracked", (bbox[0], bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         
         # Draw Robustness Overlay
         if overlay_timer > 0:
@@ -403,7 +457,6 @@ def main():
 
     cap.release()
     out_vid.release()
-    log_file.close()
     
     print("\n================ ROBUSTNESS REPORT ================")
     print(f"Total Verifications (Genuine Queries)  : {len(all_genuine_scores)}")
@@ -439,6 +492,7 @@ def main():
         
     print(f"Detailed logs saved to: {log_path}")
     print(f"Output video saved to: {final_output_path}")
+    log_file.close()
 
 if __name__ == "__main__":
     main()

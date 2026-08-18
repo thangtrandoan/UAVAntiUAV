@@ -1,0 +1,11 @@
+bbox_padding: 0.2
+checkpoint: ./best_model.pth
+config: ./configs/config_jetson.yaml
+data_root: ./data/UAV-Anti-UAV/Test
+max_anchor_size: 10
+max_recent_size: 30
+num_frames: 16
+num_imposters: 15
+output_video: ./output_robustness.mp4
+seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000211
+threshold: 0.75

@@ -1,0 +1,87 @@
+data_pipeline:
+  bbox_padding: 0.2
+  crop_size: 256
+  num_after_frames: 16
+  num_before_frames: 16
+  num_workers: 2
+device:
+  gpu_jetson: true
+  platform: jetson
+eval:
+  backbone_only: false
+  batch_size: 4
+  model_path: UAVAntiUAV/checkpoints/best_model_v2.pth
+  num_workers: 2
+  output_dir: ./eval_results/gasnet_mamba_v2
+  pairs_json: ./processed/pairs_test.json
+  reid_threshold: 0.7
+infer:
+  bbox_padding: 0.2
+  max_anchor_size: 5
+  max_recent_size: 5
+  model_path: ./best_model.pth
+  num_frames: 16
+  output_video: results_demo.mp4
+  reid_threshold: 0.75
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000002
+infer_realworld:
+  bbox_padding: 0.2
+  coarse_threshold: 0.5
+  detector_classes:
+  - 4
+  detector_conf: 0.15
+  detector_imgsz: 1088
+  lost_threshold: 10
+  max_anchor_size: 10
+  max_recent_size: 30
+  model_path: ./best_model.pth
+  num_frames: 16
+  output_video: output_phanrang.mp4
+  query_img: ''
+  reid_threshold: 0.75
+  spatial_weight: 0.3
+  start_sec: 13.0
+  video: ./phan_rang/phanrang_raptor.mp4
+  yolo_model: yolov8n.pt
+infer_robustness:
+  bbox_padding: 0.2
+  data_root: ./data/UAV-Anti-UAV/Test
+  max_anchor_size: 5
+  max_recent_size: 15
+  model_path: ./best_model.pth
+  num_frames: 16
+  num_imposters: 15
+  output_video: ./output_robustness.mp4
+  reid_threshold: 0.75
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000003
+paths:
+  checkpoint_dir: ./checkpoints
+  data_dir: ./processed
+  gasnet_weights: ../UAV/gasnet_project/test/gasnet.best.pth
+  log_dir: ./logs
+  raw_data_dir: ../UAV-Anti-UAV
+train:
+  batch_size: 8
+  loss:
+    label_smooth: 0.1
+    lam1: 1.0
+    lam2: 0.5
+    lam3: 0.05
+    lr_center: 0.5
+    triplet_margin: 0.3
+  num_frames: 16
+  num_instances: 2
+  num_workers: 2
+  pin_memory: true
+  resume: ''
+  stage1:
+    epochs: 30
+    lr: 0.00035
+    weight_decay: 5e-4
+  stage2:
+    epochs: 20
+    lr_backbone: 1.0e-05
+    lr_head: 0.0001
+    lr_temporal: 0.0001
+    weight_decay: 5e-4
+  use_amp: false

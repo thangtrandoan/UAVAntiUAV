@@ -1,0 +1,1186 @@
+--- CSV DATA: Frame, Genuine_Sim, Imposter_Sims ---
+Initializing Model: ./best_model.pth...
+Starting Robustness Inference on UAV-Anti-UAV_Test_000003...
+[123] Re-appeared! Collecting frames...
+[128] Re-appeared! Collecting frames...
+
+--- [Frame 144] ROBUSTNESS TEST INITIATED ---
+  -> Sampling 15 imposters from: ['UAV-Anti-UAV_Test_000016', 'UAV-Anti-UAV_Test_000196', 'UAV-Anti-UAV_Test_000346', 'UAV-Anti-UAV_Test_000087', 'UAV-Anti-UAV_Test_000216', 'UAV-Anti-UAV_Test_000082', 'UAV-Anti-UAV_Test_000019', 'UAV-Anti-UAV_Test_000073', 'UAV-Anti-UAV_Test_000075', 'UAV-Anti-UAV_Test_000168', 'UAV-Anti-UAV_Test_000063', 'UAV-Anti-UAV_Test_000159', 'UAV-Anti-UAV_Test_000248', 'UAV-Anti-UAV_Test_000239', 'UAV-Anti-UAV_Test_000337']
+144, 0.741, 0.548,0.493,0.646,0.679,0.752,0.686,0.614,0.683,0.662,0.663,0.645,0.646,0.750,0.737,0.570
+Genuine Sim: 0.741
+Imposter 1 Sim: 0.548
+Imposter 2 Sim: 0.493
+Imposter 3 Sim: 0.646
+Imposter 4 Sim: 0.679
+Imposter 5 Sim: 0.752
+Imposter 6 Sim: 0.686
+Imposter 7 Sim: 0.614
+Imposter 8 Sim: 0.683
+Imposter 9 Sim: 0.662
+Imposter 10 Sim: 0.663
+Imposter 11 Sim: 0.645
+Imposter 12 Sim: 0.646
+Imposter 13 Sim: 0.750
+Imposter 14 Sim: 0.737
+Imposter 15 Sim: 0.570
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 145] ROBUSTNESS TEST INITIATED ---
+145, 0.750, 0.548,0.493,0.646,0.679,0.752,0.686,0.614,0.683,0.662,0.663,0.645,0.646,0.750,0.737,0.570
+Genuine Sim: 0.750
+Imposter 1 Sim: 0.548
+Imposter 2 Sim: 0.493
+Imposter 3 Sim: 0.646
+Imposter 4 Sim: 0.679
+Imposter 5 Sim: 0.752
+Imposter 6 Sim: 0.686
+Imposter 7 Sim: 0.614
+Imposter 8 Sim: 0.683
+Imposter 9 Sim: 0.662
+Imposter 10 Sim: 0.663
+Imposter 11 Sim: 0.645
+Imposter 12 Sim: 0.646
+Imposter 13 Sim: 0.750
+Imposter 14 Sim: 0.737
+Imposter 15 Sim: 0.570
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 146] ROBUSTNESS TEST INITIATED ---
+146, 0.748, 0.548,0.493,0.646,0.679,0.752,0.686,0.614,0.683,0.662,0.663,0.645,0.646,0.750,0.737,0.570
+Genuine Sim: 0.748
+Imposter 1 Sim: 0.548
+Imposter 2 Sim: 0.493
+Imposter 3 Sim: 0.646
+Imposter 4 Sim: 0.679
+Imposter 5 Sim: 0.752
+Imposter 6 Sim: 0.686
+Imposter 7 Sim: 0.614
+Imposter 8 Sim: 0.683
+Imposter 9 Sim: 0.662
+Imposter 10 Sim: 0.663
+Imposter 11 Sim: 0.645
+Imposter 12 Sim: 0.646
+Imposter 13 Sim: 0.750
+Imposter 14 Sim: 0.737
+Imposter 15 Sim: 0.570
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 147] ROBUSTNESS TEST INITIATED ---
+147, 0.760, 0.548,0.493,0.646,0.679,0.752,0.686,0.614,0.683,0.662,0.663,0.645,0.646,0.750,0.737,0.570
+Genuine Sim: 0.760
+Imposter 1 Sim: 0.548
+Imposter 2 Sim: 0.493
+Imposter 3 Sim: 0.646
+Imposter 4 Sim: 0.679
+Imposter 5 Sim: 0.752
+Imposter 6 Sim: 0.686
+Imposter 7 Sim: 0.614
+Imposter 8 Sim: 0.683
+Imposter 9 Sim: 0.662
+Imposter 10 Sim: 0.663
+Imposter 11 Sim: 0.645
+Imposter 12 Sim: 0.646
+Imposter 13 Sim: 0.750
+Imposter 14 Sim: 0.737
+Imposter 15 Sim: 0.570
+Result: REID SUCCESS (Threshold 0.75)
+[473] Re-appeared! Collecting frames...
+
+--- [Frame 489] ROBUSTNESS TEST INITIATED ---
+  -> Sampling 15 imposters from: ['UAV-Anti-UAV_Test_000015', 'UAV-Anti-UAV_Test_000221', 'UAV-Anti-UAV_Test_000401', 'UAV-Anti-UAV_Test_000263', 'UAV-Anti-UAV_Test_000131', 'UAV-Anti-UAV_Test_000091', 'UAV-Anti-UAV_Test_000382', 'UAV-Anti-UAV_Test_000142', 'UAV-Anti-UAV_Test_000115', 'UAV-Anti-UAV_Test_000340', 'UAV-Anti-UAV_Test_000375', 'UAV-Anti-UAV_Test_000363', 'UAV-Anti-UAV_Test_000044', 'UAV-Anti-UAV_Test_000348', 'UAV-Anti-UAV_Test_000033']
+489, 0.805, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.805
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 490] ROBUSTNESS TEST INITIATED ---
+490, 0.801, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.801
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 491] ROBUSTNESS TEST INITIATED ---
+491, 0.794, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.794
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 492] ROBUSTNESS TEST INITIATED ---
+492, 0.793, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.793
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 493] ROBUSTNESS TEST INITIATED ---
+493, 0.790, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.790
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 494] ROBUSTNESS TEST INITIATED ---
+494, 0.793, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.793
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 495] ROBUSTNESS TEST INITIATED ---
+495, 0.789, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.789
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 496] ROBUSTNESS TEST INITIATED ---
+496, 0.785, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.785
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 497] ROBUSTNESS TEST INITIATED ---
+497, 0.781, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.781
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 498] ROBUSTNESS TEST INITIATED ---
+498, 0.774, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.774
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 499] ROBUSTNESS TEST INITIATED ---
+499, 0.785, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.785
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 500] ROBUSTNESS TEST INITIATED ---
+500, 0.788, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.788
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 501] ROBUSTNESS TEST INITIATED ---
+501, 0.786, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.786
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 502] ROBUSTNESS TEST INITIATED ---
+502, 0.796, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.796
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 503] ROBUSTNESS TEST INITIATED ---
+503, 0.796, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.796
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 504] ROBUSTNESS TEST INITIATED ---
+504, 0.790, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.790
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 505] ROBUSTNESS TEST INITIATED ---
+505, 0.786, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.786
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 506] ROBUSTNESS TEST INITIATED ---
+506, 0.785, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.785
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 507] ROBUSTNESS TEST INITIATED ---
+507, 0.793, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.793
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 508] ROBUSTNESS TEST INITIATED ---
+508, 0.792, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.792
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 509] ROBUSTNESS TEST INITIATED ---
+509, 0.799, 0.628,0.767,0.759,0.651,0.793,0.600,0.822,0.760,0.680,0.702,0.439,0.808,0.648,0.709,0.707
+Genuine Sim: 0.799
+Imposter 1 Sim: 0.628
+Imposter 2 Sim: 0.767
+Imposter 3 Sim: 0.759
+Imposter 4 Sim: 0.651
+Imposter 5 Sim: 0.793
+Imposter 6 Sim: 0.600
+Imposter 7 Sim: 0.822
+Imposter 8 Sim: 0.760
+Imposter 9 Sim: 0.680
+Imposter 10 Sim: 0.702
+Imposter 11 Sim: 0.439
+Imposter 12 Sim: 0.808
+Imposter 13 Sim: 0.648
+Imposter 14 Sim: 0.709
+Imposter 15 Sim: 0.707
+Result: HIJACKED BY IMPOSTER!
+[511] Re-appeared! Collecting frames...
+
+--- [Frame 527] ROBUSTNESS TEST INITIATED ---
+  -> Sampling 15 imposters from: ['UAV-Anti-UAV_Test_000002', 'UAV-Anti-UAV_Test_000353', 'UAV-Anti-UAV_Test_000193', 'UAV-Anti-UAV_Test_000050', 'UAV-Anti-UAV_Test_000354', 'UAV-Anti-UAV_Test_000180', 'UAV-Anti-UAV_Test_000247', 'UAV-Anti-UAV_Test_000022', 'UAV-Anti-UAV_Test_000401', 'UAV-Anti-UAV_Test_000333', 'UAV-Anti-UAV_Test_000384', 'UAV-Anti-UAV_Test_000005', 'UAV-Anti-UAV_Test_000218', 'UAV-Anti-UAV_Test_000244', 'UAV-Anti-UAV_Test_000163']
+527, 0.776, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.776
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 528] ROBUSTNESS TEST INITIATED ---
+528, 0.774, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.774
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 529] ROBUSTNESS TEST INITIATED ---
+529, 0.771, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.771
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 530] ROBUSTNESS TEST INITIATED ---
+530, 0.769, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.769
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 531] ROBUSTNESS TEST INITIATED ---
+531, 0.774, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.774
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 532] ROBUSTNESS TEST INITIATED ---
+532, 0.781, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.781
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 533] ROBUSTNESS TEST INITIATED ---
+533, 0.789, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.789
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 534] ROBUSTNESS TEST INITIATED ---
+534, 0.793, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.793
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 535] ROBUSTNESS TEST INITIATED ---
+535, 0.803, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.803
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 536] ROBUSTNESS TEST INITIATED ---
+536, 0.817, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.817
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 537] ROBUSTNESS TEST INITIATED ---
+537, 0.820, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.820
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 538] ROBUSTNESS TEST INITIATED ---
+538, 0.819, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.819
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 539] ROBUSTNESS TEST INITIATED ---
+539, 0.819, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.819
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 540] ROBUSTNESS TEST INITIATED ---
+540, 0.815, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.815
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 541] ROBUSTNESS TEST INITIATED ---
+541, 0.803, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.803
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 542] ROBUSTNESS TEST INITIATED ---
+542, 0.810, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.810
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 543] ROBUSTNESS TEST INITIATED ---
+543, 0.811, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.811
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 544] ROBUSTNESS TEST INITIATED ---
+544, 0.813, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.813
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 545] ROBUSTNESS TEST INITIATED ---
+545, 0.815, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.815
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 546] ROBUSTNESS TEST INITIATED ---
+546, 0.809, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.809
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 547] ROBUSTNESS TEST INITIATED ---
+547, 0.805, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.805
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 548] ROBUSTNESS TEST INITIATED ---
+548, 0.802, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.802
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 549] ROBUSTNESS TEST INITIATED ---
+549, 0.799, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.799
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 550] ROBUSTNESS TEST INITIATED ---
+550, 0.804, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.804
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 551] ROBUSTNESS TEST INITIATED ---
+551, 0.805, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.805
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 552] ROBUSTNESS TEST INITIATED ---
+552, 0.805, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.805
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 553] ROBUSTNESS TEST INITIATED ---
+553, 0.811, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.811
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 554] ROBUSTNESS TEST INITIATED ---
+554, 0.811, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.811
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 555] ROBUSTNESS TEST INITIATED ---
+555, 0.813, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.813
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 556] ROBUSTNESS TEST INITIATED ---
+556, 0.821, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.821
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 557] ROBUSTNESS TEST INITIATED ---
+557, 0.827, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.827
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 558] ROBUSTNESS TEST INITIATED ---
+558, 0.831, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.831
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: HIJACKED BY IMPOSTER!
+
+--- [Frame 559] ROBUSTNESS TEST INITIATED ---
+559, 0.836, 0.778,0.651,0.834,0.785,0.648,0.691,0.633,0.798,0.624,0.689,0.663,0.636,0.733,0.742,0.703
+Genuine Sim: 0.836
+Imposter 1 Sim: 0.778
+Imposter 2 Sim: 0.651
+Imposter 3 Sim: 0.834
+Imposter 4 Sim: 0.785
+Imposter 5 Sim: 0.648
+Imposter 6 Sim: 0.691
+Imposter 7 Sim: 0.633
+Imposter 8 Sim: 0.798
+Imposter 9 Sim: 0.624
+Imposter 10 Sim: 0.689
+Imposter 11 Sim: 0.663
+Imposter 12 Sim: 0.636
+Imposter 13 Sim: 0.733
+Imposter 14 Sim: 0.742
+Imposter 15 Sim: 0.703
+Result: REID SUCCESS (Threshold 0.75)
+
+================ ROBUSTNESS REPORT ================
+Total Verifications (Genuine Queries)  : 58
+Total Imposter Queries Evaluated       : 870
+
+Average Genuine Similarity : 0.7957
+Average Imposter Similarity: 0.7001
+Average Margin (Gen - Imp) : 0.0956
+
+At Threshold 0.75:
+False Rejection Rate (FRR) : 5.17% (Target UAV not recognized)
+False Acceptance Rate (FAR): 30.57% (Imposter UAV accepted)
+
+Score distribution plot saved to: infer_robustness/UAV-Anti-UAV_Test_000003/score_distribution.png
+Detailed logs saved to: infer_robustness/UAV-Anti-UAV_Test_000003/robustness_log.txt
+Output video saved to: infer_robustness/UAV-Anti-UAV_Test_000003/./output_robustness.mp4

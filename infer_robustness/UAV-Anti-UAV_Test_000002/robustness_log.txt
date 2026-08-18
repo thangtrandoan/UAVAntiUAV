@@ -1,0 +1,3861 @@
+--- CSV DATA: Frame, Genuine_Sim, Imposter_Sims ---
+Initializing Model: ./best_model.pth...
+Starting Robustness Inference on UAV-Anti-UAV_Test_000002...
+[22] Re-appeared! Collecting frames...
+
+--- [Frame 38] ROBUSTNESS TEST INITIATED ---
+  -> Sampling 15 imposters from: ['UAV-Anti-UAV_Test_000075', 'UAV-Anti-UAV_Test_000092', 'UAV-Anti-UAV_Test_000018', 'UAV-Anti-UAV_Test_000154', 'UAV-Anti-UAV_Test_000244', 'UAV-Anti-UAV_Test_000368', 'UAV-Anti-UAV_Test_000303', 'UAV-Anti-UAV_Test_000206', 'UAV-Anti-UAV_Test_000200', 'UAV-Anti-UAV_Test_000031', 'UAV-Anti-UAV_Test_000099', 'UAV-Anti-UAV_Test_000414', 'UAV-Anti-UAV_Test_000411', 'UAV-Anti-UAV_Test_000150', 'UAV-Anti-UAV_Test_000027']
+38, 0.578, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.578
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 39] ROBUSTNESS TEST INITIATED ---
+39, 0.558, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.558
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 40] ROBUSTNESS TEST INITIATED ---
+40, 0.544, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.544
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 41] ROBUSTNESS TEST INITIATED ---
+41, 0.537, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.537
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 42] ROBUSTNESS TEST INITIATED ---
+42, 0.533, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.533
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 43] ROBUSTNESS TEST INITIATED ---
+43, 0.539, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.539
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 44] ROBUSTNESS TEST INITIATED ---
+44, 0.545, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.545
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 45] ROBUSTNESS TEST INITIATED ---
+45, 0.545, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.545
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 46] ROBUSTNESS TEST INITIATED ---
+46, 0.540, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.540
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 47] ROBUSTNESS TEST INITIATED ---
+47, 0.542, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.542
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 48] ROBUSTNESS TEST INITIATED ---
+48, 0.548, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.548
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 49] ROBUSTNESS TEST INITIATED ---
+49, 0.546, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.546
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 50] ROBUSTNESS TEST INITIATED ---
+50, 0.543, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.543
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 51] ROBUSTNESS TEST INITIATED ---
+51, 0.537, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.537
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 52] ROBUSTNESS TEST INITIATED ---
+52, 0.530, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.530
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 53] ROBUSTNESS TEST INITIATED ---
+53, 0.538, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.538
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 54] ROBUSTNESS TEST INITIATED ---
+54, 0.537, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.537
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 55] ROBUSTNESS TEST INITIATED ---
+55, 0.543, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.543
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 56] ROBUSTNESS TEST INITIATED ---
+56, 0.554, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.554
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 57] ROBUSTNESS TEST INITIATED ---
+57, 0.560, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.560
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 58] ROBUSTNESS TEST INITIATED ---
+58, 0.570, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.570
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 59] ROBUSTNESS TEST INITIATED ---
+59, 0.574, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.574
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 60] ROBUSTNESS TEST INITIATED ---
+60, 0.580, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.580
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 61] ROBUSTNESS TEST INITIATED ---
+61, 0.584, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.584
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 62] ROBUSTNESS TEST INITIATED ---
+62, 0.599, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.599
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 63] ROBUSTNESS TEST INITIATED ---
+63, 0.604, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.604
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 64] ROBUSTNESS TEST INITIATED ---
+64, 0.607, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.607
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 65] ROBUSTNESS TEST INITIATED ---
+65, 0.618, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.618
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 66] ROBUSTNESS TEST INITIATED ---
+66, 0.627, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.627
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 67] ROBUSTNESS TEST INITIATED ---
+67, 0.631, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.631
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 68] ROBUSTNESS TEST INITIATED ---
+68, 0.638, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.638
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 69] ROBUSTNESS TEST INITIATED ---
+69, 0.639, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.639
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 70] ROBUSTNESS TEST INITIATED ---
+70, 0.642, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.642
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 71] ROBUSTNESS TEST INITIATED ---
+71, 0.637, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.637
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 72] ROBUSTNESS TEST INITIATED ---
+72, 0.636, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.636
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 73] ROBUSTNESS TEST INITIATED ---
+73, 0.633, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.633
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 74] ROBUSTNESS TEST INITIATED ---
+74, 0.639, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.639
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 75] ROBUSTNESS TEST INITIATED ---
+75, 0.637, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.637
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 76] ROBUSTNESS TEST INITIATED ---
+76, 0.637, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.637
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 77] ROBUSTNESS TEST INITIATED ---
+77, 0.642, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.642
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 78] ROBUSTNESS TEST INITIATED ---
+78, 0.646, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.646
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 79] ROBUSTNESS TEST INITIATED ---
+79, 0.640, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.640
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 80] ROBUSTNESS TEST INITIATED ---
+80, 0.640, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.640
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 81] ROBUSTNESS TEST INITIATED ---
+81, 0.640, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.640
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 82] ROBUSTNESS TEST INITIATED ---
+82, 0.638, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.638
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 83] ROBUSTNESS TEST INITIATED ---
+83, 0.644, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.644
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 84] ROBUSTNESS TEST INITIATED ---
+84, 0.640, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.640
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 85] ROBUSTNESS TEST INITIATED ---
+85, 0.644, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.644
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 86] ROBUSTNESS TEST INITIATED ---
+86, 0.645, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.645
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 87] ROBUSTNESS TEST INITIATED ---
+87, 0.653, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.653
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 88] ROBUSTNESS TEST INITIATED ---
+88, 0.652, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.652
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 89] ROBUSTNESS TEST INITIATED ---
+89, 0.659, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.659
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 90] ROBUSTNESS TEST INITIATED ---
+90, 0.659, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.659
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 91] ROBUSTNESS TEST INITIATED ---
+91, 0.656, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.656
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 92] ROBUSTNESS TEST INITIATED ---
+92, 0.654, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.654
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 93] ROBUSTNESS TEST INITIATED ---
+93, 0.658, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.658
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 94] ROBUSTNESS TEST INITIATED ---
+94, 0.661, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.661
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 95] ROBUSTNESS TEST INITIATED ---
+95, 0.670, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.670
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 96] ROBUSTNESS TEST INITIATED ---
+96, 0.675, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.675
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 97] ROBUSTNESS TEST INITIATED ---
+97, 0.673, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.673
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 98] ROBUSTNESS TEST INITIATED ---
+98, 0.671, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.671
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 99] ROBUSTNESS TEST INITIATED ---
+99, 0.665, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.665
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 100] ROBUSTNESS TEST INITIATED ---
+100, 0.674, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.674
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 101] ROBUSTNESS TEST INITIATED ---
+101, 0.675, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.675
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 102] ROBUSTNESS TEST INITIATED ---
+102, 0.671, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.671
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 103] ROBUSTNESS TEST INITIATED ---
+103, 0.667, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.667
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 104] ROBUSTNESS TEST INITIATED ---
+104, 0.664, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.664
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 105] ROBUSTNESS TEST INITIATED ---
+105, 0.665, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.665
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 106] ROBUSTNESS TEST INITIATED ---
+106, 0.666, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.666
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 107] ROBUSTNESS TEST INITIATED ---
+107, 0.674, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.674
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 108] ROBUSTNESS TEST INITIATED ---
+108, 0.669, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.669
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 109] ROBUSTNESS TEST INITIATED ---
+109, 0.666, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.666
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 110] ROBUSTNESS TEST INITIATED ---
+110, 0.665, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.665
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 111] ROBUSTNESS TEST INITIATED ---
+111, 0.657, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.657
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 112] ROBUSTNESS TEST INITIATED ---
+112, 0.661, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.661
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 113] ROBUSTNESS TEST INITIATED ---
+113, 0.662, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.662
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 114] ROBUSTNESS TEST INITIATED ---
+114, 0.658, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.658
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 115] ROBUSTNESS TEST INITIATED ---
+115, 0.665, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.665
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 116] ROBUSTNESS TEST INITIATED ---
+116, 0.671, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.671
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 117] ROBUSTNESS TEST INITIATED ---
+117, 0.667, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.667
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 118] ROBUSTNESS TEST INITIATED ---
+118, 0.673, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.673
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 119] ROBUSTNESS TEST INITIATED ---
+119, 0.675, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.675
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 120] ROBUSTNESS TEST INITIATED ---
+120, 0.679, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.679
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 121] ROBUSTNESS TEST INITIATED ---
+121, 0.686, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.686
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 122] ROBUSTNESS TEST INITIATED ---
+122, 0.695, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.695
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 123] ROBUSTNESS TEST INITIATED ---
+123, 0.693, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.693
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 124] ROBUSTNESS TEST INITIATED ---
+124, 0.694, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.694
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 125] ROBUSTNESS TEST INITIATED ---
+125, 0.698, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.698
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 126] ROBUSTNESS TEST INITIATED ---
+126, 0.697, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.697
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 127] ROBUSTNESS TEST INITIATED ---
+127, 0.693, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.693
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 128] ROBUSTNESS TEST INITIATED ---
+128, 0.692, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.692
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 129] ROBUSTNESS TEST INITIATED ---
+129, 0.686, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.686
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 130] ROBUSTNESS TEST INITIATED ---
+130, 0.687, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.687
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 131] ROBUSTNESS TEST INITIATED ---
+131, 0.683, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.683
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 132] ROBUSTNESS TEST INITIATED ---
+132, 0.672, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.672
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 133] ROBUSTNESS TEST INITIATED ---
+133, 0.673, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.673
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 134] ROBUSTNESS TEST INITIATED ---
+134, 0.669, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.669
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 135] ROBUSTNESS TEST INITIATED ---
+135, 0.666, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.666
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 136] ROBUSTNESS TEST INITIATED ---
+136, 0.665, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.665
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 137] ROBUSTNESS TEST INITIATED ---
+137, 0.657, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.657
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 138] ROBUSTNESS TEST INITIATED ---
+138, 0.646, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.646
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 139] ROBUSTNESS TEST INITIATED ---
+139, 0.646, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.646
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 140] ROBUSTNESS TEST INITIATED ---
+140, 0.654, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.654
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 141] ROBUSTNESS TEST INITIATED ---
+141, 0.656, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.656
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 142] ROBUSTNESS TEST INITIATED ---
+142, 0.657, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.657
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 143] ROBUSTNESS TEST INITIATED ---
+143, 0.666, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.666
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 144] ROBUSTNESS TEST INITIATED ---
+144, 0.666, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.666
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 145] ROBUSTNESS TEST INITIATED ---
+145, 0.680, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.680
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 146] ROBUSTNESS TEST INITIATED ---
+146, 0.683, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.683
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 147] ROBUSTNESS TEST INITIATED ---
+147, 0.687, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.687
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 148] ROBUSTNESS TEST INITIATED ---
+148, 0.691, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.691
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 149] ROBUSTNESS TEST INITIATED ---
+149, 0.692, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.692
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 150] ROBUSTNESS TEST INITIATED ---
+150, 0.688, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.688
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 151] ROBUSTNESS TEST INITIATED ---
+151, 0.687, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.687
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 152] ROBUSTNESS TEST INITIATED ---
+152, 0.690, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.690
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 153] ROBUSTNESS TEST INITIATED ---
+153, 0.689, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.689
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 154] ROBUSTNESS TEST INITIATED ---
+154, 0.696, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.696
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 155] ROBUSTNESS TEST INITIATED ---
+155, 0.701, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.701
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 156] ROBUSTNESS TEST INITIATED ---
+156, 0.703, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.703
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 157] ROBUSTNESS TEST INITIATED ---
+157, 0.698, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.698
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 158] ROBUSTNESS TEST INITIATED ---
+158, 0.696, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.696
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 159] ROBUSTNESS TEST INITIATED ---
+159, 0.699, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.699
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 160] ROBUSTNESS TEST INITIATED ---
+160, 0.698, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.698
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 161] ROBUSTNESS TEST INITIATED ---
+161, 0.696, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.696
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 162] ROBUSTNESS TEST INITIATED ---
+162, 0.697, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.697
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 163] ROBUSTNESS TEST INITIATED ---
+163, 0.697, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.697
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 164] ROBUSTNESS TEST INITIATED ---
+164, 0.699, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.699
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 165] ROBUSTNESS TEST INITIATED ---
+165, 0.703, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.703
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 166] ROBUSTNESS TEST INITIATED ---
+166, 0.710, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.710
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 167] ROBUSTNESS TEST INITIATED ---
+167, 0.713, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.713
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 168] ROBUSTNESS TEST INITIATED ---
+168, 0.711, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.711
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 169] ROBUSTNESS TEST INITIATED ---
+169, 0.714, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.714
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 170] ROBUSTNESS TEST INITIATED ---
+170, 0.705, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.705
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 171] ROBUSTNESS TEST INITIATED ---
+171, 0.706, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.706
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 172] ROBUSTNESS TEST INITIATED ---
+172, 0.703, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.703
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 173] ROBUSTNESS TEST INITIATED ---
+173, 0.702, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.702
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 174] ROBUSTNESS TEST INITIATED ---
+174, 0.703, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.703
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 175] ROBUSTNESS TEST INITIATED ---
+175, 0.706, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.706
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 176] ROBUSTNESS TEST INITIATED ---
+176, 0.699, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.699
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 177] ROBUSTNESS TEST INITIATED ---
+177, 0.697, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.697
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 178] ROBUSTNESS TEST INITIATED ---
+178, 0.692, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.692
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 179] ROBUSTNESS TEST INITIATED ---
+179, 0.679, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.679
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 180] ROBUSTNESS TEST INITIATED ---
+180, 0.677, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.677
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 181] ROBUSTNESS TEST INITIATED ---
+181, 0.670, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.670
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 182] ROBUSTNESS TEST INITIATED ---
+182, 0.667, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.667
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 183] ROBUSTNESS TEST INITIATED ---
+183, 0.659, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.659
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 184] ROBUSTNESS TEST INITIATED ---
+184, 0.655, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.655
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 185] ROBUSTNESS TEST INITIATED ---
+185, 0.646, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.646
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 186] ROBUSTNESS TEST INITIATED ---
+186, 0.640, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.640
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 187] ROBUSTNESS TEST INITIATED ---
+187, 0.628, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.628
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 188] ROBUSTNESS TEST INITIATED ---
+188, 0.623, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.623
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 189] ROBUSTNESS TEST INITIATED ---
+189, 0.617, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.617
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 190] ROBUSTNESS TEST INITIATED ---
+190, 0.613, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.613
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 191] ROBUSTNESS TEST INITIATED ---
+191, 0.613, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.613
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 192] ROBUSTNESS TEST INITIATED ---
+192, 0.615, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.615
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 193] ROBUSTNESS TEST INITIATED ---
+193, 0.613, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.613
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 194] ROBUSTNESS TEST INITIATED ---
+194, 0.607, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.607
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 195] ROBUSTNESS TEST INITIATED ---
+195, 0.606, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.606
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 196] ROBUSTNESS TEST INITIATED ---
+196, 0.606, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.606
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 197] ROBUSTNESS TEST INITIATED ---
+197, 0.598, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.598
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 198] ROBUSTNESS TEST INITIATED ---
+198, 0.592, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.592
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 199] ROBUSTNESS TEST INITIATED ---
+199, 0.586, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.586
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 200] ROBUSTNESS TEST INITIATED ---
+200, 0.580, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.580
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 201] ROBUSTNESS TEST INITIATED ---
+201, 0.572, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.572
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 202] ROBUSTNESS TEST INITIATED ---
+202, 0.569, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.569
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 203] ROBUSTNESS TEST INITIATED ---
+203, 0.575, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.575
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 204] ROBUSTNESS TEST INITIATED ---
+204, 0.580, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.580
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 205] ROBUSTNESS TEST INITIATED ---
+205, 0.584, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.584
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 206] ROBUSTNESS TEST INITIATED ---
+206, 0.588, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.588
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 207] ROBUSTNESS TEST INITIATED ---
+207, 0.586, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.586
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 208] ROBUSTNESS TEST INITIATED ---
+208, 0.587, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.587
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 209] ROBUSTNESS TEST INITIATED ---
+209, 0.589, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.589
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 210] ROBUSTNESS TEST INITIATED ---
+210, 0.588, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.588
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 211] ROBUSTNESS TEST INITIATED ---
+211, 0.584, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.584
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 212] ROBUSTNESS TEST INITIATED ---
+212, 0.584, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.584
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 213] ROBUSTNESS TEST INITIATED ---
+213, 0.584, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.584
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 214] ROBUSTNESS TEST INITIATED ---
+214, 0.587, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.587
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 215] ROBUSTNESS TEST INITIATED ---
+215, 0.587, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.587
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 216] ROBUSTNESS TEST INITIATED ---
+216, 0.582, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.582
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 217] ROBUSTNESS TEST INITIATED ---
+217, 0.584, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.584
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 218] ROBUSTNESS TEST INITIATED ---
+218, 0.579, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.579
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 219] ROBUSTNESS TEST INITIATED ---
+219, 0.576, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.576
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 220] ROBUSTNESS TEST INITIATED ---
+220, 0.580, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.580
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 221] ROBUSTNESS TEST INITIATED ---
+221, 0.578, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.578
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 222] ROBUSTNESS TEST INITIATED ---
+222, 0.574, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.574
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 223] ROBUSTNESS TEST INITIATED ---
+223, 0.579, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.579
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 224] ROBUSTNESS TEST INITIATED ---
+224, 0.581, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.581
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 225] ROBUSTNESS TEST INITIATED ---
+225, 0.585, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.585
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 226] ROBUSTNESS TEST INITIATED ---
+226, 0.592, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.592
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 227] ROBUSTNESS TEST INITIATED ---
+227, 0.600, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.600
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 228] ROBUSTNESS TEST INITIATED ---
+228, 0.611, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.611
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+--- [Frame 229] ROBUSTNESS TEST INITIATED ---
+229, 0.622, 0.534,0.693,0.558,0.525,0.598,0.566,0.493,0.559,0.418,0.671,0.424,0.451,0.454,0.680,0.564
+Genuine Sim: 0.622
+Imposter 1 Sim: 0.534
+Imposter 2 Sim: 0.693
+Imposter 3 Sim: 0.558
+Imposter 4 Sim: 0.525
+Imposter 5 Sim: 0.598
+Imposter 6 Sim: 0.566
+Imposter 7 Sim: 0.493
+Imposter 8 Sim: 0.559
+Imposter 9 Sim: 0.418
+Imposter 10 Sim: 0.671
+Imposter 11 Sim: 0.424
+Imposter 12 Sim: 0.451
+Imposter 13 Sim: 0.454
+Imposter 14 Sim: 0.680
+Imposter 15 Sim: 0.564
+Result: REID FAILED. Rolling window...
+
+================ ROBUSTNESS REPORT ================
+Total Verifications (Genuine Queries)  : 192
+Total Imposter Queries Evaluated       : 2880
+
+Average Genuine Similarity : 0.6373
+Average Imposter Similarity: 0.5458
+Average Margin (Gen - Imp) : 0.0915
+
+At Threshold 0.75:
+False Rejection Rate (FRR) : 100.00% (Target UAV not recognized)
+False Acceptance Rate (FAR): 0.00% (Imposter UAV accepted)
+
+Score distribution plot saved to: infer_robustness/UAV-Anti-UAV_Test_000002/score_distribution.png
+Detailed logs saved to: infer_robustness/UAV-Anti-UAV_Test_000002/robustness_log.txt
+Output video saved to: infer_robustness/UAV-Anti-UAV_Test_000002/./output_robustness.mp4

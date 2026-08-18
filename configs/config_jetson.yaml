@@ -65,20 +65,44 @@ eval:
 
 # --- Inference ---
 infer:
-  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000002
   model_path: ./best_model.pth
   output_video: results_demo.mp4
   reid_threshold: 0.75
   num_frames: 16
   bbox_padding: 0.2
+  max_anchor_size: 5
+  max_recent_size: 5
 
 # --- Inference Robustness Test ---
 infer_robustness:
-  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000003
   data_root: ./data/UAV-Anti-UAV/Test
   model_path: ./best_model.pth
-  output_video: output_robustness.mp4
+  output_video: ./output_robustness.mp4
   reid_threshold: 0.75
   num_frames: 16
   bbox_padding: 0.2
-  num_imposters: 5
+  num_imposters: 15
+  max_anchor_size: 5
+  max_recent_size: 15
+
+# --- Real-world Inference ---
+infer_realworld:
+  video: ./phan_rang/phanrang_raptor.mp4
+  yolo_model: yolov8n.pt
+  detector_conf: 0.15
+  detector_imgsz: 1088
+  detector_classes: [4]
+  lost_threshold: 10
+  model_path: ./best_model.pth
+  output_video: output_phanrang.mp4
+  reid_threshold: 0.75
+  num_frames: 16
+  bbox_padding: 0.2
+  max_anchor_size: 10
+  max_recent_size: 30
+  query_img: ""
+  start_sec: 13.0
+  coarse_threshold: 0.50
+  spatial_weight: 0.30

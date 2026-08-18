@@ -9,6 +9,7 @@ import torch.nn.functional as F
 from torchvision import transforms
 from PIL import Image
 import numpy as np
+import builtins
 
 from model import UAVReIDNet
 
@@ -42,6 +43,8 @@ def parse_args():
     parser.add_argument("--threshold", type=float, default=0.7, help="ReID cosine similarity threshold")
     parser.add_argument("--num-frames", type=int, default=16, help="Number of frames for temporal modeling")
     parser.add_argument("--bbox-padding", type=float, default=0.2, help="BBox padding ratio")
+    parser.add_argument("--max-anchor-size", type=int, default=5, help="Số lượng tư thế gốc (Anchor Bank)")
+    parser.add_argument("--max-recent-size", type=int, default=15, help="Số lượng tư thế gần đây (Recent Bank)")
     return parser.parse_args()
 
 def crop_and_resize(frame, bbox, padding, crop_size=256, final_size=224):
@@ -83,6 +86,8 @@ def main():
                 args.threshold = inf.get('reid_threshold', args.threshold)
                 args.num_frames = inf.get('num_frames', args.num_frames)
                 args.bbox_padding = inf.get('bbox_padding', args.bbox_padding)
+                args.max_anchor_size = inf.get('max_anchor_size', args.max_anchor_size)
+                args.max_recent_size = inf.get('max_recent_size', args.max_recent_size)
             elif 'eval' in cfg and 'model_path' in cfg['eval']:
                 args.checkpoint = cfg['eval']['model_path']
                 
@@ -98,6 +103,20 @@ def main():
     # Create output directory: infer/{seq_name}
     out_dir = os.path.join("infer", seq_name)
     os.makedirs(out_dir, exist_ok=True)
+    
+    with open(os.path.join(out_dir, "config_used.yaml"), "w") as f:
+        yaml.dump(vars(args), f, default_flow_style=False)
+    
+    metrics_path = os.path.join(out_dir, "metrics.txt")
+    metrics_file = open(metrics_path, "w")
+    _orig_print = builtins.print
+    def custom_print(*args_p, **kwargs_p):
+        msg = " ".join(str(a) for a in args_p)
+        _orig_print(msg, **kwargs_p)
+        metrics_file.write(msg + "\n")
+        metrics_file.flush()
+    globals()['print'] = custom_print
+
     vid_name = os.path.basename(args.output_video)
     final_output_path = os.path.join(out_dir, vid_name)
     
@@ -160,9 +179,27 @@ def main():
     out_vid = cv2.VideoWriter(final_output_path, fourcc, fps_video, (width, height))
     
     # State machine variables
-    memory_bank = []
+    anchor_bank = []
+    recent_bank = []
     feature_buffer = []
     
+    def update_memory_banks(feat):
+        if len(anchor_bank) > 0:
+            sim_to_anchors = [torch.mm(feat, g_feat.t()).item() for g_feat in anchor_bank]
+            if max(sim_to_anchors) < 0.40:
+                return True # Hijacked
+                
+        if len(anchor_bank) < args.max_anchor_size:
+            anchor_bank.append(feat)
+        else:
+            all_feats = anchor_bank + recent_bank
+            sims = [torch.mm(feat, g_feat.t()).item() for g_feat in all_feats]
+            if not sims or max(sims) < 0.95:
+                recent_bank.append(feat)
+                if len(recent_bank) > args.max_recent_size:
+                    recent_bank.pop(0)
+        return False
+                    
     # Metrics
     cnn_times = []
     mamba_times = []
@@ -202,9 +239,10 @@ def main():
                     gallery_feat = compute_reid_embedding(model, seq_feats)
                     mamba_times.append((time.time() - t0) * 1000)
                     
-                    memory_bank.append(gallery_feat)
-                    if len(memory_bank) > 50: memory_bank.pop(0)
-                    print(f"[{frame_idx}] Drone disappeared. Final Gallery feature added. Memory Bank Size: {len(memory_bank)}")
+                    if update_memory_banks(gallery_feat):
+                        print(f"[{frame_idx}] Hijack detected on disappear! Rejected.")
+                    else:
+                        print(f"[{frame_idx}] Drone disappeared. Final Gallery feature added. Anchor: {len(anchor_bank)}, Recent: {len(recent_bank)}")
                 
                 status = "LOST"
                 feature_buffer = []
@@ -228,11 +266,14 @@ def main():
                             t0 = time.time()
                             gallery_feat = compute_reid_embedding(model, seq_feats)
                             mamba_times.append((time.time() - t0) * 1000)
-                            memory_bank.append(gallery_feat)
-                            if len(memory_bank) > 50: memory_bank.pop(0)
+                            if update_memory_banks(gallery_feat):
+                                print(f"[{frame_idx}] WARNING: Tracking Hijack! Forcing LOST state.")
+                                status = "LOST"
+                                feature_buffer = []
                         
-                cv2.rectangle(display_frame, (bbox[0], bbox[1]), (bbox[0]+bbox[2], bbox[1]+bbox[3]), (255, 0, 0), 2)
-                cv2.putText(display_frame, f"ID: {assigned_id} (Tracking)", (bbox[0], bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+                if status != "LOST":
+                    cv2.rectangle(display_frame, (bbox[0], bbox[1]), (bbox[0]+bbox[2], bbox[1]+bbox[3]), (255, 0, 0), 2)
+                    cv2.putText(display_frame, f"ID: {assigned_id} (Tracking)", (bbox[0], bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
 
         elif status == "LOST":
             cv2.putText(display_frame, "STATUS: TARGET LOST", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
@@ -268,18 +309,24 @@ def main():
                     mamba_time = (time.time() - t0) * 1000
                     mamba_times.append(mamba_time)
                     
-                    # ROLLING VERIFICATION & MULTI-GALLERY MATCHING
-                    sims = [torch.mm(query_feature, g_feat.t()).item() for g_feat in memory_bank]
-                    best_sim = max(sims) if sims else 0.0
+                    # 2-TIER MEMORY MATCHING
+                    anchor_sims = [torch.mm(query_feature, g_feat.t()).item() for g_feat in anchor_bank]
+                    recent_sims = [torch.mm(query_feature, g_feat.t()).item() for g_feat in recent_bank]
+                    
+                    max_anchor = max(anchor_sims) if anchor_sims else 0.0
+                    max_recent = max(recent_sims) if recent_sims else 0.0
+                    
+                    best_sim = max(max_anchor, max_recent)
+                        
                     reid_confidence = best_sim
                     
                     if best_sim > args.threshold:
                         status = "REID_SUCCESS"
                         reid_latency_frames = frame_idx - reappeared_frame_idx
-                        print(f"[{frame_idx}] ReID SUCCESS! Sim: {best_sim:.3f} > {args.threshold}. Latency: {reid_latency_frames} frames (Mamba time: {mamba_time:.1f} ms)")
+                        print(f"[{frame_idx}] ReID SUCCESS! Sim: {best_sim:.3f} (Anc:{max_anchor:.2f}|Rec:{max_recent:.2f}) > {args.threshold}. Latency: {reid_latency_frames} frames (Mamba time: {mamba_time:.1f} ms)")
                     else:
                         false_alarms += 1
-                        print(f"[{frame_idx}] ReID FAILED! Sim: {best_sim:.3f} <= {args.threshold}. Rolling window next frame...")
+                        print(f"[{frame_idx}] ReID FAILED! Sim: {best_sim:.3f} (Anc:{max_anchor:.2f}|Rec:{max_recent:.2f}) <= {args.threshold}. Rolling window next frame...")
                         # ROLLING QUERY: pop the oldest, stay in VERIFYING state for the next frame
                         feature_buffer.pop(0)
 
@@ -298,9 +345,10 @@ def main():
                     gallery_feat = compute_reid_embedding(model, seq_feats)
                     mamba_times.append((time.time() - t0) * 1000)
                     
-                    memory_bank.append(gallery_feat)
-                    if len(memory_bank) > 50: memory_bank.pop(0)
-                    print(f"[{frame_idx}] Drone disappeared AGAIN. Memory Bank Size: {len(memory_bank)}")
+                    if update_memory_banks(gallery_feat):
+                        print(f"[{frame_idx}] Hijack detected on disappear! Rejected.")
+                    else:
+                        print(f"[{frame_idx}] Drone disappeared AGAIN. Anchor: {len(anchor_bank)}, Recent: {len(recent_bank)}")
                     
                 status = "LOST"
                 feature_buffer = []
@@ -324,12 +372,15 @@ def main():
                             t0 = time.time()
                             gallery_feat = compute_reid_embedding(model, seq_feats)
                             mamba_times.append((time.time() - t0) * 1000)
-                            memory_bank.append(gallery_feat)
-                            if len(memory_bank) > 50: memory_bank.pop(0)
+                            if update_memory_banks(gallery_feat):
+                                print(f"[{frame_idx}] WARNING: Tracking Hijack! Forcing LOST state.")
+                                status = "LOST"
+                                feature_buffer = []
                         
-                cv2.rectangle(display_frame, (bbox[0], bbox[1]), (bbox[0]+bbox[2], bbox[1]+bbox[3]), (0, 255, 0), 2)
-                cv2.putText(display_frame, f"ID: {assigned_id} (ReID Track)", (bbox[0], bbox[1]-30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-                cv2.putText(display_frame, f"ReID Conf: {reid_confidence:.2f}", (bbox[0], bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                if status != "LOST":
+                    cv2.rectangle(display_frame, (bbox[0], bbox[1]), (bbox[0]+bbox[2], bbox[1]+bbox[3]), (0, 255, 0), 2)
+                    cv2.putText(display_frame, f"ID: {assigned_id} (ReID Track)", (bbox[0], bbox[1]-30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                    cv2.putText(display_frame, f"ReID Conf: {reid_confidence:.2f}", (bbox[0], bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         
         # Draw HUD overlay
         if len(cnn_times) > 0:
@@ -365,11 +416,8 @@ def main():
     report_text = "\n".join(metrics_report)
     print(f"\n{report_text}")
     
-    # Save to metrics.txt
-    metrics_path = os.path.join(out_dir, "metrics.txt")
-    with open(metrics_path, "w") as f:
-        f.write(report_text)
-    print(f"Metrics saved to {metrics_path}")
+    print(f"All logs and metrics saved to {metrics_path}")
+    metrics_file.close()
 
 if __name__ == "__main__":
     main()
