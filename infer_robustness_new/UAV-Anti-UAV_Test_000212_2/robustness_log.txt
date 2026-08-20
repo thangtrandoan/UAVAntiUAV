@@ -1,0 +1,140 @@
+Initializing Model...
+Loaded weights from ./best_model.pth
+Starting OOP Robustness Inference on UAV-Anti-UAV_Test_000212...
+[5] Last-moment Memory Bank update before LOST.
+[5] Target LOST! -> T1_LOST
+[8] UAV reappeared from GT. -> T2_SEARCH
+[193] UAV lost during T2_SEARCH. -> T1_LOST
+[193] Target LOST! -> T1_LOST
+[197] UAV reappeared from GT. -> T2_SEARCH
+[200] UAV lost during T2_SEARCH. -> T1_LOST
+[200] Target LOST! -> T1_LOST
+[203] UAV reappeared from GT. -> T2_SEARCH
+[216] UAV lost during T2_SEARCH. -> T1_LOST
+[216] Target LOST! -> T1_LOST
+[222] UAV reappeared from GT. -> T2_SEARCH
+[262] UAV lost during T2_SEARCH. -> T1_LOST
+[262] Target LOST! -> T1_LOST
+[266] UAV reappeared from GT. -> T2_SEARCH
+[281] UAV lost during T2_SEARCH. -> T1_LOST
+[281] Target LOST! -> T1_LOST
+[285] UAV reappeared from GT. -> T2_SEARCH
+[334] UAV lost during T2_SEARCH. -> T1_LOST
+[334] Target LOST! -> T1_LOST
+[338] UAV reappeared from GT. -> T2_SEARCH
+[417] UAV lost during T2_SEARCH. -> T1_LOST
+[417] Target LOST! -> T1_LOST
+[422] UAV reappeared from GT. -> T2_SEARCH
+[515] UAV lost during T2_SEARCH. -> T1_LOST
+[515] Target LOST! -> T1_LOST
+[570] UAV reappeared from GT. -> T2_SEARCH
+[576] UAV lost during T2_SEARCH. -> T1_LOST
+[576] Target LOST! -> T1_LOST
+[577] UAV reappeared from GT. -> T2_SEARCH
+[604] UAV lost during T2_SEARCH. -> T1_LOST
+[604] Target LOST! -> T1_LOST
+[621] UAV reappeared from GT. -> T2_SEARCH
+[624] UAV lost during T2_SEARCH. -> T1_LOST
+[624] Target LOST! -> T1_LOST
+[626] UAV reappeared from GT. -> T2_SEARCH
+[630] UAV lost during T2_SEARCH. -> T1_LOST
+[630] Target LOST! -> T1_LOST
+[631] UAV reappeared from GT. -> T2_SEARCH
+[655] UAV lost during T2_SEARCH. -> T1_LOST
+[655] Target LOST! -> T1_LOST
+[688] UAV reappeared from GT. -> T2_SEARCH
+[692] UAV lost during T2_SEARCH. -> T1_LOST
+[692] Target LOST! -> T1_LOST
+[694] UAV reappeared from GT. -> T2_SEARCH
+[699] UAV lost during T2_SEARCH. -> T1_LOST
+[699] Target LOST! -> T1_LOST
+[718] UAV reappeared from GT. -> T2_SEARCH
+[724] UAV lost during T2_SEARCH. -> T1_LOST
+[724] Target LOST! -> T1_LOST
+[740] UAV reappeared from GT. -> T2_SEARCH
+[752] UAV lost during T2_SEARCH. -> T1_LOST
+[752] Target LOST! -> T1_LOST
+[753] UAV reappeared from GT. -> T2_SEARCH
+[764] UAV lost during T2_SEARCH. -> T1_LOST
+[764] Target LOST! -> T1_LOST
+[782] UAV reappeared from GT. -> T2_SEARCH
+[784] UAV lost during T2_SEARCH. -> T1_LOST
+[784] Target LOST! -> T1_LOST
+[785] UAV reappeared from GT. -> T2_SEARCH
+[806] UAV lost during T2_SEARCH. -> T1_LOST
+[806] Target LOST! -> T1_LOST
+[822] UAV reappeared from GT. -> T2_SEARCH
+[832] UAV lost during T2_SEARCH. -> T1_LOST
+[832] Target LOST! -> T1_LOST
+[840] UAV reappeared from GT. -> T2_SEARCH
+[849] UAV lost during T2_SEARCH. -> T1_LOST
+[849] Target LOST! -> T1_LOST
+[884] UAV reappeared from GT. -> T2_SEARCH
+[889] UAV lost during T2_SEARCH. -> T1_LOST
+[889] Target LOST! -> T1_LOST
+[891] UAV reappeared from GT. -> T2_SEARCH
+[992] UAV lost during T2_SEARCH. -> T1_LOST
+[992] Target LOST! -> T1_LOST
+[994] UAV reappeared from GT. -> T2_SEARCH
+[1029] UAV lost during T2_SEARCH. -> T1_LOST
+[1029] Target LOST! -> T1_LOST
+[1043] UAV reappeared from GT. -> T2_SEARCH
+[1049] UAV lost during T2_SEARCH. -> T1_LOST
+[1049] Target LOST! -> T1_LOST
+[1050] UAV reappeared from GT. -> T2_SEARCH
+[1062] UAV lost during T2_SEARCH. -> T1_LOST
+[1062] Target LOST! -> T1_LOST
+[1064] UAV reappeared from GT. -> T2_SEARCH
+[1071] UAV lost during T2_SEARCH. -> T1_LOST
+[1071] Target LOST! -> T1_LOST
+[1072] UAV reappeared from GT. -> T2_SEARCH
+[1074] UAV lost during T2_SEARCH. -> T1_LOST
+[1074] Target LOST! -> T1_LOST
+[1078] UAV reappeared from GT. -> T2_SEARCH
+[1080] UAV lost during T2_SEARCH. -> T1_LOST
+[1080] Target LOST! -> T1_LOST
+[1090] UAV reappeared from GT. -> T2_SEARCH
+[1096] UAV lost during T2_SEARCH. -> T1_LOST
+[1096] Target LOST! -> T1_LOST
+[1104] UAV reappeared from GT. -> T2_SEARCH
+[1110] UAV lost during T2_SEARCH. -> T1_LOST
+[1110] Target LOST! -> T1_LOST
+[1140] UAV reappeared from GT. -> T2_SEARCH
+[1150] UAV lost during T2_SEARCH. -> T1_LOST
+[1150] Target LOST! -> T1_LOST
+[1158] UAV reappeared from GT. -> T2_SEARCH
+[1201] UAV lost during T2_SEARCH. -> T1_LOST
+[1201] Target LOST! -> T1_LOST
+[1204] UAV reappeared from GT. -> T2_SEARCH
+[1208] UAV lost during T2_SEARCH. -> T1_LOST
+[1208] Target LOST! -> T1_LOST
+[1220] UAV reappeared from GT. -> T2_SEARCH
+[1237] UAV lost during T2_SEARCH. -> T1_LOST
+[1237] Target LOST! -> T1_LOST
+[1239] UAV reappeared from GT. -> T2_SEARCH
+[1276] UAV lost during T2_SEARCH. -> T1_LOST
+[1276] Target LOST! -> T1_LOST
+[1278] UAV reappeared from GT. -> T2_SEARCH
+[1320] UAV lost during T2_SEARCH. -> T1_LOST
+[1320] Target LOST! -> T1_LOST
+[1338] UAV reappeared from GT. -> T2_SEARCH
+[1344] UAV lost during T2_SEARCH. -> T1_LOST
+[1344] Target LOST! -> T1_LOST
+[1348] UAV reappeared from GT. -> T2_SEARCH
+[1516] UAV lost during T2_SEARCH. -> T1_LOST
+[1516] Target LOST! -> T1_LOST
+[1518] UAV reappeared from GT. -> T2_SEARCH
+[1532] UAV lost during T2_SEARCH. -> T1_LOST
+[1532] Target LOST! -> T1_LOST
+[1534] UAV reappeared from GT. -> T2_SEARCH
+[1538] UAV lost during T2_SEARCH. -> T1_LOST
+[1538] Target LOST! -> T1_LOST
+[1539] UAV reappeared from GT. -> T2_SEARCH
+[1561] UAV lost during T2_SEARCH. -> T1_LOST
+[1561] Target LOST! -> T1_LOST
+
+================ ROBUSTNESS REPORT ================
+Total Verifications (Genuine Queries)  : 0
+Total Imposter Queries Evaluated       : 0
+Detailed logs saved to: ./infer_robustness_new/UAV-Anti-UAV_Test_000212_2/robustness_log.txt
+Output video saved to: ./infer_robustness_new/UAV-Anti-UAV_Test_000212_2/output_robustness.mp4

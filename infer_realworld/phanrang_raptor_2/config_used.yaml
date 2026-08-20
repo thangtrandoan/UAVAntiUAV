@@ -26,21 +26,25 @@ infer:
   seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000002
 infer_realworld:
   bbox_padding: 0.2
-  coarse_threshold: 0.5
   detector_classes:
   - 4
   detector_conf: 0.1
   detector_imgsz: 1088
+  hijack_check_count: 5
+  hijack_threshold: 0.4
   lost_threshold: 10
   max_anchor_size: 10
   max_recent_size: 30
   model_path: ./best_model.pth
   num_frames: 16
+  out_dir: ./infer_realworld/phanrang_raptor_2
   output_video: output_phanrang.mp4
   query_img: ''
   reid_threshold: 0.75
-  spatial_weight: 0.3
+  soft_lock_threshold: 0.5
   start_sec: 13.0
+  stride: 2
+  update_interval_sec: 2.0
   video: ./phan_rang/phanrang_raptor.mp4
   yolo_model: yolov8n.pt
 infer_robustness:

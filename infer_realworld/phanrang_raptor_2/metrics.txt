@@ -1,0 +1,327 @@
+Initializing Mamba ReID Model...
+Model loaded successfully.
+Initializing YOLOv8 Detector: yolov8n.pt
+Skipping to 13.0 seconds...
+No Query Image provided. Auto-Locking on first detected object.
+Starting Multi-UAV Coarse-to-Fine Inference Stream (New Pipeline)...
+[555] Auto-Locked onto Target Track ID: 2
+[587] Anchor updated. Anchor: 1/10 | Recent: 0/30
+[587] T0 -> T3_VERIFIED. Target locked.
+[610] Anchor updated. Anchor: 2/10 | Recent: 0/30
+[633] Anchor updated. Anchor: 3/10 | Recent: 0/30
+[656] Anchor updated. Anchor: 4/10 | Recent: 0/30
+[679] Anchor updated. Anchor: 5/10 | Recent: 0/30
+[702] Anchor updated. Anchor: 6/10 | Recent: 0/30
+[725] Anchor updated. Anchor: 7/10 | Recent: 0/30
+[748] Anchor updated. Anchor: 8/10 | Recent: 0/30
+[771] Anchor updated. Anchor: 9/10 | Recent: 0/30
+[794] Anchor updated. Anchor: 10/10 | Recent: 0/30
+[817] Recent updated. Anchor: 10/10 | Recent: 1/30
+[840] Recent updated. Anchor: 10/10 | Recent: 2/30
+[863] Recent updated. Anchor: 10/10 | Recent: 3/30
+[886] Recent updated. Anchor: 10/10 | Recent: 4/30
+[909] Recent updated. Anchor: 10/10 | Recent: 5/30
+[926] Last-moment Memory Bank update before LOST.
+Target 2 LOST! -> T1_LOST
+[931] UAV detected during LOST state. -> T2_SEARCH
+[932] Coarse: ID:2 score=0.998
+[932] SOFT LOCK -> ID:2 (coarse=0.998)
+[932] Soft Lock ID:2 collecting: 1/16
+[933] Soft Lock ID:2 collecting: 2/16
+[934] Soft Lock ID:2 collecting: 3/16
+[935] Soft Lock ID:2 collecting: 4/16
+[936] Soft Lock ID:2 collecting: 5/16
+[937] Soft Lock ID:2 collecting: 6/16
+[938] Soft Lock ID:2 collecting: 7/16
+[939] Soft Lock ID:2 collecting: 8/16
+[940] Soft Lock ID:2 collecting: 9/16
+[941] Soft Lock ID:2 collecting: 10/16
+[942] Soft Lock ID:2 collecting: 11/16
+[943] Soft Lock ID:2 collecting: 12/16
+[944] Soft Lock ID:2 collecting: 13/16
+[945] Soft Lock ID:2 collecting: 14/16
+[946] Soft Lock ID:2 collecting: 15/16
+[947] Soft Lock ID:2 collecting: 16/16
+[947] Fine ReID: ID:2 score=0.999
+[947] HARD LOCK! ID:2 (fine=0.999 >= 0.75)
+[969] Recent updated. Anchor: 10/10 | Recent: 8/30
+[969] Anti-Hijack check #1: score=1.000
+[991] Recent updated. Anchor: 10/10 | Recent: 9/30
+[991] Anti-Hijack check #2: score=1.000
+[1013] Recent updated. Anchor: 10/10 | Recent: 10/30
+[1013] Anti-Hijack check #3: score=1.000
+[1035] Recent updated. Anchor: 10/10 | Recent: 11/30
+[1035] Anti-Hijack check #4: score=1.000
+[1059] Recent updated. Anchor: 10/10 | Recent: 12/30
+[1059] Anti-Hijack check #5: score=1.000
+[1085] Recent updated. Anchor: 10/10 | Recent: 13/30
+[1109] Recent updated. Anchor: 10/10 | Recent: 14/30
+[1134] Recent updated. Anchor: 10/10 | Recent: 15/30
+[1157] Recent updated. Anchor: 10/10 | Recent: 16/30
+[1180] Last-moment Memory Bank update before LOST.
+Target 2 LOST! -> T1_LOST
+[2816] UAV detected during LOST state. -> T2_SEARCH
+[2841] UAV detected during LOST state. -> T2_SEARCH
+[2842] Coarse: ID:12 score=0.991
+[2842] SOFT LOCK -> ID:12 (coarse=0.991)
+[2842] Soft Lock ID:12 collecting: 1/16
+[2843] Soft Lock ID:12 collecting: 2/16
+[2844] Soft Lock ID:12 collecting: 3/16
+[2845] Soft Lock ID:12 collecting: 4/16
+[2846] Soft Lock ID:12 collecting: 5/16
+[2847] Soft Lock ID:12 collecting: 6/16
+[2848] Soft Lock ID:12 collecting: 7/16
+[2849] Soft Lock ID:12 collecting: 8/16
+[2850] Soft Lock ID:12 collecting: 9/16
+[2851] Soft Lock ID:12 collecting: 10/16
+[2852] Soft Lock ID:12 collecting: 11/16
+[2853] Soft Lock ID:12 collecting: 12/16
+[2854] Soft Lock ID:12 collecting: 13/16
+[2855] Soft Lock ID:12 collecting: 14/16
+[2856] Soft Lock ID:12 collecting: 15/16
+[2857] Soft Lock ID:12 collecting: 16/16
+[2857] Fine ReID: ID:12 score=0.998
+[2857] HARD LOCK! ID:12 (fine=0.998 >= 0.75)
+[2880] Recent updated. Anchor: 10/10 | Recent: 19/30
+[2880] Anti-Hijack check #1: score=1.000
+[2903] Recent updated. Anchor: 10/10 | Recent: 20/30
+[2903] Anti-Hijack check #2: score=1.000
+[2926] Recent updated. Anchor: 10/10 | Recent: 21/30
+[2926] Anti-Hijack check #3: score=1.000
+[2948] Recent updated. Anchor: 10/10 | Recent: 22/30
+[2948] Anti-Hijack check #4: score=1.000
+[2970] Recent updated. Anchor: 10/10 | Recent: 23/30
+[2970] Anti-Hijack check #5: score=1.000
+[2992] Recent updated. Anchor: 10/10 | Recent: 24/30
+[3014] Recent updated. Anchor: 10/10 | Recent: 25/30
+[3040] Recent updated. Anchor: 10/10 | Recent: 26/30
+[3067] Last-moment Memory Bank update before LOST.
+Target 12 LOST! -> T1_LOST
+[3073] UAV detected during LOST state. -> T2_SEARCH
+[3074] Coarse: ID:12 score=0.996
+[3074] SOFT LOCK -> ID:12 (coarse=0.996)
+[3074] Soft Lock ID:12 collecting: 1/16
+[3075] Soft Lock ID:12 lost from frame. Resetting.
+[3314] UAV detected during LOST state. -> T2_SEARCH
+[3315] Coarse: ID:16 score=0.997
+[3315] SOFT LOCK -> ID:16 (coarse=0.997)
+[3315] Soft Lock ID:16 collecting: 1/16
+[3316] Soft Lock ID:16 lost from frame. Resetting.
+[3317] Coarse: ID:16 score=0.996
+[3317] SOFT LOCK -> ID:16 (coarse=0.996)
+[3317] Soft Lock ID:16 collecting: 1/16
+[3318] Soft Lock ID:16 collecting: 2/16
+[3319] Soft Lock ID:16 collecting: 3/16
+[3320] Soft Lock ID:16 collecting: 4/16
+[3321] Soft Lock ID:16 collecting: 5/16
+[3322] Soft Lock ID:16 collecting: 6/16
+[3323] Soft Lock ID:16 collecting: 7/16
+[3324] Soft Lock ID:16 lost from frame. Resetting.
+[3327] UAV detected during LOST state. -> T2_SEARCH
+[3343] UAV detected during LOST state. -> T2_SEARCH
+[3344] Coarse: ID:16 score=0.995
+[3344] SOFT LOCK -> ID:16 (coarse=0.995)
+[3344] Soft Lock ID:16 collecting: 1/16
+[3345] Soft Lock ID:16 lost from frame. Resetting.
+[3346] Coarse: ID:16 score=0.994
+[3346] SOFT LOCK -> ID:16 (coarse=0.994)
+[3346] Soft Lock ID:16 collecting: 1/16
+[3347] Soft Lock ID:16 lost from frame. Resetting.
+[3348] Coarse: ID:16 score=0.995
+[3348] SOFT LOCK -> ID:16 (coarse=0.995)
+[3348] Soft Lock ID:16 collecting: 1/16
+[3349] Soft Lock ID:16 collecting: 2/16
+[3350] Soft Lock ID:16 collecting: 3/16
+[3351] Soft Lock ID:16 collecting: 4/16
+[3352] Soft Lock ID:16 lost from frame. Resetting.
+[3355] UAV detected during LOST state. -> T2_SEARCH
+[3356] Coarse: ID:16 score=0.984
+[3356] SOFT LOCK -> ID:16 (coarse=0.984)
+[3356] Soft Lock ID:16 collecting: 1/16
+[3357] Soft Lock ID:16 lost from frame. Resetting.
+[3360] UAV detected during LOST state. -> T2_SEARCH
+[3362] UAV detected during LOST state. -> T2_SEARCH
+[3363] Coarse: ID:16 score=0.997
+[3363] SOFT LOCK -> ID:16 (coarse=0.997)
+[3363] Soft Lock ID:16 collecting: 1/16
+[3364] Soft Lock ID:16 collecting: 2/16
+[3365] Soft Lock ID:16 lost from frame. Resetting.
+[3366] Coarse: ID:16 score=0.997
+[3366] SOFT LOCK -> ID:16 (coarse=0.997)
+[3366] Soft Lock ID:16 collecting: 1/16
+[3367] Soft Lock ID:16 collecting: 2/16
+[3368] Soft Lock ID:16 lost from frame. Resetting.
+[3369] Coarse: ID:16 score=0.996
+[3369] SOFT LOCK -> ID:16 (coarse=0.996)
+[3369] Soft Lock ID:16 collecting: 1/16
+[3370] Soft Lock ID:16 collecting: 2/16
+[3371] Soft Lock ID:16 collecting: 3/16
+[3372] Soft Lock ID:16 collecting: 4/16
+[3373] Soft Lock ID:16 collecting: 5/16
+[3374] Soft Lock ID:16 collecting: 6/16
+[3375] Soft Lock ID:16 collecting: 7/16
+[3376] Soft Lock ID:16 collecting: 8/16
+[3377] Soft Lock ID:16 collecting: 9/16
+[3378] Soft Lock ID:16 collecting: 10/16
+[3379] Soft Lock ID:16 collecting: 11/16
+[3380] Soft Lock ID:16 collecting: 12/16
+[3381] Soft Lock ID:16 collecting: 13/16
+[3382] Soft Lock ID:16 collecting: 14/16
+[3383] Soft Lock ID:16 collecting: 15/16
+[3384] Soft Lock ID:16 collecting: 16/16
+[3384] Fine ReID: ID:16 score=0.999
+[3384] HARD LOCK! ID:16 (fine=0.999 >= 0.75)
+[3403] Last-moment Memory Bank update before LOST.
+Target 16 LOST! -> T1_LOST
+[3424] UAV detected during LOST state. -> T2_SEARCH
+[3432] UAV detected during LOST state. -> T2_SEARCH
+[3433] Coarse: ID:21 score=0.997
+[3433] SOFT LOCK -> ID:21 (coarse=0.997)
+[3433] Soft Lock ID:21 collecting: 1/16
+[3434] Soft Lock ID:21 collecting: 2/16
+[3435] Soft Lock ID:21 lost from frame. Resetting.
+[3436] Coarse: ID:21 score=0.996
+[3436] SOFT LOCK -> ID:21 (coarse=0.996)
+[3436] Soft Lock ID:21 collecting: 1/16
+[3437] Soft Lock ID:21 collecting: 2/16
+[3438] Soft Lock ID:21 collecting: 3/16
+[3439] Soft Lock ID:21 collecting: 4/16
+[3440] Soft Lock ID:21 collecting: 5/16
+[3441] Soft Lock ID:21 collecting: 6/16
+[3442] Soft Lock ID:21 collecting: 7/16
+[3443] Soft Lock ID:21 collecting: 8/16
+[3444] Soft Lock ID:21 collecting: 9/16
+[3445] Soft Lock ID:21 collecting: 10/16
+[3446] Soft Lock ID:21 lost from frame. Resetting.
+[3447] Coarse: ID:21 score=0.993
+[3447] SOFT LOCK -> ID:21 (coarse=0.993)
+[3447] Soft Lock ID:21 collecting: 1/16
+[3448] Soft Lock ID:21 lost from frame. Resetting.
+[3459] UAV detected during LOST state. -> T2_SEARCH
+[3460] Coarse: ID:21 score=0.995
+[3460] SOFT LOCK -> ID:21 (coarse=0.995)
+[3460] Soft Lock ID:21 collecting: 1/16
+[3461] Soft Lock ID:21 lost from frame. Resetting.
+[3653] UAV detected during LOST state. -> T2_SEARCH
+[3661] UAV detected during LOST state. -> T2_SEARCH
+[3669] UAV detected during LOST state. -> T2_SEARCH
+[3674] UAV detected during LOST state. -> T2_SEARCH
+[3675] Coarse: ID:30 score=0.996
+[3675] SOFT LOCK -> ID:30 (coarse=0.996)
+[3675] Soft Lock ID:30 collecting: 1/16
+[3676] Soft Lock ID:30 collecting: 2/16
+[3677] Soft Lock ID:30 collecting: 3/16
+[3678] Soft Lock ID:30 collecting: 4/16
+[3679] Soft Lock ID:30 collecting: 5/16
+[3680] Soft Lock ID:30 collecting: 6/16
+[3681] Soft Lock ID:30 collecting: 7/16
+[3682] Soft Lock ID:30 collecting: 8/16
+[3683] Soft Lock ID:30 collecting: 9/16
+[3684] Soft Lock ID:30 collecting: 10/16
+[3685] Soft Lock ID:30 collecting: 11/16
+[3686] Soft Lock ID:30 collecting: 12/16
+[3687] Soft Lock ID:30 collecting: 13/16
+[3688] Soft Lock ID:30 lost from frame. Resetting.
+[3691] UAV detected during LOST state. -> T2_SEARCH
+[3692] Coarse: ID:30 score=0.997
+[3692] SOFT LOCK -> ID:30 (coarse=0.997)
+[3692] Soft Lock ID:30 collecting: 1/16
+[3693] Soft Lock ID:30 collecting: 2/16
+[3694] Soft Lock ID:30 collecting: 3/16
+[3695] Soft Lock ID:30 collecting: 4/16
+[3696] Soft Lock ID:30 collecting: 5/16
+[3697] Soft Lock ID:30 collecting: 6/16
+[3698] Soft Lock ID:30 collecting: 7/16
+[3699] Soft Lock ID:30 collecting: 8/16
+[3700] Soft Lock ID:30 collecting: 9/16
+[3701] Soft Lock ID:30 collecting: 10/16
+[3702] Soft Lock ID:30 collecting: 11/16
+[3703] Soft Lock ID:30 collecting: 12/16
+[3704] Soft Lock ID:30 collecting: 13/16
+[3705] Soft Lock ID:30 collecting: 14/16
+[3706] Soft Lock ID:30 collecting: 15/16
+[3707] Soft Lock ID:30 collecting: 16/16
+[3707] Fine ReID: ID:30 score=0.997
+[3707] HARD LOCK! ID:30 (fine=0.997 >= 0.75)
+[3726] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3726] Anti-Hijack check #1: score=1.000
+[3744] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3744] Anti-Hijack check #2: score=1.000
+[3762] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3762] Anti-Hijack check #3: score=1.000
+[3781] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3781] Anti-Hijack check #4: score=1.000
+[3799] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3799] Anti-Hijack check #5: score=1.000
+[3817] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3837] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3854] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3872] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3891] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3910] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3930] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3948] Recent updated. Anchor: 10/10 | Recent: 30/30
+[3959] Last-moment Memory Bank update before LOST.
+Target 30 LOST! -> T1_LOST
+[9713] UAV detected during LOST state. -> T2_SEARCH
+[9714] Coarse: ID:34 score=0.996
+[9714] SOFT LOCK -> ID:34 (coarse=0.996)
+[9714] Soft Lock ID:34 collecting: 1/16
+[9715] Soft Lock ID:34 collecting: 2/16
+[9716] Soft Lock ID:34 collecting: 3/16
+[9717] Soft Lock ID:34 collecting: 4/16
+[9718] Soft Lock ID:34 collecting: 5/16
+[9719] Soft Lock ID:34 collecting: 6/16
+[9720] Soft Lock ID:34 collecting: 7/16
+[9721] Soft Lock ID:34 collecting: 8/16
+[9722] Soft Lock ID:34 collecting: 9/16
+[9723] Soft Lock ID:34 collecting: 10/16
+[9724] Soft Lock ID:34 collecting: 11/16
+[9725] Soft Lock ID:34 collecting: 12/16
+[9726] Soft Lock ID:34 collecting: 13/16
+[9727] Soft Lock ID:34 collecting: 14/16
+[9728] Soft Lock ID:34 collecting: 15/16
+[9729] Soft Lock ID:34 collecting: 16/16
+[9729] Fine ReID: ID:34 score=0.997
+[9729] HARD LOCK! ID:34 (fine=0.997 >= 0.75)
+[9748] Recent updated. Anchor: 10/10 | Recent: 30/30
+[9748] Anti-Hijack check #1: score=1.000
+[9768] Recent updated. Anchor: 10/10 | Recent: 30/30
+[9768] Anti-Hijack check #2: score=1.000
+[9787] Recent updated. Anchor: 10/10 | Recent: 30/30
+[9787] Anti-Hijack check #3: score=1.000
+[9802] Last-moment Memory Bank update before LOST.
+Target 34 LOST! -> T1_LOST
+[12091] UAV detected during LOST state. -> T2_SEARCH
+[12092] Coarse: ID:35 score=0.997
+[12092] SOFT LOCK -> ID:35 (coarse=0.997)
+[12092] Soft Lock ID:35 collecting: 1/16
+[12093] Soft Lock ID:35 collecting: 2/16
+[12094] Soft Lock ID:35 collecting: 3/16
+[12095] Soft Lock ID:35 collecting: 4/16
+[12096] Soft Lock ID:35 collecting: 5/16
+[12097] Soft Lock ID:35 collecting: 6/16
+[12098] Soft Lock ID:35 lost from frame. Resetting.
+[12166] UAV detected during LOST state. -> T2_SEARCH
+[12167] Coarse: ID:36 score=0.992
+[12167] SOFT LOCK -> ID:36 (coarse=0.992)
+[12167] Soft Lock ID:36 collecting: 1/16
+[12168] Soft Lock ID:36 collecting: 2/16
+[12169] Soft Lock ID:36 collecting: 3/16
+[12170] Soft Lock ID:36 collecting: 4/16
+[12171] Soft Lock ID:36 collecting: 5/16
+[12172] Soft Lock ID:36 collecting: 6/16
+[12173] Soft Lock ID:36 collecting: 7/16
+[12174] Soft Lock ID:36 collecting: 8/16
+[12175] Soft Lock ID:36 collecting: 9/16
+[12176] Soft Lock ID:36 collecting: 10/16
+[12177] Soft Lock ID:36 collecting: 11/16
+[12178] Soft Lock ID:36 collecting: 12/16
+[12179] Soft Lock ID:36 collecting: 13/16
+[12180] Soft Lock ID:36 collecting: 14/16
+[12181] Soft Lock ID:36 collecting: 15/16
+[12182] Soft Lock ID:36 collecting: 16/16
+[12182] Fine ReID: ID:36 score=0.998
+[12182] HARD LOCK! ID:36 (fine=0.998 >= 0.75)
+[12199] Last-moment Memory Bank update before LOST.
+Target 36 LOST! -> T1_LOST

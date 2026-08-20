@@ -1,0 +1,1270 @@
+Initializing Model...
+Starting OOP Robustness Inference on UAV-Anti-UAV_Test_000212...
+[5] Last-moment Memory Bank update before LOST.
+[5] Target LOST! -> T1_LOST
+[8] UAV reappeared from GT. -> T2_SEARCH
+[9] Soft Lock collecting: 1/8 (coarse=0.994)
+[10] Soft Lock collecting: 2/8 (coarse=0.995)
+[11] Soft Lock collecting: 3/8 (coarse=0.996)
+[12] Soft Lock collecting: 4/8 (coarse=0.996)
+[13] Soft Lock collecting: 5/8 (coarse=0.996)
+[14] Soft Lock collecting: 6/8 (coarse=0.993)
+[15] Soft Lock collecting: 7/8 (coarse=0.990)
+[16] Soft Lock collecting: 8/8 (coarse=0.992)
+
+--- [Frame 16] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000413', 'UAV-Anti-UAV_Test_000219', 'UAV-Anti-UAV_Test_000308', 'UAV-Anti-UAV_Test_000337', 'UAV-Anti-UAV_Test_000022']
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.996
+Imposter 2 Sim: 0.995
+Imposter 3 Sim: 0.995
+Imposter 4 Sim: 0.995
+Imposter 5 Sim: 0.997
+Result: HARD LOCK! (fine=0.998 >= 0.75)
+[74] Anchor updated. Anchor: 3/5 | Recent: 0/15
+[130] Anchor updated. Anchor: 4/5 | Recent: 0/15
+[186] Anchor updated. Anchor: 5/5 | Recent: 0/15
+[193] Last-moment Memory Bank update before LOST.
+[193] Target LOST! -> T1_LOST
+[197] UAV reappeared from GT. -> T2_SEARCH
+[198] Soft Lock collecting: 1/8 (coarse=0.998)
+[199] Soft Lock collecting: 2/8 (coarse=0.998)
+[200] UAV lost during T2_SEARCH. -> T1_LOST
+[200] Target LOST! -> T1_LOST
+[203] UAV reappeared from GT. -> T2_SEARCH
+[204] Soft Lock collecting: 1/8 (coarse=0.997)
+[205] Soft Lock collecting: 2/8 (coarse=0.997)
+[206] Soft Lock collecting: 3/8 (coarse=0.997)
+[207] Soft Lock collecting: 4/8 (coarse=0.997)
+[208] Soft Lock collecting: 5/8 (coarse=0.997)
+[209] Soft Lock collecting: 6/8 (coarse=0.997)
+[210] Soft Lock collecting: 7/8 (coarse=0.997)
+[211] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 211] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000146', 'UAV-Anti-UAV_Test_000307', 'UAV-Anti-UAV_Test_000155', 'UAV-Anti-UAV_Test_000008', 'UAV-Anti-UAV_Test_000390']
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.999
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.998
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.998
+[212] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 212] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.999
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.998
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.998
+[213] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 213] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.999
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.998
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.998
+[214] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 214] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.999
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.998
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.998
+[215] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 215] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.999
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.998
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[216] UAV lost during T2_SEARCH. -> T1_LOST
+[216] Target LOST! -> T1_LOST
+[222] UAV reappeared from GT. -> T2_SEARCH
+[223] Soft Lock collecting: 1/8 (coarse=0.998)
+[224] Soft Lock collecting: 2/8 (coarse=0.997)
+[225] Soft Lock collecting: 3/8 (coarse=0.996)
+[226] Soft Lock collecting: 4/8 (coarse=0.998)
+[227] Soft Lock collecting: 5/8 (coarse=0.997)
+[228] Soft Lock collecting: 6/8 (coarse=0.995)
+[229] Soft Lock collecting: 7/8 (coarse=0.997)
+[230] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 230] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000286', 'UAV-Anti-UAV_Test_000097', 'UAV-Anti-UAV_Test_000042', 'UAV-Anti-UAV_Test_000226', 'UAV-Anti-UAV_Test_000236']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.996
+Imposter 2 Sim: 0.996
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.998
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[262] Last-moment Memory Bank update before LOST.
+[262] Target LOST! -> T1_LOST
+[266] UAV reappeared from GT. -> T2_SEARCH
+[267] Soft Lock collecting: 1/8 (coarse=0.998)
+[268] Soft Lock collecting: 2/8 (coarse=0.997)
+[269] Soft Lock collecting: 3/8 (coarse=0.998)
+[270] Soft Lock collecting: 4/8 (coarse=0.998)
+[271] Soft Lock collecting: 5/8 (coarse=0.996)
+[272] Soft Lock collecting: 6/8 (coarse=0.998)
+[273] Soft Lock collecting: 7/8 (coarse=0.998)
+[274] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 274] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000316', 'UAV-Anti-UAV_Test_000290', 'UAV-Anti-UAV_Test_000401', 'UAV-Anti-UAV_Test_000245', 'UAV-Anti-UAV_Test_000139']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.996
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.996
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[281] Last-moment Memory Bank update before LOST.
+[281] Target LOST! -> T1_LOST
+[285] UAV reappeared from GT. -> T2_SEARCH
+[286] Soft Lock collecting: 1/8 (coarse=0.998)
+[287] Soft Lock collecting: 2/8 (coarse=0.998)
+[288] Soft Lock collecting: 3/8 (coarse=0.998)
+[289] Soft Lock collecting: 4/8 (coarse=0.997)
+[290] Soft Lock collecting: 5/8 (coarse=0.997)
+[291] Soft Lock collecting: 6/8 (coarse=0.998)
+[292] Soft Lock collecting: 7/8 (coarse=0.997)
+[293] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 293] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000284', 'UAV-Anti-UAV_Test_000003', 'UAV-Anti-UAV_Test_000052', 'UAV-Anti-UAV_Test_000103', 'UAV-Anti-UAV_Test_000335']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.995
+Imposter 4 Sim: 0.997
+Imposter 5 Sim: 0.997
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[334] Last-moment Memory Bank update before LOST.
+[334] Target LOST! -> T1_LOST
+[338] UAV reappeared from GT. -> T2_SEARCH
+[339] Soft Lock collecting: 1/8 (coarse=0.996)
+[340] Soft Lock collecting: 2/8 (coarse=0.996)
+[341] Soft Lock collecting: 3/8 (coarse=0.998)
+[342] Soft Lock collecting: 4/8 (coarse=0.999)
+[343] Soft Lock collecting: 5/8 (coarse=0.997)
+[344] Soft Lock collecting: 6/8 (coarse=0.996)
+[345] Soft Lock collecting: 7/8 (coarse=0.998)
+[346] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 346] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000113', 'UAV-Anti-UAV_Test_000265', 'UAV-Anti-UAV_Test_000289', 'UAV-Anti-UAV_Test_000323', 'UAV-Anti-UAV_Test_000312']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.996
+Imposter 2 Sim: 0.996
+Imposter 3 Sim: 0.999
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.996
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[404] Recent updated. Anchor: 5/5 | Recent: 9/15
+[417] Last-moment Memory Bank update before LOST.
+[417] Target LOST! -> T1_LOST
+[422] UAV reappeared from GT. -> T2_SEARCH
+[423] Soft Lock collecting: 1/8 (coarse=0.995)
+[424] Soft Lock collecting: 2/8 (coarse=0.995)
+[425] Soft Lock collecting: 3/8 (coarse=0.995)
+[426] Soft Lock collecting: 4/8 (coarse=0.996)
+[427] Soft Lock collecting: 5/8 (coarse=0.996)
+[428] Soft Lock collecting: 6/8 (coarse=0.995)
+[429] Soft Lock collecting: 7/8 (coarse=0.995)
+[430] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 430] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000397', 'UAV-Anti-UAV_Test_000004', 'UAV-Anti-UAV_Test_000324', 'UAV-Anti-UAV_Test_000222', 'UAV-Anti-UAV_Test_000009']
+Genuine Sim: 0.997
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.997
+[431] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 431] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.997
+[432] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 432] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.998
+[433] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 433] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.998
+[434] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 434] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.998
+[435] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 435] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[436] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 436] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[492] Recent updated. Anchor: 5/5 | Recent: 12/15
+[515] Last-moment Memory Bank update before LOST.
+[515] Target LOST! -> T1_LOST
+[570] UAV reappeared from GT. -> T2_SEARCH
+[571] Soft Lock collecting: 1/8 (coarse=0.997)
+[572] Soft Lock collecting: 2/8 (coarse=0.997)
+[573] Soft Lock collecting: 3/8 (coarse=0.998)
+[574] Soft Lock collecting: 4/8 (coarse=0.998)
+[575] Soft Lock collecting: 5/8 (coarse=0.996)
+[576] UAV lost during T2_SEARCH. -> T1_LOST
+[576] Target LOST! -> T1_LOST
+[577] UAV reappeared from GT. -> T2_SEARCH
+[578] Soft Lock collecting: 1/8 (coarse=0.997)
+[579] Soft Lock collecting: 2/8 (coarse=0.998)
+[580] Soft Lock collecting: 3/8 (coarse=0.998)
+[581] Soft Lock collecting: 4/8 (coarse=0.998)
+[582] Soft Lock collecting: 5/8 (coarse=0.997)
+[583] Soft Lock collecting: 6/8 (coarse=0.996)
+[584] Soft Lock collecting: 7/8 (coarse=0.998)
+[585] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 585] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000160', 'UAV-Anti-UAV_Test_000388', 'UAV-Anti-UAV_Test_000177', 'UAV-Anti-UAV_Test_000280', 'UAV-Anti-UAV_Test_000045']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.999
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.998
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[604] Last-moment Memory Bank update before LOST.
+[604] Target LOST! -> T1_LOST
+[621] UAV reappeared from GT. -> T2_SEARCH
+[622] Soft Lock collecting: 1/8 (coarse=0.998)
+[623] Soft Lock collecting: 2/8 (coarse=0.998)
+[624] UAV lost during T2_SEARCH. -> T1_LOST
+[624] Target LOST! -> T1_LOST
+[626] UAV reappeared from GT. -> T2_SEARCH
+[627] Soft Lock collecting: 1/8 (coarse=0.998)
+[628] Soft Lock collecting: 2/8 (coarse=0.998)
+[629] Soft Lock collecting: 3/8 (coarse=0.998)
+[630] UAV lost during T2_SEARCH. -> T1_LOST
+[630] Target LOST! -> T1_LOST
+[631] UAV reappeared from GT. -> T2_SEARCH
+[632] Soft Lock collecting: 1/8 (coarse=0.999)
+[633] Soft Lock collecting: 2/8 (coarse=0.998)
+[634] Soft Lock collecting: 3/8 (coarse=0.998)
+[635] Soft Lock collecting: 4/8 (coarse=0.998)
+[636] Soft Lock collecting: 5/8 (coarse=0.998)
+[637] Soft Lock collecting: 6/8 (coarse=0.998)
+[638] Soft Lock collecting: 7/8 (coarse=0.999)
+[639] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 639] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000288', 'UAV-Anti-UAV_Test_000012', 'UAV-Anti-UAV_Test_000018', 'UAV-Anti-UAV_Test_000301', 'UAV-Anti-UAV_Test_000048']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.999
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.997
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[655] Last-moment Memory Bank update before LOST.
+[655] Target LOST! -> T1_LOST
+[688] UAV reappeared from GT. -> T2_SEARCH
+[689] Soft Lock collecting: 1/8 (coarse=0.997)
+[690] Soft Lock collecting: 2/8 (coarse=0.999)
+[691] Soft Lock collecting: 3/8 (coarse=0.998)
+[692] UAV lost during T2_SEARCH. -> T1_LOST
+[692] Target LOST! -> T1_LOST
+[694] UAV reappeared from GT. -> T2_SEARCH
+[695] Soft Lock collecting: 1/8 (coarse=0.996)
+[696] Soft Lock collecting: 2/8 (coarse=0.996)
+[697] Soft Lock collecting: 3/8 (coarse=0.995)
+[698] Soft Lock collecting: 4/8 (coarse=0.997)
+[699] UAV lost during T2_SEARCH. -> T1_LOST
+[699] Target LOST! -> T1_LOST
+[718] UAV reappeared from GT. -> T2_SEARCH
+[719] Soft Lock collecting: 1/8 (coarse=0.997)
+[720] Soft Lock collecting: 2/8 (coarse=0.998)
+[721] Soft Lock collecting: 3/8 (coarse=0.999)
+[722] Soft Lock collecting: 4/8 (coarse=0.998)
+[723] Soft Lock collecting: 5/8 (coarse=0.998)
+[724] UAV lost during T2_SEARCH. -> T1_LOST
+[724] Target LOST! -> T1_LOST
+[740] UAV reappeared from GT. -> T2_SEARCH
+[741] Soft Lock collecting: 1/8 (coarse=0.998)
+[742] Soft Lock collecting: 2/8 (coarse=0.998)
+[743] Soft Lock collecting: 3/8 (coarse=0.995)
+[744] Soft Lock collecting: 4/8 (coarse=0.998)
+[745] Soft Lock collecting: 5/8 (coarse=0.999)
+[746] Soft Lock collecting: 6/8 (coarse=0.998)
+[747] Soft Lock collecting: 7/8 (coarse=0.997)
+[748] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 748] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000184', 'UAV-Anti-UAV_Test_000249', 'UAV-Anti-UAV_Test_000231', 'UAV-Anti-UAV_Test_000261', 'UAV-Anti-UAV_Test_000143']
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.998
+Result: HARD LOCK! (fine=1.000 >= 0.75)
+[752] Last-moment Memory Bank update before LOST.
+[752] Target LOST! -> T1_LOST
+[753] UAV reappeared from GT. -> T2_SEARCH
+[754] Soft Lock collecting: 1/8 (coarse=0.999)
+[755] Soft Lock collecting: 2/8 (coarse=0.998)
+[756] Soft Lock collecting: 3/8 (coarse=0.998)
+[757] Soft Lock collecting: 4/8 (coarse=0.998)
+[758] Soft Lock collecting: 5/8 (coarse=0.999)
+[759] Soft Lock collecting: 6/8 (coarse=0.998)
+[760] Soft Lock collecting: 7/8 (coarse=0.999)
+[761] Soft Lock collecting: 8/8 (coarse=0.999)
+
+--- [Frame 761] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000370', 'UAV-Anti-UAV_Test_000034', 'UAV-Anti-UAV_Test_000334', 'UAV-Anti-UAV_Test_000135', 'UAV-Anti-UAV_Test_000304']
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.999
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.997
+Imposter 5 Sim: 0.999
+Result: HARD LOCK! (fine=1.000 >= 0.75)
+[764] Last-moment Memory Bank update before LOST.
+[764] Target LOST! -> T1_LOST
+[782] UAV reappeared from GT. -> T2_SEARCH
+[783] Soft Lock collecting: 1/8 (coarse=0.998)
+[784] UAV lost during T2_SEARCH. -> T1_LOST
+[784] Target LOST! -> T1_LOST
+[785] UAV reappeared from GT. -> T2_SEARCH
+[786] Soft Lock collecting: 1/8 (coarse=0.996)
+[787] Soft Lock collecting: 2/8 (coarse=0.997)
+[788] Soft Lock collecting: 3/8 (coarse=0.998)
+[789] Soft Lock collecting: 4/8 (coarse=0.997)
+[790] Soft Lock collecting: 5/8 (coarse=0.999)
+[791] Soft Lock collecting: 6/8 (coarse=0.999)
+[792] Soft Lock collecting: 7/8 (coarse=0.998)
+[793] Soft Lock collecting: 8/8 (coarse=0.999)
+
+--- [Frame 793] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000299', 'UAV-Anti-UAV_Test_000100', 'UAV-Anti-UAV_Test_000198', 'UAV-Anti-UAV_Test_000187', 'UAV-Anti-UAV_Test_000196']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[806] Last-moment Memory Bank update before LOST.
+[806] Target LOST! -> T1_LOST
+[822] UAV reappeared from GT. -> T2_SEARCH
+[823] Soft Lock collecting: 1/8 (coarse=0.995)
+[824] Soft Lock collecting: 2/8 (coarse=0.996)
+[825] Soft Lock collecting: 3/8 (coarse=0.995)
+[826] Soft Lock collecting: 4/8 (coarse=0.996)
+[827] Soft Lock collecting: 5/8 (coarse=0.996)
+[828] Soft Lock collecting: 6/8 (coarse=0.995)
+[829] Soft Lock collecting: 7/8 (coarse=0.994)
+[830] Soft Lock collecting: 8/8 (coarse=0.995)
+
+--- [Frame 830] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000284', 'UAV-Anti-UAV_Test_000369', 'UAV-Anti-UAV_Test_000198', 'UAV-Anti-UAV_Test_000023', 'UAV-Anti-UAV_Test_000285']
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.996
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.998
+Result: HIJACKED BY IMPOSTER! Imp: 0.998 > Gen: 0.998
+[831] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 831] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.996
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.998
+Result: HIJACKED BY IMPOSTER! Imp: 0.998 > Gen: 0.998
+[832] UAV lost during T2_SEARCH. -> T1_LOST
+[832] Target LOST! -> T1_LOST
+[840] UAV reappeared from GT. -> T2_SEARCH
+[841] Soft Lock collecting: 1/8 (coarse=0.995)
+[842] Soft Lock collecting: 2/8 (coarse=0.993)
+[843] Soft Lock collecting: 3/8 (coarse=0.996)
+[844] Soft Lock collecting: 4/8 (coarse=0.996)
+[845] Soft Lock collecting: 5/8 (coarse=0.996)
+[846] Soft Lock collecting: 6/8 (coarse=0.995)
+[847] Soft Lock collecting: 7/8 (coarse=0.995)
+[848] Soft Lock collecting: 8/8 (coarse=0.995)
+
+--- [Frame 848] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000213', 'UAV-Anti-UAV_Test_000306', 'UAV-Anti-UAV_Test_000010', 'UAV-Anti-UAV_Test_000309', 'UAV-Anti-UAV_Test_000351']
+Genuine Sim: 0.997
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.996
+Result: HIJACKED BY IMPOSTER! Imp: 0.998 > Gen: 0.997
+[849] UAV lost during T2_SEARCH. -> T1_LOST
+[849] Target LOST! -> T1_LOST
+[884] UAV reappeared from GT. -> T2_SEARCH
+[885] Soft Lock collecting: 1/8 (coarse=0.994)
+[886] Soft Lock collecting: 2/8 (coarse=0.995)
+[887] Soft Lock collecting: 3/8 (coarse=0.995)
+[888] Soft Lock collecting: 4/8 (coarse=0.997)
+[889] UAV lost during T2_SEARCH. -> T1_LOST
+[889] Target LOST! -> T1_LOST
+[891] UAV reappeared from GT. -> T2_SEARCH
+[892] Soft Lock collecting: 1/8 (coarse=0.995)
+[893] Soft Lock collecting: 2/8 (coarse=0.996)
+[894] Soft Lock collecting: 3/8 (coarse=0.996)
+[895] Soft Lock collecting: 4/8 (coarse=0.996)
+[896] Soft Lock collecting: 5/8 (coarse=0.996)
+[897] Soft Lock collecting: 6/8 (coarse=0.996)
+[898] Soft Lock collecting: 7/8 (coarse=0.996)
+[899] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 899] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000048', 'UAV-Anti-UAV_Test_000399', 'UAV-Anti-UAV_Test_000298', 'UAV-Anti-UAV_Test_000238', 'UAV-Anti-UAV_Test_000017']
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.998
+[900] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 900] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.998
+[901] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 901] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[902] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 902] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[903] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 903] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[904] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 904] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[905] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 905] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.998
+Imposter 5 Sim: 0.999
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[962] Recent updated. Anchor: 5/5 | Recent: 15/15
+[992] Last-moment Memory Bank update before LOST.
+[992] Target LOST! -> T1_LOST
+[994] UAV reappeared from GT. -> T2_SEARCH
+[995] Soft Lock collecting: 1/8 (coarse=0.999)
+[996] Soft Lock collecting: 2/8 (coarse=0.999)
+[997] Soft Lock collecting: 3/8 (coarse=0.998)
+[998] Soft Lock collecting: 4/8 (coarse=0.997)
+[999] Soft Lock collecting: 5/8 (coarse=0.997)
+[1000] Soft Lock collecting: 6/8 (coarse=0.996)
+[1001] Soft Lock collecting: 7/8 (coarse=0.997)
+[1002] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1002] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000267', 'UAV-Anti-UAV_Test_000295', 'UAV-Anti-UAV_Test_000260', 'UAV-Anti-UAV_Test_000378', 'UAV-Anti-UAV_Test_000258']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.996
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.997
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[1003] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 1003] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.996
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.997
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[1004] Soft Lock collecting: 8/8 (coarse=0.999)
+
+--- [Frame 1004] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.996
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.997
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[1005] Soft Lock collecting: 8/8 (coarse=0.999)
+
+--- [Frame 1005] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.996
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.997
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[1006] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 1006] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.996
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.997
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 0.999 > Gen: 0.999
+[1007] Soft Lock collecting: 8/8 (coarse=0.999)
+
+--- [Frame 1007] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.996
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.997
+Imposter 5 Sim: 0.999
+Result: HARD LOCK! (fine=1.000 >= 0.75)
+[1029] Last-moment Memory Bank update before LOST.
+[1029] Target LOST! -> T1_LOST
+[1043] UAV reappeared from GT. -> T2_SEARCH
+[1044] Soft Lock collecting: 1/8 (coarse=0.995)
+[1045] Soft Lock collecting: 2/8 (coarse=0.999)
+[1046] Soft Lock collecting: 3/8 (coarse=0.998)
+[1047] Soft Lock collecting: 4/8 (coarse=0.997)
+[1048] Soft Lock collecting: 5/8 (coarse=0.999)
+[1049] UAV lost during T2_SEARCH. -> T1_LOST
+[1049] Target LOST! -> T1_LOST
+[1050] UAV reappeared from GT. -> T2_SEARCH
+[1051] Soft Lock collecting: 1/8 (coarse=0.998)
+[1052] Soft Lock collecting: 2/8 (coarse=0.998)
+[1053] Soft Lock collecting: 3/8 (coarse=0.998)
+[1054] Soft Lock collecting: 4/8 (coarse=0.998)
+[1055] Soft Lock collecting: 5/8 (coarse=0.999)
+[1056] Soft Lock collecting: 6/8 (coarse=0.999)
+[1057] Soft Lock collecting: 7/8 (coarse=0.998)
+[1058] Soft Lock collecting: 8/8 (coarse=0.999)
+
+--- [Frame 1058] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000348', 'UAV-Anti-UAV_Test_000315', 'UAV-Anti-UAV_Test_000122', 'UAV-Anti-UAV_Test_000138', 'UAV-Anti-UAV_Test_000314']
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.995
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.993
+Imposter 4 Sim: 0.995
+Imposter 5 Sim: 0.996
+Result: HARD LOCK! (fine=1.000 >= 0.75)
+[1062] Last-moment Memory Bank update before LOST.
+[1062] Target LOST! -> T1_LOST
+[1064] UAV reappeared from GT. -> T2_SEARCH
+[1065] Soft Lock collecting: 1/8 (coarse=0.999)
+[1066] Soft Lock collecting: 2/8 (coarse=0.999)
+[1067] Soft Lock collecting: 3/8 (coarse=0.999)
+[1068] Soft Lock collecting: 4/8 (coarse=0.999)
+[1069] Soft Lock collecting: 5/8 (coarse=0.998)
+[1070] Soft Lock collecting: 6/8 (coarse=0.998)
+[1071] UAV lost during T2_SEARCH. -> T1_LOST
+[1071] Target LOST! -> T1_LOST
+[1072] UAV reappeared from GT. -> T2_SEARCH
+[1073] Soft Lock collecting: 1/8 (coarse=0.999)
+[1074] UAV lost during T2_SEARCH. -> T1_LOST
+[1074] Target LOST! -> T1_LOST
+[1078] UAV reappeared from GT. -> T2_SEARCH
+[1079] Soft Lock collecting: 1/8 (coarse=0.998)
+[1080] UAV lost during T2_SEARCH. -> T1_LOST
+[1080] Target LOST! -> T1_LOST
+[1090] UAV reappeared from GT. -> T2_SEARCH
+[1091] Soft Lock collecting: 1/8 (coarse=0.999)
+[1092] Soft Lock collecting: 2/8 (coarse=0.999)
+[1093] Soft Lock collecting: 3/8 (coarse=0.999)
+[1094] Soft Lock collecting: 4/8 (coarse=0.999)
+[1095] Soft Lock collecting: 5/8 (coarse=0.998)
+[1096] UAV lost during T2_SEARCH. -> T1_LOST
+[1096] Target LOST! -> T1_LOST
+[1104] UAV reappeared from GT. -> T2_SEARCH
+[1105] Soft Lock collecting: 1/8 (coarse=0.998)
+[1106] Soft Lock collecting: 2/8 (coarse=0.998)
+[1107] Soft Lock collecting: 3/8 (coarse=0.997)
+[1108] Soft Lock collecting: 4/8 (coarse=0.998)
+[1109] Soft Lock collecting: 5/8 (coarse=0.999)
+[1110] UAV lost during T2_SEARCH. -> T1_LOST
+[1110] Target LOST! -> T1_LOST
+[1140] UAV reappeared from GT. -> T2_SEARCH
+[1141] Soft Lock collecting: 1/8 (coarse=0.997)
+[1142] Soft Lock collecting: 2/8 (coarse=0.997)
+[1143] Soft Lock collecting: 3/8 (coarse=0.997)
+[1144] Soft Lock collecting: 4/8 (coarse=0.997)
+[1145] Soft Lock collecting: 5/8 (coarse=0.998)
+[1146] Soft Lock collecting: 6/8 (coarse=0.999)
+[1147] Soft Lock collecting: 7/8 (coarse=0.998)
+[1148] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 1148] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000002', 'UAV-Anti-UAV_Test_000192', 'UAV-Anti-UAV_Test_000209', 'UAV-Anti-UAV_Test_000365', 'UAV-Anti-UAV_Test_000406']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.996
+Imposter 2 Sim: 0.994
+Imposter 3 Sim: 0.996
+Imposter 4 Sim: 0.996
+Imposter 5 Sim: 0.999
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[1150] Last-moment Memory Bank update before LOST.
+[1150] Target LOST! -> T1_LOST
+[1158] UAV reappeared from GT. -> T2_SEARCH
+[1159] Soft Lock collecting: 1/8 (coarse=0.997)
+[1160] Soft Lock collecting: 2/8 (coarse=0.998)
+[1161] Soft Lock collecting: 3/8 (coarse=0.997)
+[1162] Soft Lock collecting: 4/8 (coarse=0.998)
+[1163] Soft Lock collecting: 5/8 (coarse=0.998)
+[1164] Soft Lock collecting: 6/8 (coarse=0.998)
+[1165] Soft Lock collecting: 7/8 (coarse=0.998)
+[1166] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 1166] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000412', 'UAV-Anti-UAV_Test_000167', 'UAV-Anti-UAV_Test_000294', 'UAV-Anti-UAV_Test_000185', 'UAV-Anti-UAV_Test_000377']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.999
+Imposter 4 Sim: 0.995
+Imposter 5 Sim: 0.997
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[1201] Last-moment Memory Bank update before LOST.
+[1201] Target LOST! -> T1_LOST
+[1204] UAV reappeared from GT. -> T2_SEARCH
+[1205] Soft Lock collecting: 1/8 (coarse=0.997)
+[1206] Soft Lock collecting: 2/8 (coarse=0.998)
+[1207] Soft Lock collecting: 3/8 (coarse=0.995)
+[1208] UAV lost during T2_SEARCH. -> T1_LOST
+[1208] Target LOST! -> T1_LOST
+[1220] UAV reappeared from GT. -> T2_SEARCH
+[1221] Soft Lock collecting: 1/8 (coarse=0.997)
+[1222] Soft Lock collecting: 2/8 (coarse=0.997)
+[1223] Soft Lock collecting: 3/8 (coarse=0.995)
+[1224] Soft Lock collecting: 4/8 (coarse=0.995)
+[1225] Soft Lock collecting: 5/8 (coarse=0.994)
+[1226] Soft Lock collecting: 6/8 (coarse=0.997)
+[1227] Soft Lock collecting: 7/8 (coarse=0.996)
+[1228] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 1228] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000078', 'UAV-Anti-UAV_Test_000330', 'UAV-Anti-UAV_Test_000273', 'UAV-Anti-UAV_Test_000241', 'UAV-Anti-UAV_Test_000105']
+Genuine Sim: 0.998
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.996
+Imposter 5 Sim: 0.995
+Result: HARD LOCK! (fine=0.998 >= 0.75)
+[1237] Last-moment Memory Bank update before LOST.
+[1237] Target LOST! -> T1_LOST
+[1239] UAV reappeared from GT. -> T2_SEARCH
+[1240] Soft Lock collecting: 1/8 (coarse=0.997)
+[1241] Soft Lock collecting: 2/8 (coarse=0.997)
+[1242] Soft Lock collecting: 3/8 (coarse=0.999)
+[1243] Soft Lock collecting: 4/8 (coarse=0.999)
+[1244] Soft Lock collecting: 5/8 (coarse=0.999)
+[1245] Soft Lock collecting: 6/8 (coarse=0.999)
+[1246] Soft Lock collecting: 7/8 (coarse=0.997)
+[1247] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1247] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000171', 'UAV-Anti-UAV_Test_000157', 'UAV-Anti-UAV_Test_000105', 'UAV-Anti-UAV_Test_000154', 'UAV-Anti-UAV_Test_000211']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.998
+Imposter 2 Sim: 0.996
+Imposter 3 Sim: 0.997
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.996
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[1276] Last-moment Memory Bank update before LOST.
+[1276] Target LOST! -> T1_LOST
+[1278] UAV reappeared from GT. -> T2_SEARCH
+[1279] Soft Lock collecting: 1/8 (coarse=0.996)
+[1280] Soft Lock collecting: 2/8 (coarse=0.996)
+[1281] Soft Lock collecting: 3/8 (coarse=0.996)
+[1282] Soft Lock collecting: 4/8 (coarse=0.996)
+[1283] Soft Lock collecting: 5/8 (coarse=0.996)
+[1284] Soft Lock collecting: 6/8 (coarse=0.996)
+[1285] Soft Lock collecting: 7/8 (coarse=0.996)
+[1286] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1286] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000243', 'UAV-Anti-UAV_Test_000065', 'UAV-Anti-UAV_Test_000076', 'UAV-Anti-UAV_Test_000161', 'UAV-Anti-UAV_Test_000389']
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1287] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1287] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1288] Soft Lock collecting: 8/8 (coarse=0.995)
+
+--- [Frame 1288] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1289] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1289] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1290] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 1290] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1291] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1291] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1292] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1292] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1293] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1293] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1294] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1294] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1295] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1295] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1296] Soft Lock collecting: 8/8 (coarse=0.994)
+
+--- [Frame 1296] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1297] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1297] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1298] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1298] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1299] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1299] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1300] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1300] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1301] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1301] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1302] Soft Lock collecting: 8/8 (coarse=0.995)
+
+--- [Frame 1302] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1303] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1303] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1304] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1304] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1305] Soft Lock collecting: 8/8 (coarse=0.995)
+
+--- [Frame 1305] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1306] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1306] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1307] Soft Lock collecting: 8/8 (coarse=0.995)
+
+--- [Frame 1307] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.998
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.998
+[1308] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1308] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1309] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1309] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1310] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1310] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1311] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1311] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1312] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1312] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1313] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1313] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1314] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1314] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1315] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1315] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1316] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1316] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1317] Soft Lock collecting: 8/8 (coarse=0.995)
+
+--- [Frame 1317] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1318] Soft Lock collecting: 8/8 (coarse=0.996)
+
+--- [Frame 1318] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1319] Soft Lock collecting: 8/8 (coarse=0.995)
+
+--- [Frame 1319] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 0.997
+Imposter 1 Sim: 1.000
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.999
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 0.997
+[1320] UAV lost during T2_SEARCH. -> T1_LOST
+[1320] Target LOST! -> T1_LOST
+[1338] UAV reappeared from GT. -> T2_SEARCH
+[1339] Soft Lock collecting: 1/8 (coarse=0.997)
+[1340] Soft Lock collecting: 2/8 (coarse=0.997)
+[1341] Soft Lock collecting: 3/8 (coarse=0.996)
+[1342] Soft Lock collecting: 4/8 (coarse=0.995)
+[1343] Soft Lock collecting: 5/8 (coarse=0.995)
+[1344] UAV lost during T2_SEARCH. -> T1_LOST
+[1344] Target LOST! -> T1_LOST
+[1348] UAV reappeared from GT. -> T2_SEARCH
+[1349] Soft Lock collecting: 1/8 (coarse=0.996)
+[1350] Soft Lock collecting: 2/8 (coarse=0.996)
+[1351] Soft Lock collecting: 3/8 (coarse=0.998)
+[1352] Soft Lock collecting: 4/8 (coarse=0.998)
+[1353] Soft Lock collecting: 5/8 (coarse=0.997)
+[1354] Soft Lock collecting: 6/8 (coarse=0.998)
+[1355] Soft Lock collecting: 7/8 (coarse=0.998)
+[1356] Soft Lock collecting: 8/8 (coarse=0.999)
+
+--- [Frame 1356] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000391', 'UAV-Anti-UAV_Test_000005', 'UAV-Anti-UAV_Test_000186', 'UAV-Anti-UAV_Test_000291', 'UAV-Anti-UAV_Test_000398']
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.998
+Imposter 3 Sim: 1.000
+Imposter 4 Sim: 0.999
+Imposter 5 Sim: 0.998
+Result: HARD LOCK! (fine=1.000 >= 0.75)
+[1412] Recent updated. Anchor: 5/5 | Recent: 15/15
+[1468] Recent updated. Anchor: 5/5 | Recent: 15/15
+[1516] Last-moment Memory Bank update before LOST.
+[1516] Target LOST! -> T1_LOST
+[1518] UAV reappeared from GT. -> T2_SEARCH
+[1519] Soft Lock collecting: 1/8 (coarse=0.999)
+[1520] Soft Lock collecting: 2/8 (coarse=0.998)
+[1521] Soft Lock collecting: 3/8 (coarse=0.999)
+[1522] Soft Lock collecting: 4/8 (coarse=0.997)
+[1523] Soft Lock collecting: 5/8 (coarse=0.999)
+[1524] Soft Lock collecting: 6/8 (coarse=0.999)
+[1525] Soft Lock collecting: 7/8 (coarse=0.999)
+[1526] Soft Lock collecting: 8/8 (coarse=0.999)
+
+--- [Frame 1526] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000269', 'UAV-Anti-UAV_Test_000381', 'UAV-Anti-UAV_Test_000130', 'UAV-Anti-UAV_Test_000277', 'UAV-Anti-UAV_Test_000162']
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.996
+Imposter 5 Sim: 1.000
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 1.000
+[1527] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 1527] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.996
+Imposter 5 Sim: 1.000
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 1.000
+[1528] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 1528] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.996
+Imposter 5 Sim: 1.000
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 1.000
+[1529] Soft Lock collecting: 8/8 (coarse=0.997)
+
+--- [Frame 1529] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.996
+Imposter 5 Sim: 1.000
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 1.000
+[1530] Soft Lock collecting: 8/8 (coarse=0.999)
+
+--- [Frame 1530] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.996
+Imposter 5 Sim: 1.000
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 1.000
+[1531] Soft Lock collecting: 8/8 (coarse=0.999)
+
+--- [Frame 1531] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+Genuine Sim: 1.000
+Imposter 1 Sim: 0.997
+Imposter 2 Sim: 0.999
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.996
+Imposter 5 Sim: 1.000
+Result: HIJACKED BY IMPOSTER! Imp: 1.000 > Gen: 1.000
+[1532] UAV lost during T2_SEARCH. -> T1_LOST
+[1532] Target LOST! -> T1_LOST
+[1534] UAV reappeared from GT. -> T2_SEARCH
+[1535] Soft Lock collecting: 1/8 (coarse=0.999)
+[1536] Soft Lock collecting: 2/8 (coarse=0.999)
+[1537] Soft Lock collecting: 3/8 (coarse=0.999)
+[1538] UAV lost during T2_SEARCH. -> T1_LOST
+[1538] Target LOST! -> T1_LOST
+[1539] UAV reappeared from GT. -> T2_SEARCH
+[1540] Soft Lock collecting: 1/8 (coarse=0.998)
+[1541] Soft Lock collecting: 2/8 (coarse=0.999)
+[1542] Soft Lock collecting: 3/8 (coarse=0.997)
+[1543] Soft Lock collecting: 4/8 (coarse=0.998)
+[1544] Soft Lock collecting: 5/8 (coarse=0.998)
+[1545] Soft Lock collecting: 6/8 (coarse=0.998)
+[1546] Soft Lock collecting: 7/8 (coarse=0.998)
+[1547] Soft Lock collecting: 8/8 (coarse=0.998)
+
+--- [Frame 1547] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---
+  -> Sampling 5 imposters from: ['UAV-Anti-UAV_Test_000032', 'UAV-Anti-UAV_Test_000098', 'UAV-Anti-UAV_Test_000173', 'UAV-Anti-UAV_Test_000131', 'UAV-Anti-UAV_Test_000327']
+Genuine Sim: 0.999
+Imposter 1 Sim: 0.999
+Imposter 2 Sim: 0.997
+Imposter 3 Sim: 0.998
+Imposter 4 Sim: 0.997
+Imposter 5 Sim: 0.998
+Result: HARD LOCK! (fine=0.999 >= 0.75)
+[1561] Last-moment Memory Bank update before LOST.
+[1561] Target LOST! -> T1_LOST
+
+================ ROBUSTNESS REPORT ================
+Total Verifications (Genuine Queries)  : 85
+Total Imposter Queries Evaluated       : 425
+
+Average Genuine Similarity : 0.9983
+Average Imposter Similarity: 0.9980
+Average Margin (Gen - Imp) : 0.0003
+
+At Threshold 0.75:
+False Rejection Rate (FRR) : 0.00% (Target UAV not recognized)
+False Acceptance Rate (FAR): 100.00% (Imposter UAV accepted)
+
+Score distribution plot saved to: ./infer_robustness_new/UAV-Anti-UAV_Test_000212/score_distribution.png
+Detailed logs saved to: ./infer_robustness_new/UAV-Anti-UAV_Test_000212/robustness_log.txt
+Output video saved to: ./infer_robustness_new/UAV-Anti-UAV_Test_000212/output_robustness.mp4

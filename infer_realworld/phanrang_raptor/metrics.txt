@@ -3,5 +3,1505 @@ Model loaded successfully.
 Initializing YOLOv8 Detector: yolov8n.pt
 Skipping to 13.0 seconds...
 No Query Image provided. Auto-Locking on first detected object.
-Starting Multi-UAV Coarse-to-Fine Inference Stream...
-[9] Target None LOST! Transitioning to SEARCH mode.
+Starting Multi-UAV Coarse-to-Fine Inference Stream (New Pipeline)...
+[555] Auto-Locked onto Target Track ID: 2
+[587] Anchor updated. Anchor: 1/10 | Recent: 0/30
+[587] T0 -> T3_VERIFIED. Memory Bank initialized.
+[610] Recent updated. Anchor: 1/10 | Recent: 1/30
+[633] Recent updated. Anchor: 1/10 | Recent: 2/30
+[656] Recent updated. Anchor: 1/10 | Recent: 3/30
+[679] Recent updated. Anchor: 1/10 | Recent: 4/30
+[702] Recent updated. Anchor: 1/10 | Recent: 5/30
+[725] Recent updated. Anchor: 1/10 | Recent: 6/30
+[748] Recent updated. Anchor: 1/10 | Recent: 7/30
+[771] Recent updated. Anchor: 1/10 | Recent: 8/30
+[793] Recent updated. Anchor: 1/10 | Recent: 9/30
+[815] Recent updated. Anchor: 1/10 | Recent: 10/30
+[838] Recent updated. Anchor: 1/10 | Recent: 11/30
+[860] Recent updated. Anchor: 1/10 | Recent: 12/30
+[883] Recent updated. Anchor: 1/10 | Recent: 13/30
+[906] Recent updated. Anchor: 1/10 | Recent: 14/30
+[926] Last-moment Memory Bank update before LOST.
+Target 2 LOST! -> T1_LOST
+[931] UAV detected during LOST state. -> T2_SEARCH
+[932] Coarse: ID:2 score=0.997
+[932] SOFT LOCK -> ID:2 (coarse=0.997)
+[932] Soft Lock ID:2 collecting: 1/16
+[933] Soft Lock ID:2 collecting: 2/16
+[934] Soft Lock ID:2 collecting: 3/16
+[935] Soft Lock ID:2 collecting: 4/16
+[936] Soft Lock ID:2 collecting: 5/16
+[937] Soft Lock ID:2 collecting: 6/16
+[938] Soft Lock ID:2 collecting: 7/16
+[939] Soft Lock ID:2 collecting: 8/16
+[940] Soft Lock ID:2 collecting: 9/16
+[941] Soft Lock ID:2 collecting: 10/16
+[942] Soft Lock ID:2 collecting: 11/16
+[943] Soft Lock ID:2 collecting: 12/16
+[944] Soft Lock ID:2 collecting: 13/16
+[945] Soft Lock ID:2 collecting: 14/16
+[946] Soft Lock ID:2 collecting: 15/16
+[947] Soft Lock ID:2 collecting: 16/16
+[947] Fine ReID: ID:2 score=0.998
+[947] HARD LOCK! ID:2 (fine=0.998 >= 0.75)
+[970] Anti-Hijack check #1: score=1.000
+[970] Recent updated. Anchor: 1/10 | Recent: 17/30
+[992] Anti-Hijack check #2: score=1.000
+[992] Recent updated. Anchor: 1/10 | Recent: 18/30
+[1014] Anti-Hijack check #3: score=1.000
+[1014] Recent updated. Anchor: 1/10 | Recent: 19/30
+[1036] Anti-Hijack check #4: score=1.000
+[1036] Recent updated. Anchor: 1/10 | Recent: 20/30
+[1061] Anti-Hijack check #5: score=1.000
+[1061] Recent updated. Anchor: 1/10 | Recent: 21/30
+[1088] Recent updated. Anchor: 1/10 | Recent: 22/30
+[1111] Recent updated. Anchor: 1/10 | Recent: 23/30
+[1136] Recent updated. Anchor: 1/10 | Recent: 24/30
+[1159] Recent updated. Anchor: 1/10 | Recent: 25/30
+[1180] Last-moment Memory Bank update before LOST.
+Target 2 LOST! -> T1_LOST
+[2816] UAV detected during LOST state. -> T2_SEARCH
+[2841] UAV detected during LOST state. -> T2_SEARCH
+[2842] Coarse: ID:12 score=0.998
+[2842] SOFT LOCK -> ID:12 (coarse=0.998)
+[2842] Soft Lock ID:12 collecting: 1/16
+[2843] Soft Lock ID:12 collecting: 2/16
+[2844] Soft Lock ID:12 collecting: 3/16
+[2845] Soft Lock ID:12 collecting: 4/16
+[2846] Soft Lock ID:12 collecting: 5/16
+[2847] Soft Lock ID:12 collecting: 6/16
+[2848] Soft Lock ID:12 collecting: 7/16
+[2849] Soft Lock ID:12 collecting: 8/16
+[2850] Soft Lock ID:12 collecting: 9/16
+[2851] Soft Lock ID:12 collecting: 10/16
+[2852] Soft Lock ID:12 collecting: 11/16
+[2853] Soft Lock ID:12 collecting: 12/16
+[2854] Soft Lock ID:12 collecting: 13/16
+[2855] Soft Lock ID:12 collecting: 14/16
+[2856] Soft Lock ID:12 collecting: 15/16
+[2857] Soft Lock ID:12 collecting: 16/16
+[2857] Fine ReID: ID:12 score=0.999
+[2857] HARD LOCK! ID:12 (fine=0.999 >= 0.75)
+[2878] Anti-Hijack check #1: score=1.000
+[2878] Recent updated. Anchor: 1/10 | Recent: 28/30
+[2897] Anti-Hijack check #2: score=1.000
+[2897] Recent updated. Anchor: 1/10 | Recent: 29/30
+[2916] Anti-Hijack check #3: score=1.000
+[2916] Recent updated. Anchor: 1/10 | Recent: 30/30
+[2936] Anti-Hijack check #4: score=1.000
+[2936] Recent updated. Anchor: 1/10 | Recent: 30/30
+[2955] Anti-Hijack check #5: score=1.000
+[2955] Recent updated. Anchor: 1/10 | Recent: 30/30
+[2976] Recent updated. Anchor: 1/10 | Recent: 30/30
+[2998] Recent updated. Anchor: 1/10 | Recent: 30/30
+[3020] Recent updated. Anchor: 1/10 | Recent: 30/30
+[3045] Recent updated. Anchor: 1/10 | Recent: 30/30
+[3067] Last-moment Memory Bank update before LOST.
+Target 12 LOST! -> T1_LOST
+[3073] UAV detected during LOST state. -> T2_SEARCH
+[3074] Coarse: ID:12 score=0.997
+[3074] SOFT LOCK -> ID:12 (coarse=0.997)
+[3074] Soft Lock ID:12 collecting: 1/16
+[3075] Soft Lock ID:12 lost from frame. Resetting.
+[3076] SOFT LOCK -> ID:12 (coarse=0.997)
+[3076] Soft Lock ID:12 lost from frame. Resetting.
+[3077] SOFT LOCK -> ID:12 (coarse=0.997)
+[3077] Soft Lock ID:12 lost from frame. Resetting.
+[3078] SOFT LOCK -> ID:12 (coarse=0.997)
+[3078] Soft Lock ID:12 lost from frame. Resetting.
+[3079] SOFT LOCK -> ID:12 (coarse=0.997)
+[3079] Soft Lock ID:12 lost from frame. Resetting.
+[3080] SOFT LOCK -> ID:12 (coarse=0.997)
+[3080] Soft Lock ID:12 lost from frame. Resetting.
+[3081] SOFT LOCK -> ID:12 (coarse=0.997)
+[3081] Soft Lock ID:12 lost from frame. Resetting.
+[3082] SOFT LOCK -> ID:12 (coarse=0.997)
+[3082] Soft Lock ID:12 lost from frame. Resetting.
+[3083] SOFT LOCK -> ID:12 (coarse=0.997)
+[3083] Soft Lock ID:12 lost from frame. Resetting.
+[3084] SOFT LOCK -> ID:12 (coarse=0.997)
+[3084] Soft Lock ID:12 lost from frame. Resetting.
+[3085] SOFT LOCK -> ID:12 (coarse=0.997)
+[3085] Soft Lock ID:12 lost from frame. Resetting.
+[3086] SOFT LOCK -> ID:12 (coarse=0.997)
+[3086] Soft Lock ID:12 lost from frame. Resetting.
+[3087] SOFT LOCK -> ID:12 (coarse=0.997)
+[3087] Soft Lock ID:12 lost from frame. Resetting.
+[3088] SOFT LOCK -> ID:12 (coarse=0.997)
+[3088] Soft Lock ID:12 lost from frame. Resetting.
+[3089] SOFT LOCK -> ID:12 (coarse=0.997)
+[3089] Soft Lock ID:12 lost from frame. Resetting.
+[3090] SOFT LOCK -> ID:12 (coarse=0.997)
+[3090] Soft Lock ID:12 lost from frame. Resetting.
+[3091] SOFT LOCK -> ID:12 (coarse=0.997)
+[3091] Soft Lock ID:12 lost from frame. Resetting.
+[3092] SOFT LOCK -> ID:12 (coarse=0.997)
+[3092] Soft Lock ID:12 lost from frame. Resetting.
+[3093] SOFT LOCK -> ID:12 (coarse=0.997)
+[3093] Soft Lock ID:12 lost from frame. Resetting.
+[3094] SOFT LOCK -> ID:12 (coarse=0.997)
+[3094] Soft Lock ID:12 lost from frame. Resetting.
+[3095] SOFT LOCK -> ID:12 (coarse=0.997)
+[3095] Soft Lock ID:12 lost from frame. Resetting.
+[3096] SOFT LOCK -> ID:12 (coarse=0.997)
+[3096] Soft Lock ID:12 lost from frame. Resetting.
+[3097] SOFT LOCK -> ID:12 (coarse=0.997)
+[3097] Soft Lock ID:12 lost from frame. Resetting.
+[3098] SOFT LOCK -> ID:12 (coarse=0.997)
+[3098] Soft Lock ID:12 lost from frame. Resetting.
+[3099] SOFT LOCK -> ID:12 (coarse=0.997)
+[3099] Soft Lock ID:12 lost from frame. Resetting.
+[3100] SOFT LOCK -> ID:12 (coarse=0.997)
+[3100] Soft Lock ID:12 lost from frame. Resetting.
+[3101] SOFT LOCK -> ID:12 (coarse=0.997)
+[3101] Soft Lock ID:12 lost from frame. Resetting.
+[3102] SOFT LOCK -> ID:12 (coarse=0.997)
+[3102] Soft Lock ID:12 lost from frame. Resetting.
+[3103] SOFT LOCK -> ID:12 (coarse=0.997)
+[3103] Soft Lock ID:12 lost from frame. Resetting.
+[3104] SOFT LOCK -> ID:12 (coarse=0.997)
+[3104] Soft Lock ID:12 lost from frame. Resetting.
+[3105] SOFT LOCK -> ID:12 (coarse=0.997)
+[3105] Soft Lock ID:12 lost from frame. Resetting.
+[3106] SOFT LOCK -> ID:12 (coarse=0.997)
+[3106] Soft Lock ID:12 lost from frame. Resetting.
+[3107] SOFT LOCK -> ID:12 (coarse=0.997)
+[3107] Soft Lock ID:12 lost from frame. Resetting.
+[3108] SOFT LOCK -> ID:12 (coarse=0.997)
+[3108] Soft Lock ID:12 lost from frame. Resetting.
+[3109] SOFT LOCK -> ID:12 (coarse=0.997)
+[3109] Soft Lock ID:12 lost from frame. Resetting.
+[3110] SOFT LOCK -> ID:12 (coarse=0.997)
+[3110] Soft Lock ID:12 lost from frame. Resetting.
+[3111] SOFT LOCK -> ID:12 (coarse=0.997)
+[3111] Soft Lock ID:12 lost from frame. Resetting.
+[3112] SOFT LOCK -> ID:12 (coarse=0.997)
+[3112] Soft Lock ID:12 lost from frame. Resetting.
+[3113] SOFT LOCK -> ID:12 (coarse=0.997)
+[3113] Soft Lock ID:12 lost from frame. Resetting.
+[3114] SOFT LOCK -> ID:12 (coarse=0.997)
+[3114] Soft Lock ID:12 lost from frame. Resetting.
+[3115] SOFT LOCK -> ID:12 (coarse=0.997)
+[3115] Soft Lock ID:12 lost from frame. Resetting.
+[3116] SOFT LOCK -> ID:12 (coarse=0.997)
+[3116] Soft Lock ID:12 lost from frame. Resetting.
+[3117] SOFT LOCK -> ID:12 (coarse=0.997)
+[3117] Soft Lock ID:12 lost from frame. Resetting.
+[3118] SOFT LOCK -> ID:12 (coarse=0.997)
+[3118] Soft Lock ID:12 lost from frame. Resetting.
+[3119] SOFT LOCK -> ID:12 (coarse=0.997)
+[3119] Soft Lock ID:12 lost from frame. Resetting.
+[3120] SOFT LOCK -> ID:12 (coarse=0.997)
+[3120] Soft Lock ID:12 lost from frame. Resetting.
+[3121] SOFT LOCK -> ID:12 (coarse=0.997)
+[3121] Soft Lock ID:12 lost from frame. Resetting.
+[3122] SOFT LOCK -> ID:12 (coarse=0.997)
+[3122] Soft Lock ID:12 lost from frame. Resetting.
+[3123] SOFT LOCK -> ID:12 (coarse=0.997)
+[3123] Soft Lock ID:12 lost from frame. Resetting.
+[3124] SOFT LOCK -> ID:12 (coarse=0.997)
+[3124] Soft Lock ID:12 lost from frame. Resetting.
+[3125] SOFT LOCK -> ID:12 (coarse=0.997)
+[3125] Soft Lock ID:12 lost from frame. Resetting.
+[3126] SOFT LOCK -> ID:12 (coarse=0.997)
+[3126] Soft Lock ID:12 lost from frame. Resetting.
+[3127] SOFT LOCK -> ID:12 (coarse=0.997)
+[3127] Soft Lock ID:12 lost from frame. Resetting.
+[3128] SOFT LOCK -> ID:12 (coarse=0.997)
+[3128] Soft Lock ID:12 lost from frame. Resetting.
+[3129] SOFT LOCK -> ID:12 (coarse=0.997)
+[3129] Soft Lock ID:12 lost from frame. Resetting.
+[3130] SOFT LOCK -> ID:12 (coarse=0.997)
+[3130] Soft Lock ID:12 lost from frame. Resetting.
+[3131] SOFT LOCK -> ID:12 (coarse=0.997)
+[3131] Soft Lock ID:12 lost from frame. Resetting.
+[3132] SOFT LOCK -> ID:12 (coarse=0.997)
+[3132] Soft Lock ID:12 lost from frame. Resetting.
+[3133] SOFT LOCK -> ID:12 (coarse=0.997)
+[3133] Soft Lock ID:12 lost from frame. Resetting.
+[3134] SOFT LOCK -> ID:12 (coarse=0.997)
+[3134] Soft Lock ID:12 lost from frame. Resetting.
+[3135] SOFT LOCK -> ID:12 (coarse=0.997)
+[3135] Soft Lock ID:12 lost from frame. Resetting.
+[3136] SOFT LOCK -> ID:12 (coarse=0.997)
+[3136] Soft Lock ID:12 lost from frame. Resetting.
+[3137] SOFT LOCK -> ID:12 (coarse=0.997)
+[3137] Soft Lock ID:12 lost from frame. Resetting.
+[3138] SOFT LOCK -> ID:12 (coarse=0.997)
+[3138] Soft Lock ID:12 lost from frame. Resetting.
+[3139] SOFT LOCK -> ID:12 (coarse=0.997)
+[3139] Soft Lock ID:12 lost from frame. Resetting.
+[3140] SOFT LOCK -> ID:12 (coarse=0.997)
+[3140] Soft Lock ID:12 lost from frame. Resetting.
+[3141] SOFT LOCK -> ID:12 (coarse=0.997)
+[3141] Soft Lock ID:12 lost from frame. Resetting.
+[3142] SOFT LOCK -> ID:12 (coarse=0.997)
+[3142] Soft Lock ID:12 lost from frame. Resetting.
+[3143] SOFT LOCK -> ID:12 (coarse=0.997)
+[3143] Soft Lock ID:12 lost from frame. Resetting.
+[3144] SOFT LOCK -> ID:12 (coarse=0.997)
+[3144] Soft Lock ID:12 lost from frame. Resetting.
+[3145] SOFT LOCK -> ID:12 (coarse=0.997)
+[3145] Soft Lock ID:12 lost from frame. Resetting.
+[3146] SOFT LOCK -> ID:12 (coarse=0.997)
+[3146] Soft Lock ID:12 lost from frame. Resetting.
+[3147] SOFT LOCK -> ID:12 (coarse=0.997)
+[3147] Soft Lock ID:12 lost from frame. Resetting.
+[3148] SOFT LOCK -> ID:12 (coarse=0.997)
+[3148] Soft Lock ID:12 lost from frame. Resetting.
+[3149] SOFT LOCK -> ID:12 (coarse=0.997)
+[3149] Soft Lock ID:12 lost from frame. Resetting.
+[3150] SOFT LOCK -> ID:12 (coarse=0.997)
+[3150] Soft Lock ID:12 lost from frame. Resetting.
+[3151] SOFT LOCK -> ID:12 (coarse=0.997)
+[3151] Soft Lock ID:12 lost from frame. Resetting.
+[3152] SOFT LOCK -> ID:12 (coarse=0.997)
+[3152] Soft Lock ID:12 lost from frame. Resetting.
+[3153] SOFT LOCK -> ID:12 (coarse=0.997)
+[3153] Soft Lock ID:12 lost from frame. Resetting.
+[3154] SOFT LOCK -> ID:12 (coarse=0.997)
+[3154] Soft Lock ID:12 lost from frame. Resetting.
+[3155] SOFT LOCK -> ID:12 (coarse=0.997)
+[3155] Soft Lock ID:12 lost from frame. Resetting.
+[3156] SOFT LOCK -> ID:12 (coarse=0.997)
+[3156] Soft Lock ID:12 lost from frame. Resetting.
+[3157] SOFT LOCK -> ID:12 (coarse=0.997)
+[3157] Soft Lock ID:12 lost from frame. Resetting.
+[3158] SOFT LOCK -> ID:12 (coarse=0.997)
+[3158] Soft Lock ID:12 lost from frame. Resetting.
+[3159] SOFT LOCK -> ID:12 (coarse=0.997)
+[3159] Soft Lock ID:12 lost from frame. Resetting.
+[3160] SOFT LOCK -> ID:12 (coarse=0.997)
+[3160] Soft Lock ID:12 lost from frame. Resetting.
+[3161] SOFT LOCK -> ID:12 (coarse=0.997)
+[3161] Soft Lock ID:12 lost from frame. Resetting.
+[3162] SOFT LOCK -> ID:12 (coarse=0.997)
+[3162] Soft Lock ID:12 lost from frame. Resetting.
+[3163] SOFT LOCK -> ID:12 (coarse=0.997)
+[3163] Soft Lock ID:12 lost from frame. Resetting.
+[3164] SOFT LOCK -> ID:12 (coarse=0.997)
+[3164] Soft Lock ID:12 lost from frame. Resetting.
+[3165] SOFT LOCK -> ID:12 (coarse=0.997)
+[3165] Soft Lock ID:12 lost from frame. Resetting.
+[3166] SOFT LOCK -> ID:12 (coarse=0.997)
+[3166] Soft Lock ID:12 lost from frame. Resetting.
+[3167] SOFT LOCK -> ID:12 (coarse=0.997)
+[3167] Soft Lock ID:12 lost from frame. Resetting.
+[3168] SOFT LOCK -> ID:12 (coarse=0.997)
+[3168] Soft Lock ID:12 lost from frame. Resetting.
+[3169] SOFT LOCK -> ID:12 (coarse=0.997)
+[3169] Soft Lock ID:12 lost from frame. Resetting.
+[3170] SOFT LOCK -> ID:12 (coarse=0.997)
+[3170] Soft Lock ID:12 lost from frame. Resetting.
+[3171] SOFT LOCK -> ID:12 (coarse=0.997)
+[3171] Soft Lock ID:12 lost from frame. Resetting.
+[3172] SOFT LOCK -> ID:12 (coarse=0.997)
+[3172] Soft Lock ID:12 lost from frame. Resetting.
+[3173] SOFT LOCK -> ID:12 (coarse=0.997)
+[3173] Soft Lock ID:12 lost from frame. Resetting.
+[3174] SOFT LOCK -> ID:12 (coarse=0.997)
+[3174] Soft Lock ID:12 lost from frame. Resetting.
+[3175] SOFT LOCK -> ID:12 (coarse=0.997)
+[3175] Soft Lock ID:12 lost from frame. Resetting.
+[3176] SOFT LOCK -> ID:12 (coarse=0.997)
+[3176] Soft Lock ID:12 lost from frame. Resetting.
+[3177] SOFT LOCK -> ID:12 (coarse=0.997)
+[3177] Soft Lock ID:12 lost from frame. Resetting.
+[3178] SOFT LOCK -> ID:12 (coarse=0.997)
+[3178] Soft Lock ID:12 lost from frame. Resetting.
+[3179] SOFT LOCK -> ID:12 (coarse=0.997)
+[3179] Soft Lock ID:12 lost from frame. Resetting.
+[3180] SOFT LOCK -> ID:12 (coarse=0.997)
+[3180] Soft Lock ID:12 lost from frame. Resetting.
+[3181] SOFT LOCK -> ID:12 (coarse=0.997)
+[3181] Soft Lock ID:12 lost from frame. Resetting.
+[3182] SOFT LOCK -> ID:12 (coarse=0.997)
+[3182] Soft Lock ID:12 lost from frame. Resetting.
+[3183] SOFT LOCK -> ID:12 (coarse=0.997)
+[3183] Soft Lock ID:12 lost from frame. Resetting.
+[3184] SOFT LOCK -> ID:12 (coarse=0.997)
+[3184] Soft Lock ID:12 lost from frame. Resetting.
+[3185] SOFT LOCK -> ID:12 (coarse=0.997)
+[3185] Soft Lock ID:12 lost from frame. Resetting.
+[3186] SOFT LOCK -> ID:12 (coarse=0.997)
+[3186] Soft Lock ID:12 lost from frame. Resetting.
+[3187] SOFT LOCK -> ID:12 (coarse=0.997)
+[3187] Soft Lock ID:12 lost from frame. Resetting.
+[3188] SOFT LOCK -> ID:12 (coarse=0.997)
+[3188] Soft Lock ID:12 lost from frame. Resetting.
+[3189] SOFT LOCK -> ID:12 (coarse=0.997)
+[3189] Soft Lock ID:12 lost from frame. Resetting.
+[3190] SOFT LOCK -> ID:12 (coarse=0.997)
+[3190] Soft Lock ID:12 lost from frame. Resetting.
+[3191] SOFT LOCK -> ID:12 (coarse=0.997)
+[3191] Soft Lock ID:12 lost from frame. Resetting.
+[3192] SOFT LOCK -> ID:12 (coarse=0.997)
+[3192] Soft Lock ID:12 lost from frame. Resetting.
+[3193] SOFT LOCK -> ID:12 (coarse=0.997)
+[3193] Soft Lock ID:12 lost from frame. Resetting.
+[3194] SOFT LOCK -> ID:12 (coarse=0.997)
+[3194] Soft Lock ID:12 lost from frame. Resetting.
+[3195] SOFT LOCK -> ID:12 (coarse=0.997)
+[3195] Soft Lock ID:12 lost from frame. Resetting.
+[3196] SOFT LOCK -> ID:12 (coarse=0.997)
+[3196] Soft Lock ID:12 lost from frame. Resetting.
+[3197] SOFT LOCK -> ID:12 (coarse=0.997)
+[3197] Soft Lock ID:12 lost from frame. Resetting.
+[3198] SOFT LOCK -> ID:12 (coarse=0.997)
+[3198] Soft Lock ID:12 lost from frame. Resetting.
+[3199] SOFT LOCK -> ID:12 (coarse=0.997)
+[3199] Soft Lock ID:12 lost from frame. Resetting.
+[3200] SOFT LOCK -> ID:12 (coarse=0.997)
+[3200] Soft Lock ID:12 lost from frame. Resetting.
+[3201] SOFT LOCK -> ID:12 (coarse=0.997)
+[3201] Soft Lock ID:12 lost from frame. Resetting.
+[3202] SOFT LOCK -> ID:12 (coarse=0.997)
+[3202] Soft Lock ID:12 lost from frame. Resetting.
+[3203] SOFT LOCK -> ID:12 (coarse=0.997)
+[3203] Soft Lock ID:12 lost from frame. Resetting.
+[3204] SOFT LOCK -> ID:12 (coarse=0.997)
+[3204] Soft Lock ID:12 lost from frame. Resetting.
+[3205] SOFT LOCK -> ID:12 (coarse=0.997)
+[3205] Soft Lock ID:12 lost from frame. Resetting.
+[3206] SOFT LOCK -> ID:12 (coarse=0.997)
+[3206] Soft Lock ID:12 lost from frame. Resetting.
+[3207] SOFT LOCK -> ID:12 (coarse=0.997)
+[3207] Soft Lock ID:12 lost from frame. Resetting.
+[3208] SOFT LOCK -> ID:12 (coarse=0.997)
+[3208] Soft Lock ID:12 lost from frame. Resetting.
+[3209] SOFT LOCK -> ID:12 (coarse=0.997)
+[3209] Soft Lock ID:12 lost from frame. Resetting.
+[3210] SOFT LOCK -> ID:12 (coarse=0.997)
+[3210] Soft Lock ID:12 lost from frame. Resetting.
+[3211] SOFT LOCK -> ID:12 (coarse=0.997)
+[3211] Soft Lock ID:12 lost from frame. Resetting.
+[3212] SOFT LOCK -> ID:12 (coarse=0.997)
+[3212] Soft Lock ID:12 lost from frame. Resetting.
+[3213] SOFT LOCK -> ID:12 (coarse=0.997)
+[3213] Soft Lock ID:12 lost from frame. Resetting.
+[3214] SOFT LOCK -> ID:12 (coarse=0.997)
+[3214] Soft Lock ID:12 lost from frame. Resetting.
+[3215] SOFT LOCK -> ID:12 (coarse=0.997)
+[3215] Soft Lock ID:12 lost from frame. Resetting.
+[3216] SOFT LOCK -> ID:12 (coarse=0.997)
+[3216] Soft Lock ID:12 lost from frame. Resetting.
+[3217] SOFT LOCK -> ID:12 (coarse=0.997)
+[3217] Soft Lock ID:12 lost from frame. Resetting.
+[3218] SOFT LOCK -> ID:12 (coarse=0.997)
+[3218] Soft Lock ID:12 lost from frame. Resetting.
+[3219] SOFT LOCK -> ID:12 (coarse=0.997)
+[3219] Soft Lock ID:12 lost from frame. Resetting.
+[3220] SOFT LOCK -> ID:12 (coarse=0.997)
+[3220] Soft Lock ID:12 lost from frame. Resetting.
+[3221] SOFT LOCK -> ID:12 (coarse=0.997)
+[3221] Soft Lock ID:12 lost from frame. Resetting.
+[3222] SOFT LOCK -> ID:12 (coarse=0.997)
+[3222] Soft Lock ID:12 lost from frame. Resetting.
+[3223] SOFT LOCK -> ID:12 (coarse=0.997)
+[3223] Soft Lock ID:12 lost from frame. Resetting.
+[3224] SOFT LOCK -> ID:12 (coarse=0.997)
+[3224] Soft Lock ID:12 lost from frame. Resetting.
+[3225] SOFT LOCK -> ID:12 (coarse=0.997)
+[3225] Soft Lock ID:12 lost from frame. Resetting.
+[3226] SOFT LOCK -> ID:12 (coarse=0.997)
+[3226] Soft Lock ID:12 lost from frame. Resetting.
+[3227] SOFT LOCK -> ID:12 (coarse=0.997)
+[3227] Soft Lock ID:12 lost from frame. Resetting.
+[3228] SOFT LOCK -> ID:12 (coarse=0.997)
+[3228] Soft Lock ID:12 lost from frame. Resetting.
+[3229] SOFT LOCK -> ID:12 (coarse=0.997)
+[3229] Soft Lock ID:12 lost from frame. Resetting.
+[3230] SOFT LOCK -> ID:12 (coarse=0.997)
+[3230] Soft Lock ID:12 lost from frame. Resetting.
+[3231] SOFT LOCK -> ID:12 (coarse=0.997)
+[3231] Soft Lock ID:12 lost from frame. Resetting.
+[3232] SOFT LOCK -> ID:12 (coarse=0.997)
+[3232] Soft Lock ID:12 lost from frame. Resetting.
+[3233] SOFT LOCK -> ID:12 (coarse=0.997)
+[3233] Soft Lock ID:12 lost from frame. Resetting.
+[3234] SOFT LOCK -> ID:12 (coarse=0.997)
+[3234] Soft Lock ID:12 lost from frame. Resetting.
+[3235] SOFT LOCK -> ID:12 (coarse=0.997)
+[3235] Soft Lock ID:12 lost from frame. Resetting.
+[3236] SOFT LOCK -> ID:12 (coarse=0.997)
+[3236] Soft Lock ID:12 lost from frame. Resetting.
+[3237] SOFT LOCK -> ID:12 (coarse=0.997)
+[3237] Soft Lock ID:12 lost from frame. Resetting.
+[3238] SOFT LOCK -> ID:12 (coarse=0.997)
+[3238] Soft Lock ID:12 lost from frame. Resetting.
+[3239] SOFT LOCK -> ID:12 (coarse=0.997)
+[3239] Soft Lock ID:12 lost from frame. Resetting.
+[3240] SOFT LOCK -> ID:12 (coarse=0.997)
+[3240] Soft Lock ID:12 lost from frame. Resetting.
+[3241] SOFT LOCK -> ID:12 (coarse=0.997)
+[3241] Soft Lock ID:12 lost from frame. Resetting.
+[3242] SOFT LOCK -> ID:12 (coarse=0.997)
+[3242] Soft Lock ID:12 lost from frame. Resetting.
+[3243] SOFT LOCK -> ID:12 (coarse=0.997)
+[3243] Soft Lock ID:12 lost from frame. Resetting.
+[3244] SOFT LOCK -> ID:12 (coarse=0.997)
+[3244] Soft Lock ID:12 lost from frame. Resetting.
+[3245] SOFT LOCK -> ID:12 (coarse=0.997)
+[3245] Soft Lock ID:12 lost from frame. Resetting.
+[3246] SOFT LOCK -> ID:12 (coarse=0.997)
+[3246] Soft Lock ID:12 lost from frame. Resetting.
+[3247] SOFT LOCK -> ID:12 (coarse=0.997)
+[3247] Soft Lock ID:12 lost from frame. Resetting.
+[3248] SOFT LOCK -> ID:12 (coarse=0.997)
+[3248] Soft Lock ID:12 lost from frame. Resetting.
+[3249] SOFT LOCK -> ID:12 (coarse=0.997)
+[3249] Soft Lock ID:12 lost from frame. Resetting.
+[3250] SOFT LOCK -> ID:12 (coarse=0.997)
+[3250] Soft Lock ID:12 lost from frame. Resetting.
+[3251] SOFT LOCK -> ID:12 (coarse=0.997)
+[3251] Soft Lock ID:12 lost from frame. Resetting.
+[3252] SOFT LOCK -> ID:12 (coarse=0.997)
+[3252] Soft Lock ID:12 lost from frame. Resetting.
+[3253] SOFT LOCK -> ID:12 (coarse=0.997)
+[3253] Soft Lock ID:12 lost from frame. Resetting.
+[3254] SOFT LOCK -> ID:12 (coarse=0.997)
+[3254] Soft Lock ID:12 lost from frame. Resetting.
+[3255] SOFT LOCK -> ID:12 (coarse=0.997)
+[3255] Soft Lock ID:12 lost from frame. Resetting.
+[3256] SOFT LOCK -> ID:12 (coarse=0.997)
+[3256] Soft Lock ID:12 lost from frame. Resetting.
+[3257] SOFT LOCK -> ID:12 (coarse=0.997)
+[3257] Soft Lock ID:12 lost from frame. Resetting.
+[3258] SOFT LOCK -> ID:12 (coarse=0.997)
+[3258] Soft Lock ID:12 lost from frame. Resetting.
+[3259] SOFT LOCK -> ID:12 (coarse=0.997)
+[3259] Soft Lock ID:12 lost from frame. Resetting.
+[3260] SOFT LOCK -> ID:12 (coarse=0.997)
+[3260] Soft Lock ID:12 lost from frame. Resetting.
+[3261] SOFT LOCK -> ID:12 (coarse=0.997)
+[3261] Soft Lock ID:12 lost from frame. Resetting.
+[3262] SOFT LOCK -> ID:12 (coarse=0.997)
+[3262] Soft Lock ID:12 lost from frame. Resetting.
+[3263] SOFT LOCK -> ID:12 (coarse=0.997)
+[3263] Soft Lock ID:12 lost from frame. Resetting.
+[3264] SOFT LOCK -> ID:12 (coarse=0.997)
+[3264] Soft Lock ID:12 lost from frame. Resetting.
+[3265] SOFT LOCK -> ID:12 (coarse=0.997)
+[3265] Soft Lock ID:12 lost from frame. Resetting.
+[3266] SOFT LOCK -> ID:12 (coarse=0.997)
+[3266] Soft Lock ID:12 lost from frame. Resetting.
+[3267] SOFT LOCK -> ID:12 (coarse=0.997)
+[3267] Soft Lock ID:12 lost from frame. Resetting.
+[3268] SOFT LOCK -> ID:12 (coarse=0.997)
+[3268] Soft Lock ID:12 lost from frame. Resetting.
+[3269] SOFT LOCK -> ID:12 (coarse=0.997)
+[3269] Soft Lock ID:12 lost from frame. Resetting.
+[3270] SOFT LOCK -> ID:12 (coarse=0.997)
+[3270] Soft Lock ID:12 lost from frame. Resetting.
+[3271] SOFT LOCK -> ID:12 (coarse=0.997)
+[3271] Soft Lock ID:12 lost from frame. Resetting.
+[3272] SOFT LOCK -> ID:12 (coarse=0.997)
+[3272] Soft Lock ID:12 lost from frame. Resetting.
+[3273] SOFT LOCK -> ID:12 (coarse=0.997)
+[3273] Soft Lock ID:12 lost from frame. Resetting.
+[3274] SOFT LOCK -> ID:12 (coarse=0.997)
+[3274] Soft Lock ID:12 lost from frame. Resetting.
+[3275] SOFT LOCK -> ID:12 (coarse=0.997)
+[3275] Soft Lock ID:12 lost from frame. Resetting.
+[3276] SOFT LOCK -> ID:12 (coarse=0.997)
+[3276] Soft Lock ID:12 lost from frame. Resetting.
+[3277] SOFT LOCK -> ID:12 (coarse=0.997)
+[3277] Soft Lock ID:12 lost from frame. Resetting.
+[3278] SOFT LOCK -> ID:12 (coarse=0.997)
+[3278] Soft Lock ID:12 lost from frame. Resetting.
+[3279] SOFT LOCK -> ID:12 (coarse=0.997)
+[3279] Soft Lock ID:12 lost from frame. Resetting.
+[3280] SOFT LOCK -> ID:12 (coarse=0.997)
+[3280] Soft Lock ID:12 lost from frame. Resetting.
+[3281] SOFT LOCK -> ID:12 (coarse=0.997)
+[3281] Soft Lock ID:12 lost from frame. Resetting.
+[3282] SOFT LOCK -> ID:12 (coarse=0.997)
+[3282] Soft Lock ID:12 lost from frame. Resetting.
+[3283] SOFT LOCK -> ID:12 (coarse=0.997)
+[3283] Soft Lock ID:12 lost from frame. Resetting.
+[3284] SOFT LOCK -> ID:12 (coarse=0.997)
+[3284] Soft Lock ID:12 lost from frame. Resetting.
+[3285] SOFT LOCK -> ID:12 (coarse=0.997)
+[3285] Soft Lock ID:12 lost from frame. Resetting.
+[3286] SOFT LOCK -> ID:12 (coarse=0.997)
+[3286] Soft Lock ID:12 lost from frame. Resetting.
+[3287] SOFT LOCK -> ID:12 (coarse=0.997)
+[3287] Soft Lock ID:12 lost from frame. Resetting.
+[3288] SOFT LOCK -> ID:12 (coarse=0.997)
+[3288] Soft Lock ID:12 lost from frame. Resetting.
+[3289] SOFT LOCK -> ID:12 (coarse=0.997)
+[3289] Soft Lock ID:12 lost from frame. Resetting.
+[3290] SOFT LOCK -> ID:12 (coarse=0.997)
+[3290] Soft Lock ID:12 lost from frame. Resetting.
+[3291] SOFT LOCK -> ID:12 (coarse=0.997)
+[3291] Soft Lock ID:12 lost from frame. Resetting.
+[3292] SOFT LOCK -> ID:12 (coarse=0.997)
+[3292] Soft Lock ID:12 lost from frame. Resetting.
+[3293] SOFT LOCK -> ID:12 (coarse=0.997)
+[3293] Soft Lock ID:12 lost from frame. Resetting.
+[3294] SOFT LOCK -> ID:12 (coarse=0.997)
+[3294] Soft Lock ID:12 lost from frame. Resetting.
+[3295] SOFT LOCK -> ID:12 (coarse=0.997)
+[3295] Soft Lock ID:12 lost from frame. Resetting.
+[3296] SOFT LOCK -> ID:12 (coarse=0.997)
+[3296] Soft Lock ID:12 lost from frame. Resetting.
+[3297] SOFT LOCK -> ID:12 (coarse=0.997)
+[3297] Soft Lock ID:12 lost from frame. Resetting.
+[3298] SOFT LOCK -> ID:12 (coarse=0.997)
+[3298] Soft Lock ID:12 lost from frame. Resetting.
+[3299] SOFT LOCK -> ID:12 (coarse=0.997)
+[3299] Soft Lock ID:12 lost from frame. Resetting.
+[3300] SOFT LOCK -> ID:12 (coarse=0.997)
+[3300] Soft Lock ID:12 lost from frame. Resetting.
+[3301] SOFT LOCK -> ID:12 (coarse=0.997)
+[3301] Soft Lock ID:12 lost from frame. Resetting.
+[3302] SOFT LOCK -> ID:12 (coarse=0.997)
+[3302] Soft Lock ID:12 lost from frame. Resetting.
+[3303] SOFT LOCK -> ID:12 (coarse=0.997)
+[3303] Soft Lock ID:12 lost from frame. Resetting.
+[3304] SOFT LOCK -> ID:12 (coarse=0.997)
+[3304] Soft Lock ID:12 lost from frame. Resetting.
+[3305] SOFT LOCK -> ID:12 (coarse=0.997)
+[3305] Soft Lock ID:12 lost from frame. Resetting.
+[3306] SOFT LOCK -> ID:12 (coarse=0.997)
+[3306] Soft Lock ID:12 lost from frame. Resetting.
+[3307] SOFT LOCK -> ID:12 (coarse=0.997)
+[3307] Soft Lock ID:12 lost from frame. Resetting.
+[3308] SOFT LOCK -> ID:12 (coarse=0.997)
+[3308] Soft Lock ID:12 lost from frame. Resetting.
+[3309] SOFT LOCK -> ID:12 (coarse=0.997)
+[3309] Soft Lock ID:12 lost from frame. Resetting.
+[3310] SOFT LOCK -> ID:12 (coarse=0.997)
+[3310] Soft Lock ID:12 lost from frame. Resetting.
+[3311] SOFT LOCK -> ID:12 (coarse=0.997)
+[3311] Soft Lock ID:12 lost from frame. Resetting.
+[3312] SOFT LOCK -> ID:12 (coarse=0.997)
+[3312] Soft Lock ID:12 lost from frame. Resetting.
+[3313] SOFT LOCK -> ID:12 (coarse=0.997)
+[3313] Soft Lock ID:12 lost from frame. Resetting.
+[3314] Coarse: ID:16 score=0.997
+[3314] SOFT LOCK -> ID:12 (coarse=0.997)
+[3314] Soft Lock ID:12 lost from frame. Resetting.
+[3315] SOFT LOCK -> ID:12 (coarse=0.997)
+[3315] Soft Lock ID:12 lost from frame. Resetting.
+[3316] SOFT LOCK -> ID:12 (coarse=0.997)
+[3316] Soft Lock ID:12 lost from frame. Resetting.
+[3317] SOFT LOCK -> ID:12 (coarse=0.997)
+[3317] Soft Lock ID:12 lost from frame. Resetting.
+[3318] SOFT LOCK -> ID:12 (coarse=0.997)
+[3318] Soft Lock ID:12 lost from frame. Resetting.
+[3319] SOFT LOCK -> ID:12 (coarse=0.997)
+[3319] Soft Lock ID:12 lost from frame. Resetting.
+[3320] SOFT LOCK -> ID:12 (coarse=0.997)
+[3320] Soft Lock ID:12 lost from frame. Resetting.
+[3321] SOFT LOCK -> ID:12 (coarse=0.997)
+[3321] Soft Lock ID:12 lost from frame. Resetting.
+[3322] SOFT LOCK -> ID:12 (coarse=0.997)
+[3322] Soft Lock ID:12 lost from frame. Resetting.
+[3323] SOFT LOCK -> ID:12 (coarse=0.997)
+[3323] Soft Lock ID:12 lost from frame. Resetting.
+[3324] SOFT LOCK -> ID:12 (coarse=0.997)
+[3324] Soft Lock ID:12 lost from frame. Resetting.
+[3325] SOFT LOCK -> ID:12 (coarse=0.997)
+[3325] Soft Lock ID:12 lost from frame. Resetting.
+[3326] SOFT LOCK -> ID:12 (coarse=0.997)
+[3326] Soft Lock ID:12 lost from frame. Resetting.
+[3327] SOFT LOCK -> ID:12 (coarse=0.997)
+[3327] Soft Lock ID:12 lost from frame. Resetting.
+[3328] SOFT LOCK -> ID:12 (coarse=0.997)
+[3328] Soft Lock ID:12 lost from frame. Resetting.
+[3329] SOFT LOCK -> ID:12 (coarse=0.997)
+[3329] Soft Lock ID:12 lost from frame. Resetting.
+[3330] SOFT LOCK -> ID:12 (coarse=0.997)
+[3330] Soft Lock ID:12 lost from frame. Resetting.
+[3331] SOFT LOCK -> ID:12 (coarse=0.997)
+[3331] Soft Lock ID:12 lost from frame. Resetting.
+[3332] SOFT LOCK -> ID:12 (coarse=0.997)
+[3332] Soft Lock ID:12 lost from frame. Resetting.
+[3333] SOFT LOCK -> ID:12 (coarse=0.997)
+[3333] Soft Lock ID:12 lost from frame. Resetting.
+[3334] SOFT LOCK -> ID:12 (coarse=0.997)
+[3334] Soft Lock ID:12 lost from frame. Resetting.
+[3335] SOFT LOCK -> ID:12 (coarse=0.997)
+[3335] Soft Lock ID:12 lost from frame. Resetting.
+[3336] SOFT LOCK -> ID:12 (coarse=0.997)
+[3336] Soft Lock ID:12 lost from frame. Resetting.
+[3337] SOFT LOCK -> ID:12 (coarse=0.997)
+[3337] Soft Lock ID:12 lost from frame. Resetting.
+[3338] SOFT LOCK -> ID:12 (coarse=0.997)
+[3338] Soft Lock ID:12 lost from frame. Resetting.
+[3339] SOFT LOCK -> ID:12 (coarse=0.997)
+[3339] Soft Lock ID:12 lost from frame. Resetting.
+[3340] SOFT LOCK -> ID:12 (coarse=0.997)
+[3340] Soft Lock ID:12 lost from frame. Resetting.
+[3341] SOFT LOCK -> ID:12 (coarse=0.997)
+[3341] Soft Lock ID:12 lost from frame. Resetting.
+[3342] SOFT LOCK -> ID:12 (coarse=0.997)
+[3342] Soft Lock ID:12 lost from frame. Resetting.
+[3343] SOFT LOCK -> ID:12 (coarse=0.997)
+[3343] Soft Lock ID:12 lost from frame. Resetting.
+[3344] SOFT LOCK -> ID:12 (coarse=0.997)
+[3344] Soft Lock ID:12 lost from frame. Resetting.
+[3345] SOFT LOCK -> ID:12 (coarse=0.997)
+[3345] Soft Lock ID:12 lost from frame. Resetting.
+[3346] SOFT LOCK -> ID:12 (coarse=0.997)
+[3346] Soft Lock ID:12 lost from frame. Resetting.
+[3347] SOFT LOCK -> ID:12 (coarse=0.997)
+[3347] Soft Lock ID:12 lost from frame. Resetting.
+[3348] SOFT LOCK -> ID:12 (coarse=0.997)
+[3348] Soft Lock ID:12 lost from frame. Resetting.
+[3349] SOFT LOCK -> ID:12 (coarse=0.997)
+[3349] Soft Lock ID:12 lost from frame. Resetting.
+[3350] SOFT LOCK -> ID:12 (coarse=0.997)
+[3350] Soft Lock ID:12 lost from frame. Resetting.
+[3351] SOFT LOCK -> ID:12 (coarse=0.997)
+[3351] Soft Lock ID:12 lost from frame. Resetting.
+[3352] SOFT LOCK -> ID:12 (coarse=0.997)
+[3352] Soft Lock ID:12 lost from frame. Resetting.
+[3353] SOFT LOCK -> ID:12 (coarse=0.997)
+[3353] Soft Lock ID:12 lost from frame. Resetting.
+[3354] SOFT LOCK -> ID:12 (coarse=0.997)
+[3354] Soft Lock ID:12 lost from frame. Resetting.
+[3355] SOFT LOCK -> ID:12 (coarse=0.997)
+[3355] Soft Lock ID:12 lost from frame. Resetting.
+[3356] SOFT LOCK -> ID:12 (coarse=0.997)
+[3356] Soft Lock ID:12 lost from frame. Resetting.
+[3357] SOFT LOCK -> ID:12 (coarse=0.997)
+[3357] Soft Lock ID:12 lost from frame. Resetting.
+[3358] SOFT LOCK -> ID:12 (coarse=0.997)
+[3358] Soft Lock ID:12 lost from frame. Resetting.
+[3359] SOFT LOCK -> ID:12 (coarse=0.997)
+[3359] Soft Lock ID:12 lost from frame. Resetting.
+[3360] SOFT LOCK -> ID:12 (coarse=0.997)
+[3360] Soft Lock ID:12 lost from frame. Resetting.
+[3361] SOFT LOCK -> ID:12 (coarse=0.997)
+[3361] Soft Lock ID:12 lost from frame. Resetting.
+[3362] SOFT LOCK -> ID:12 (coarse=0.997)
+[3362] Soft Lock ID:12 lost from frame. Resetting.
+[3363] SOFT LOCK -> ID:12 (coarse=0.997)
+[3363] Soft Lock ID:12 lost from frame. Resetting.
+[3364] SOFT LOCK -> ID:12 (coarse=0.997)
+[3364] Soft Lock ID:12 lost from frame. Resetting.
+[3365] SOFT LOCK -> ID:12 (coarse=0.997)
+[3365] Soft Lock ID:12 lost from frame. Resetting.
+[3366] SOFT LOCK -> ID:12 (coarse=0.997)
+[3366] Soft Lock ID:12 lost from frame. Resetting.
+[3367] SOFT LOCK -> ID:12 (coarse=0.997)
+[3367] Soft Lock ID:12 lost from frame. Resetting.
+[3368] SOFT LOCK -> ID:12 (coarse=0.997)
+[3368] Soft Lock ID:12 lost from frame. Resetting.
+[3369] SOFT LOCK -> ID:12 (coarse=0.997)
+[3369] Soft Lock ID:12 lost from frame. Resetting.
+[3370] SOFT LOCK -> ID:12 (coarse=0.997)
+[3370] Soft Lock ID:12 lost from frame. Resetting.
+[3371] SOFT LOCK -> ID:12 (coarse=0.997)
+[3371] Soft Lock ID:12 lost from frame. Resetting.
+[3372] SOFT LOCK -> ID:12 (coarse=0.997)
+[3372] Soft Lock ID:12 lost from frame. Resetting.
+[3373] SOFT LOCK -> ID:12 (coarse=0.997)
+[3373] Soft Lock ID:12 lost from frame. Resetting.
+[3374] SOFT LOCK -> ID:12 (coarse=0.997)
+[3374] Soft Lock ID:12 lost from frame. Resetting.
+[3375] SOFT LOCK -> ID:12 (coarse=0.997)
+[3375] Soft Lock ID:12 lost from frame. Resetting.
+[3376] SOFT LOCK -> ID:12 (coarse=0.997)
+[3376] Soft Lock ID:12 lost from frame. Resetting.
+[3377] SOFT LOCK -> ID:12 (coarse=0.997)
+[3377] Soft Lock ID:12 lost from frame. Resetting.
+[3378] SOFT LOCK -> ID:12 (coarse=0.997)
+[3378] Soft Lock ID:12 lost from frame. Resetting.
+[3379] SOFT LOCK -> ID:12 (coarse=0.997)
+[3379] Soft Lock ID:12 lost from frame. Resetting.
+[3380] SOFT LOCK -> ID:12 (coarse=0.997)
+[3380] Soft Lock ID:12 lost from frame. Resetting.
+[3381] SOFT LOCK -> ID:12 (coarse=0.997)
+[3381] Soft Lock ID:12 lost from frame. Resetting.
+[3382] SOFT LOCK -> ID:12 (coarse=0.997)
+[3382] Soft Lock ID:12 lost from frame. Resetting.
+[3383] SOFT LOCK -> ID:12 (coarse=0.997)
+[3383] Soft Lock ID:12 lost from frame. Resetting.
+[3384] SOFT LOCK -> ID:12 (coarse=0.997)
+[3384] Soft Lock ID:12 lost from frame. Resetting.
+[3385] SOFT LOCK -> ID:12 (coarse=0.997)
+[3385] Soft Lock ID:12 lost from frame. Resetting.
+[3386] SOFT LOCK -> ID:12 (coarse=0.997)
+[3386] Soft Lock ID:12 lost from frame. Resetting.
+[3387] SOFT LOCK -> ID:12 (coarse=0.997)
+[3387] Soft Lock ID:12 lost from frame. Resetting.
+[3388] SOFT LOCK -> ID:12 (coarse=0.997)
+[3388] Soft Lock ID:12 lost from frame. Resetting.
+[3389] SOFT LOCK -> ID:12 (coarse=0.997)
+[3389] Soft Lock ID:12 lost from frame. Resetting.
+[3390] SOFT LOCK -> ID:12 (coarse=0.997)
+[3390] Soft Lock ID:12 lost from frame. Resetting.
+[3391] SOFT LOCK -> ID:12 (coarse=0.997)
+[3391] Soft Lock ID:12 lost from frame. Resetting.
+[3392] SOFT LOCK -> ID:12 (coarse=0.997)
+[3392] Soft Lock ID:12 lost from frame. Resetting.
+[3393] SOFT LOCK -> ID:12 (coarse=0.997)
+[3393] Soft Lock ID:12 lost from frame. Resetting.
+[3394] SOFT LOCK -> ID:12 (coarse=0.997)
+[3394] Soft Lock ID:12 lost from frame. Resetting.
+[3395] SOFT LOCK -> ID:12 (coarse=0.997)
+[3395] Soft Lock ID:12 lost from frame. Resetting.
+[3396] SOFT LOCK -> ID:12 (coarse=0.997)
+[3396] Soft Lock ID:12 lost from frame. Resetting.
+[3397] SOFT LOCK -> ID:12 (coarse=0.997)
+[3397] Soft Lock ID:12 lost from frame. Resetting.
+[3398] SOFT LOCK -> ID:12 (coarse=0.997)
+[3398] Soft Lock ID:12 lost from frame. Resetting.
+[3399] SOFT LOCK -> ID:12 (coarse=0.997)
+[3399] Soft Lock ID:12 lost from frame. Resetting.
+[3400] SOFT LOCK -> ID:12 (coarse=0.997)
+[3400] Soft Lock ID:12 lost from frame. Resetting.
+[3401] SOFT LOCK -> ID:12 (coarse=0.997)
+[3401] Soft Lock ID:12 lost from frame. Resetting.
+[3402] SOFT LOCK -> ID:12 (coarse=0.997)
+[3402] Soft Lock ID:12 lost from frame. Resetting.
+[3403] SOFT LOCK -> ID:12 (coarse=0.997)
+[3403] Soft Lock ID:12 lost from frame. Resetting.
+[3404] SOFT LOCK -> ID:12 (coarse=0.997)
+[3404] Soft Lock ID:12 lost from frame. Resetting.
+[3405] SOFT LOCK -> ID:12 (coarse=0.997)
+[3405] Soft Lock ID:12 lost from frame. Resetting.
+[3406] SOFT LOCK -> ID:12 (coarse=0.997)
+[3406] Soft Lock ID:12 lost from frame. Resetting.
+[3407] SOFT LOCK -> ID:12 (coarse=0.997)
+[3407] Soft Lock ID:12 lost from frame. Resetting.
+[3408] SOFT LOCK -> ID:12 (coarse=0.997)
+[3408] Soft Lock ID:12 lost from frame. Resetting.
+[3409] SOFT LOCK -> ID:12 (coarse=0.997)
+[3409] Soft Lock ID:12 lost from frame. Resetting.
+[3410] SOFT LOCK -> ID:12 (coarse=0.997)
+[3410] Soft Lock ID:12 lost from frame. Resetting.
+[3411] SOFT LOCK -> ID:12 (coarse=0.997)
+[3411] Soft Lock ID:12 lost from frame. Resetting.
+[3412] SOFT LOCK -> ID:12 (coarse=0.997)
+[3412] Soft Lock ID:12 lost from frame. Resetting.
+[3413] SOFT LOCK -> ID:12 (coarse=0.997)
+[3413] Soft Lock ID:12 lost from frame. Resetting.
+[3414] SOFT LOCK -> ID:12 (coarse=0.997)
+[3414] Soft Lock ID:12 lost from frame. Resetting.
+[3415] SOFT LOCK -> ID:12 (coarse=0.997)
+[3415] Soft Lock ID:12 lost from frame. Resetting.
+[3416] SOFT LOCK -> ID:12 (coarse=0.997)
+[3416] Soft Lock ID:12 lost from frame. Resetting.
+[3417] SOFT LOCK -> ID:12 (coarse=0.997)
+[3417] Soft Lock ID:12 lost from frame. Resetting.
+[3418] SOFT LOCK -> ID:12 (coarse=0.997)
+[3418] Soft Lock ID:12 lost from frame. Resetting.
+[3419] SOFT LOCK -> ID:12 (coarse=0.997)
+[3419] Soft Lock ID:12 lost from frame. Resetting.
+[3420] SOFT LOCK -> ID:12 (coarse=0.997)
+[3420] Soft Lock ID:12 lost from frame. Resetting.
+[3421] SOFT LOCK -> ID:12 (coarse=0.997)
+[3421] Soft Lock ID:12 lost from frame. Resetting.
+[3422] SOFT LOCK -> ID:12 (coarse=0.997)
+[3422] Soft Lock ID:12 lost from frame. Resetting.
+[3423] SOFT LOCK -> ID:12 (coarse=0.997)
+[3423] Soft Lock ID:12 lost from frame. Resetting.
+[3424] Coarse: ID:20 score=0.998
+[3424] SOFT LOCK -> ID:20 (coarse=0.998)
+[3424] Soft Lock ID:20 collecting: 1/16
+[3425] Soft Lock ID:20 lost from frame. Resetting.
+[3426] SOFT LOCK -> ID:20 (coarse=0.998)
+[3426] Soft Lock ID:20 lost from frame. Resetting.
+[3427] SOFT LOCK -> ID:20 (coarse=0.998)
+[3427] Soft Lock ID:20 lost from frame. Resetting.
+[3428] SOFT LOCK -> ID:20 (coarse=0.998)
+[3428] Soft Lock ID:20 lost from frame. Resetting.
+[3429] SOFT LOCK -> ID:20 (coarse=0.998)
+[3429] Soft Lock ID:20 lost from frame. Resetting.
+[3430] SOFT LOCK -> ID:20 (coarse=0.998)
+[3430] Soft Lock ID:20 lost from frame. Resetting.
+[3431] SOFT LOCK -> ID:20 (coarse=0.998)
+[3431] Soft Lock ID:20 lost from frame. Resetting.
+[3432] Coarse: ID:21 score=0.997
+[3432] SOFT LOCK -> ID:20 (coarse=0.998)
+[3432] Soft Lock ID:20 lost from frame. Resetting.
+[3433] SOFT LOCK -> ID:20 (coarse=0.998)
+[3433] Soft Lock ID:20 lost from frame. Resetting.
+[3434] SOFT LOCK -> ID:20 (coarse=0.998)
+[3434] Soft Lock ID:20 lost from frame. Resetting.
+[3435] SOFT LOCK -> ID:20 (coarse=0.998)
+[3435] Soft Lock ID:20 lost from frame. Resetting.
+[3436] SOFT LOCK -> ID:20 (coarse=0.998)
+[3436] Soft Lock ID:20 lost from frame. Resetting.
+[3437] SOFT LOCK -> ID:20 (coarse=0.998)
+[3437] Soft Lock ID:20 lost from frame. Resetting.
+[3438] SOFT LOCK -> ID:20 (coarse=0.998)
+[3438] Soft Lock ID:20 lost from frame. Resetting.
+[3439] SOFT LOCK -> ID:20 (coarse=0.998)
+[3439] Soft Lock ID:20 lost from frame. Resetting.
+[3440] SOFT LOCK -> ID:20 (coarse=0.998)
+[3440] Soft Lock ID:20 lost from frame. Resetting.
+[3441] SOFT LOCK -> ID:20 (coarse=0.998)
+[3441] Soft Lock ID:20 lost from frame. Resetting.
+[3442] SOFT LOCK -> ID:20 (coarse=0.998)
+[3442] Soft Lock ID:20 lost from frame. Resetting.
+[3443] SOFT LOCK -> ID:20 (coarse=0.998)
+[3443] Soft Lock ID:20 lost from frame. Resetting.
+[3444] SOFT LOCK -> ID:20 (coarse=0.998)
+[3444] Soft Lock ID:20 lost from frame. Resetting.
+[3445] SOFT LOCK -> ID:20 (coarse=0.998)
+[3445] Soft Lock ID:20 lost from frame. Resetting.
+[3446] SOFT LOCK -> ID:20 (coarse=0.998)
+[3446] Soft Lock ID:20 lost from frame. Resetting.
+[3447] SOFT LOCK -> ID:20 (coarse=0.998)
+[3447] Soft Lock ID:20 lost from frame. Resetting.
+[3448] SOFT LOCK -> ID:20 (coarse=0.998)
+[3448] Soft Lock ID:20 lost from frame. Resetting.
+[3449] SOFT LOCK -> ID:20 (coarse=0.998)
+[3449] Soft Lock ID:20 lost from frame. Resetting.
+[3450] SOFT LOCK -> ID:20 (coarse=0.998)
+[3450] Soft Lock ID:20 lost from frame. Resetting.
+[3451] SOFT LOCK -> ID:20 (coarse=0.998)
+[3451] Soft Lock ID:20 lost from frame. Resetting.
+[3452] SOFT LOCK -> ID:20 (coarse=0.998)
+[3452] Soft Lock ID:20 lost from frame. Resetting.
+[3453] SOFT LOCK -> ID:20 (coarse=0.998)
+[3453] Soft Lock ID:20 lost from frame. Resetting.
+[3454] SOFT LOCK -> ID:20 (coarse=0.998)
+[3454] Soft Lock ID:20 lost from frame. Resetting.
+[3455] SOFT LOCK -> ID:20 (coarse=0.998)
+[3455] Soft Lock ID:20 lost from frame. Resetting.
+[3456] SOFT LOCK -> ID:20 (coarse=0.998)
+[3456] Soft Lock ID:20 lost from frame. Resetting.
+[3457] SOFT LOCK -> ID:20 (coarse=0.998)
+[3457] Soft Lock ID:20 lost from frame. Resetting.
+[3458] SOFT LOCK -> ID:20 (coarse=0.998)
+[3458] Soft Lock ID:20 lost from frame. Resetting.
+[3459] SOFT LOCK -> ID:20 (coarse=0.998)
+[3459] Soft Lock ID:20 lost from frame. Resetting.
+[3460] SOFT LOCK -> ID:20 (coarse=0.998)
+[3460] Soft Lock ID:20 lost from frame. Resetting.
+[3461] SOFT LOCK -> ID:20 (coarse=0.998)
+[3461] Soft Lock ID:20 lost from frame. Resetting.
+[3462] SOFT LOCK -> ID:20 (coarse=0.998)
+[3462] Soft Lock ID:20 lost from frame. Resetting.
+[3463] SOFT LOCK -> ID:20 (coarse=0.998)
+[3463] Soft Lock ID:20 lost from frame. Resetting.
+[3464] SOFT LOCK -> ID:20 (coarse=0.998)
+[3464] Soft Lock ID:20 lost from frame. Resetting.
+[3465] SOFT LOCK -> ID:20 (coarse=0.998)
+[3465] Soft Lock ID:20 lost from frame. Resetting.
+[3466] SOFT LOCK -> ID:20 (coarse=0.998)
+[3466] Soft Lock ID:20 lost from frame. Resetting.
+[3467] SOFT LOCK -> ID:20 (coarse=0.998)
+[3467] Soft Lock ID:20 lost from frame. Resetting.
+[3468] SOFT LOCK -> ID:20 (coarse=0.998)
+[3468] Soft Lock ID:20 lost from frame. Resetting.
+[3469] SOFT LOCK -> ID:20 (coarse=0.998)
+[3469] Soft Lock ID:20 lost from frame. Resetting.
+[3470] SOFT LOCK -> ID:20 (coarse=0.998)
+[3470] Soft Lock ID:20 lost from frame. Resetting.
+[3471] SOFT LOCK -> ID:20 (coarse=0.998)
+[3471] Soft Lock ID:20 lost from frame. Resetting.
+[3472] SOFT LOCK -> ID:20 (coarse=0.998)
+[3472] Soft Lock ID:20 lost from frame. Resetting.
+[3473] SOFT LOCK -> ID:20 (coarse=0.998)
+[3473] Soft Lock ID:20 lost from frame. Resetting.
+[3474] SOFT LOCK -> ID:20 (coarse=0.998)
+[3474] Soft Lock ID:20 lost from frame. Resetting.
+[3475] SOFT LOCK -> ID:20 (coarse=0.998)
+[3475] Soft Lock ID:20 lost from frame. Resetting.
+[3476] SOFT LOCK -> ID:20 (coarse=0.998)
+[3476] Soft Lock ID:20 lost from frame. Resetting.
+[3477] SOFT LOCK -> ID:20 (coarse=0.998)
+[3477] Soft Lock ID:20 lost from frame. Resetting.
+[3478] SOFT LOCK -> ID:20 (coarse=0.998)
+[3478] Soft Lock ID:20 lost from frame. Resetting.
+[3479] SOFT LOCK -> ID:20 (coarse=0.998)
+[3479] Soft Lock ID:20 lost from frame. Resetting.
+[3480] SOFT LOCK -> ID:20 (coarse=0.998)
+[3480] Soft Lock ID:20 lost from frame. Resetting.
+[3481] SOFT LOCK -> ID:20 (coarse=0.998)
+[3481] Soft Lock ID:20 lost from frame. Resetting.
+[3482] SOFT LOCK -> ID:20 (coarse=0.998)
+[3482] Soft Lock ID:20 lost from frame. Resetting.
+[3483] SOFT LOCK -> ID:20 (coarse=0.998)
+[3483] Soft Lock ID:20 lost from frame. Resetting.
+[3484] SOFT LOCK -> ID:20 (coarse=0.998)
+[3484] Soft Lock ID:20 lost from frame. Resetting.
+[3485] SOFT LOCK -> ID:20 (coarse=0.998)
+[3485] Soft Lock ID:20 lost from frame. Resetting.
+[3486] SOFT LOCK -> ID:20 (coarse=0.998)
+[3486] Soft Lock ID:20 lost from frame. Resetting.
+[3487] SOFT LOCK -> ID:20 (coarse=0.998)
+[3487] Soft Lock ID:20 lost from frame. Resetting.
+[3488] SOFT LOCK -> ID:20 (coarse=0.998)
+[3488] Soft Lock ID:20 lost from frame. Resetting.
+[3489] SOFT LOCK -> ID:20 (coarse=0.998)
+[3489] Soft Lock ID:20 lost from frame. Resetting.
+[3490] SOFT LOCK -> ID:20 (coarse=0.998)
+[3490] Soft Lock ID:20 lost from frame. Resetting.
+[3491] SOFT LOCK -> ID:20 (coarse=0.998)
+[3491] Soft Lock ID:20 lost from frame. Resetting.
+[3492] SOFT LOCK -> ID:20 (coarse=0.998)
+[3492] Soft Lock ID:20 lost from frame. Resetting.
+[3493] SOFT LOCK -> ID:20 (coarse=0.998)
+[3493] Soft Lock ID:20 lost from frame. Resetting.
+[3494] SOFT LOCK -> ID:20 (coarse=0.998)
+[3494] Soft Lock ID:20 lost from frame. Resetting.
+[3495] SOFT LOCK -> ID:20 (coarse=0.998)
+[3495] Soft Lock ID:20 lost from frame. Resetting.
+[3496] SOFT LOCK -> ID:20 (coarse=0.998)
+[3496] Soft Lock ID:20 lost from frame. Resetting.
+[3497] SOFT LOCK -> ID:20 (coarse=0.998)
+[3497] Soft Lock ID:20 lost from frame. Resetting.
+[3498] SOFT LOCK -> ID:20 (coarse=0.998)
+[3498] Soft Lock ID:20 lost from frame. Resetting.
+[3499] SOFT LOCK -> ID:20 (coarse=0.998)
+[3499] Soft Lock ID:20 lost from frame. Resetting.
+[3500] SOFT LOCK -> ID:20 (coarse=0.998)
+[3500] Soft Lock ID:20 lost from frame. Resetting.
+[3501] SOFT LOCK -> ID:20 (coarse=0.998)
+[3501] Soft Lock ID:20 lost from frame. Resetting.
+[3502] SOFT LOCK -> ID:20 (coarse=0.998)
+[3502] Soft Lock ID:20 lost from frame. Resetting.
+[3503] SOFT LOCK -> ID:20 (coarse=0.998)
+[3503] Soft Lock ID:20 lost from frame. Resetting.
+[3504] SOFT LOCK -> ID:20 (coarse=0.998)
+[3504] Soft Lock ID:20 lost from frame. Resetting.
+[3505] SOFT LOCK -> ID:20 (coarse=0.998)
+[3505] Soft Lock ID:20 lost from frame. Resetting.
+[3506] SOFT LOCK -> ID:20 (coarse=0.998)
+[3506] Soft Lock ID:20 lost from frame. Resetting.
+[3507] SOFT LOCK -> ID:20 (coarse=0.998)
+[3507] Soft Lock ID:20 lost from frame. Resetting.
+[3508] SOFT LOCK -> ID:20 (coarse=0.998)
+[3508] Soft Lock ID:20 lost from frame. Resetting.
+[3509] SOFT LOCK -> ID:20 (coarse=0.998)
+[3509] Soft Lock ID:20 lost from frame. Resetting.
+[3510] SOFT LOCK -> ID:20 (coarse=0.998)
+[3510] Soft Lock ID:20 lost from frame. Resetting.
+[3511] SOFT LOCK -> ID:20 (coarse=0.998)
+[3511] Soft Lock ID:20 lost from frame. Resetting.
+[3512] SOFT LOCK -> ID:20 (coarse=0.998)
+[3512] Soft Lock ID:20 lost from frame. Resetting.
+[3513] SOFT LOCK -> ID:20 (coarse=0.998)
+[3513] Soft Lock ID:20 lost from frame. Resetting.
+[3514] SOFT LOCK -> ID:20 (coarse=0.998)
+[3514] Soft Lock ID:20 lost from frame. Resetting.
+[3515] SOFT LOCK -> ID:20 (coarse=0.998)
+[3515] Soft Lock ID:20 lost from frame. Resetting.
+[3516] SOFT LOCK -> ID:20 (coarse=0.998)
+[3516] Soft Lock ID:20 lost from frame. Resetting.
+[3517] SOFT LOCK -> ID:20 (coarse=0.998)
+[3517] Soft Lock ID:20 lost from frame. Resetting.
+[3518] SOFT LOCK -> ID:20 (coarse=0.998)
+[3518] Soft Lock ID:20 lost from frame. Resetting.
+[3519] SOFT LOCK -> ID:20 (coarse=0.998)
+[3519] Soft Lock ID:20 lost from frame. Resetting.
+[3520] SOFT LOCK -> ID:20 (coarse=0.998)
+[3520] Soft Lock ID:20 lost from frame. Resetting.
+[3521] SOFT LOCK -> ID:20 (coarse=0.998)
+[3521] Soft Lock ID:20 lost from frame. Resetting.
+[3522] SOFT LOCK -> ID:20 (coarse=0.998)
+[3522] Soft Lock ID:20 lost from frame. Resetting.
+[3523] SOFT LOCK -> ID:20 (coarse=0.998)
+[3523] Soft Lock ID:20 lost from frame. Resetting.
+[3524] SOFT LOCK -> ID:20 (coarse=0.998)
+[3524] Soft Lock ID:20 lost from frame. Resetting.
+[3525] SOFT LOCK -> ID:20 (coarse=0.998)
+[3525] Soft Lock ID:20 lost from frame. Resetting.
+[3526] SOFT LOCK -> ID:20 (coarse=0.998)
+[3526] Soft Lock ID:20 lost from frame. Resetting.
+[3527] SOFT LOCK -> ID:20 (coarse=0.998)
+[3527] Soft Lock ID:20 lost from frame. Resetting.
+[3528] SOFT LOCK -> ID:20 (coarse=0.998)
+[3528] Soft Lock ID:20 lost from frame. Resetting.
+[3529] SOFT LOCK -> ID:20 (coarse=0.998)
+[3529] Soft Lock ID:20 lost from frame. Resetting.
+[3530] SOFT LOCK -> ID:20 (coarse=0.998)
+[3530] Soft Lock ID:20 lost from frame. Resetting.
+[3531] SOFT LOCK -> ID:20 (coarse=0.998)
+[3531] Soft Lock ID:20 lost from frame. Resetting.
+[3532] SOFT LOCK -> ID:20 (coarse=0.998)
+[3532] Soft Lock ID:20 lost from frame. Resetting.
+[3533] SOFT LOCK -> ID:20 (coarse=0.998)
+[3533] Soft Lock ID:20 lost from frame. Resetting.
+[3534] SOFT LOCK -> ID:20 (coarse=0.998)
+[3534] Soft Lock ID:20 lost from frame. Resetting.
+[3535] SOFT LOCK -> ID:20 (coarse=0.998)
+[3535] Soft Lock ID:20 lost from frame. Resetting.
+[3536] SOFT LOCK -> ID:20 (coarse=0.998)
+[3536] Soft Lock ID:20 lost from frame. Resetting.
+[3537] SOFT LOCK -> ID:20 (coarse=0.998)
+[3537] Soft Lock ID:20 lost from frame. Resetting.
+[3538] SOFT LOCK -> ID:20 (coarse=0.998)
+[3538] Soft Lock ID:20 lost from frame. Resetting.
+[3539] SOFT LOCK -> ID:20 (coarse=0.998)
+[3539] Soft Lock ID:20 lost from frame. Resetting.
+[3540] SOFT LOCK -> ID:20 (coarse=0.998)
+[3540] Soft Lock ID:20 lost from frame. Resetting.
+[3541] SOFT LOCK -> ID:20 (coarse=0.998)
+[3541] Soft Lock ID:20 lost from frame. Resetting.
+[3542] SOFT LOCK -> ID:20 (coarse=0.998)
+[3542] Soft Lock ID:20 lost from frame. Resetting.
+[3543] SOFT LOCK -> ID:20 (coarse=0.998)
+[3543] Soft Lock ID:20 lost from frame. Resetting.
+[3544] SOFT LOCK -> ID:20 (coarse=0.998)
+[3544] Soft Lock ID:20 lost from frame. Resetting.
+[3545] SOFT LOCK -> ID:20 (coarse=0.998)
+[3545] Soft Lock ID:20 lost from frame. Resetting.
+[3546] SOFT LOCK -> ID:20 (coarse=0.998)
+[3546] Soft Lock ID:20 lost from frame. Resetting.
+[3547] SOFT LOCK -> ID:20 (coarse=0.998)
+[3547] Soft Lock ID:20 lost from frame. Resetting.
+[3548] SOFT LOCK -> ID:20 (coarse=0.998)
+[3548] Soft Lock ID:20 lost from frame. Resetting.
+[3549] SOFT LOCK -> ID:20 (coarse=0.998)
+[3549] Soft Lock ID:20 lost from frame. Resetting.
+[3550] SOFT LOCK -> ID:20 (coarse=0.998)
+[3550] Soft Lock ID:20 lost from frame. Resetting.
+[3551] SOFT LOCK -> ID:20 (coarse=0.998)
+[3551] Soft Lock ID:20 lost from frame. Resetting.
+[3552] SOFT LOCK -> ID:20 (coarse=0.998)
+[3552] Soft Lock ID:20 lost from frame. Resetting.
+[3553] SOFT LOCK -> ID:20 (coarse=0.998)
+[3553] Soft Lock ID:20 lost from frame. Resetting.
+[3554] SOFT LOCK -> ID:20 (coarse=0.998)
+[3554] Soft Lock ID:20 lost from frame. Resetting.
+[3555] SOFT LOCK -> ID:20 (coarse=0.998)
+[3555] Soft Lock ID:20 lost from frame. Resetting.
+[3556] SOFT LOCK -> ID:20 (coarse=0.998)
+[3556] Soft Lock ID:20 lost from frame. Resetting.
+[3557] SOFT LOCK -> ID:20 (coarse=0.998)
+[3557] Soft Lock ID:20 lost from frame. Resetting.
+[3558] SOFT LOCK -> ID:20 (coarse=0.998)
+[3558] Soft Lock ID:20 lost from frame. Resetting.
+[3559] SOFT LOCK -> ID:20 (coarse=0.998)
+[3559] Soft Lock ID:20 lost from frame. Resetting.
+[3560] SOFT LOCK -> ID:20 (coarse=0.998)
+[3560] Soft Lock ID:20 lost from frame. Resetting.
+[3561] SOFT LOCK -> ID:20 (coarse=0.998)
+[3561] Soft Lock ID:20 lost from frame. Resetting.
+[3562] SOFT LOCK -> ID:20 (coarse=0.998)
+[3562] Soft Lock ID:20 lost from frame. Resetting.
+[3563] SOFT LOCK -> ID:20 (coarse=0.998)
+[3563] Soft Lock ID:20 lost from frame. Resetting.
+[3564] SOFT LOCK -> ID:20 (coarse=0.998)
+[3564] Soft Lock ID:20 lost from frame. Resetting.
+[3565] SOFT LOCK -> ID:20 (coarse=0.998)
+[3565] Soft Lock ID:20 lost from frame. Resetting.
+[3566] SOFT LOCK -> ID:20 (coarse=0.998)
+[3566] Soft Lock ID:20 lost from frame. Resetting.
+[3567] SOFT LOCK -> ID:20 (coarse=0.998)
+[3567] Soft Lock ID:20 lost from frame. Resetting.
+[3568] SOFT LOCK -> ID:20 (coarse=0.998)
+[3568] Soft Lock ID:20 lost from frame. Resetting.
+[3569] SOFT LOCK -> ID:20 (coarse=0.998)
+[3569] Soft Lock ID:20 lost from frame. Resetting.
+[3570] SOFT LOCK -> ID:20 (coarse=0.998)
+[3570] Soft Lock ID:20 lost from frame. Resetting.
+[3571] SOFT LOCK -> ID:20 (coarse=0.998)
+[3571] Soft Lock ID:20 lost from frame. Resetting.
+[3572] SOFT LOCK -> ID:20 (coarse=0.998)
+[3572] Soft Lock ID:20 lost from frame. Resetting.
+[3573] SOFT LOCK -> ID:20 (coarse=0.998)
+[3573] Soft Lock ID:20 lost from frame. Resetting.
+[3574] SOFT LOCK -> ID:20 (coarse=0.998)
+[3574] Soft Lock ID:20 lost from frame. Resetting.
+[3575] SOFT LOCK -> ID:20 (coarse=0.998)
+[3575] Soft Lock ID:20 lost from frame. Resetting.
+[3576] SOFT LOCK -> ID:20 (coarse=0.998)
+[3576] Soft Lock ID:20 lost from frame. Resetting.
+[3577] SOFT LOCK -> ID:20 (coarse=0.998)
+[3577] Soft Lock ID:20 lost from frame. Resetting.
+[3578] SOFT LOCK -> ID:20 (coarse=0.998)
+[3578] Soft Lock ID:20 lost from frame. Resetting.
+[3579] SOFT LOCK -> ID:20 (coarse=0.998)
+[3579] Soft Lock ID:20 lost from frame. Resetting.
+[3580] SOFT LOCK -> ID:20 (coarse=0.998)
+[3580] Soft Lock ID:20 lost from frame. Resetting.
+[3581] SOFT LOCK -> ID:20 (coarse=0.998)
+[3581] Soft Lock ID:20 lost from frame. Resetting.
+[3582] SOFT LOCK -> ID:20 (coarse=0.998)
+[3582] Soft Lock ID:20 lost from frame. Resetting.
+[3583] SOFT LOCK -> ID:20 (coarse=0.998)
+[3583] Soft Lock ID:20 lost from frame. Resetting.
+[3584] SOFT LOCK -> ID:20 (coarse=0.998)
+[3584] Soft Lock ID:20 lost from frame. Resetting.
+[3585] SOFT LOCK -> ID:20 (coarse=0.998)
+[3585] Soft Lock ID:20 lost from frame. Resetting.
+[3586] SOFT LOCK -> ID:20 (coarse=0.998)
+[3586] Soft Lock ID:20 lost from frame. Resetting.
+[3587] SOFT LOCK -> ID:20 (coarse=0.998)
+[3587] Soft Lock ID:20 lost from frame. Resetting.
+[3588] SOFT LOCK -> ID:20 (coarse=0.998)
+[3588] Soft Lock ID:20 lost from frame. Resetting.
+[3589] SOFT LOCK -> ID:20 (coarse=0.998)
+[3589] Soft Lock ID:20 lost from frame. Resetting.
+[3590] SOFT LOCK -> ID:20 (coarse=0.998)
+[3590] Soft Lock ID:20 lost from frame. Resetting.
+[3591] SOFT LOCK -> ID:20 (coarse=0.998)
+[3591] Soft Lock ID:20 lost from frame. Resetting.
+[3592] SOFT LOCK -> ID:20 (coarse=0.998)
+[3592] Soft Lock ID:20 lost from frame. Resetting.
+[3593] SOFT LOCK -> ID:20 (coarse=0.998)
+[3593] Soft Lock ID:20 lost from frame. Resetting.
+[3594] SOFT LOCK -> ID:20 (coarse=0.998)
+[3594] Soft Lock ID:20 lost from frame. Resetting.
+[3595] SOFT LOCK -> ID:20 (coarse=0.998)
+[3595] Soft Lock ID:20 lost from frame. Resetting.
+[3596] SOFT LOCK -> ID:20 (coarse=0.998)
+[3596] Soft Lock ID:20 lost from frame. Resetting.
+[3597] SOFT LOCK -> ID:20 (coarse=0.998)
+[3597] Soft Lock ID:20 lost from frame. Resetting.
+[3598] SOFT LOCK -> ID:20 (coarse=0.998)
+[3598] Soft Lock ID:20 lost from frame. Resetting.
+[3599] SOFT LOCK -> ID:20 (coarse=0.998)
+[3599] Soft Lock ID:20 lost from frame. Resetting.
+[3600] SOFT LOCK -> ID:20 (coarse=0.998)
+[3600] Soft Lock ID:20 lost from frame. Resetting.
+[3601] SOFT LOCK -> ID:20 (coarse=0.998)
+[3601] Soft Lock ID:20 lost from frame. Resetting.
+[3602] SOFT LOCK -> ID:20 (coarse=0.998)
+[3602] Soft Lock ID:20 lost from frame. Resetting.
+[3603] SOFT LOCK -> ID:20 (coarse=0.998)
+[3603] Soft Lock ID:20 lost from frame. Resetting.
+[3604] SOFT LOCK -> ID:20 (coarse=0.998)
+[3604] Soft Lock ID:20 lost from frame. Resetting.
+[3605] SOFT LOCK -> ID:20 (coarse=0.998)
+[3605] Soft Lock ID:20 lost from frame. Resetting.
+[3606] SOFT LOCK -> ID:20 (coarse=0.998)
+[3606] Soft Lock ID:20 lost from frame. Resetting.
+[3607] SOFT LOCK -> ID:20 (coarse=0.998)
+[3607] Soft Lock ID:20 lost from frame. Resetting.
+[3608] SOFT LOCK -> ID:20 (coarse=0.998)
+[3608] Soft Lock ID:20 lost from frame. Resetting.
+[3609] SOFT LOCK -> ID:20 (coarse=0.998)
+[3609] Soft Lock ID:20 lost from frame. Resetting.
+[3610] SOFT LOCK -> ID:20 (coarse=0.998)
+[3610] Soft Lock ID:20 lost from frame. Resetting.
+[3611] SOFT LOCK -> ID:20 (coarse=0.998)
+[3611] Soft Lock ID:20 lost from frame. Resetting.
+[3612] SOFT LOCK -> ID:20 (coarse=0.998)
+[3612] Soft Lock ID:20 lost from frame. Resetting.
+[3613] SOFT LOCK -> ID:20 (coarse=0.998)
+[3613] Soft Lock ID:20 lost from frame. Resetting.
+[3614] SOFT LOCK -> ID:20 (coarse=0.998)
+[3614] Soft Lock ID:20 lost from frame. Resetting.
+[3615] SOFT LOCK -> ID:20 (coarse=0.998)
+[3615] Soft Lock ID:20 lost from frame. Resetting.
+[3616] SOFT LOCK -> ID:20 (coarse=0.998)
+[3616] Soft Lock ID:20 lost from frame. Resetting.
+[3617] SOFT LOCK -> ID:20 (coarse=0.998)
+[3617] Soft Lock ID:20 lost from frame. Resetting.
+[3618] SOFT LOCK -> ID:20 (coarse=0.998)
+[3618] Soft Lock ID:20 lost from frame. Resetting.
+[3619] SOFT LOCK -> ID:20 (coarse=0.998)
+[3619] Soft Lock ID:20 lost from frame. Resetting.
+[3620] SOFT LOCK -> ID:20 (coarse=0.998)
+[3620] Soft Lock ID:20 lost from frame. Resetting.
+[3621] SOFT LOCK -> ID:20 (coarse=0.998)
+[3621] Soft Lock ID:20 lost from frame. Resetting.
+[3622] SOFT LOCK -> ID:20 (coarse=0.998)
+[3622] Soft Lock ID:20 lost from frame. Resetting.
+[3623] SOFT LOCK -> ID:20 (coarse=0.998)
+[3623] Soft Lock ID:20 lost from frame. Resetting.
+[3624] SOFT LOCK -> ID:20 (coarse=0.998)
+[3624] Soft Lock ID:20 lost from frame. Resetting.
+[3625] SOFT LOCK -> ID:20 (coarse=0.998)
+[3625] Soft Lock ID:20 lost from frame. Resetting.
+[3626] SOFT LOCK -> ID:20 (coarse=0.998)
+[3626] Soft Lock ID:20 lost from frame. Resetting.
+[3627] SOFT LOCK -> ID:20 (coarse=0.998)
+[3627] Soft Lock ID:20 lost from frame. Resetting.
+[3628] SOFT LOCK -> ID:20 (coarse=0.998)
+[3628] Soft Lock ID:20 lost from frame. Resetting.
+[3629] SOFT LOCK -> ID:20 (coarse=0.998)
+[3629] Soft Lock ID:20 lost from frame. Resetting.
+[3630] SOFT LOCK -> ID:20 (coarse=0.998)
+[3630] Soft Lock ID:20 lost from frame. Resetting.
+[3631] SOFT LOCK -> ID:20 (coarse=0.998)
+[3631] Soft Lock ID:20 lost from frame. Resetting.
+[3632] SOFT LOCK -> ID:20 (coarse=0.998)
+[3632] Soft Lock ID:20 lost from frame. Resetting.
+[3633] SOFT LOCK -> ID:20 (coarse=0.998)
+[3633] Soft Lock ID:20 lost from frame. Resetting.
+[3634] SOFT LOCK -> ID:20 (coarse=0.998)
+[3634] Soft Lock ID:20 lost from frame. Resetting.
+[3635] SOFT LOCK -> ID:20 (coarse=0.998)
+[3635] Soft Lock ID:20 lost from frame. Resetting.
+[3636] SOFT LOCK -> ID:20 (coarse=0.998)
+[3636] Soft Lock ID:20 lost from frame. Resetting.
+[3637] SOFT LOCK -> ID:20 (coarse=0.998)
+[3637] Soft Lock ID:20 lost from frame. Resetting.
+[3638] SOFT LOCK -> ID:20 (coarse=0.998)
+[3638] Soft Lock ID:20 lost from frame. Resetting.
+[3639] SOFT LOCK -> ID:20 (coarse=0.998)
+[3639] Soft Lock ID:20 lost from frame. Resetting.
+[3640] SOFT LOCK -> ID:20 (coarse=0.998)
+[3640] Soft Lock ID:20 lost from frame. Resetting.
+[3641] SOFT LOCK -> ID:20 (coarse=0.998)
+[3641] Soft Lock ID:20 lost from frame. Resetting.
+[3642] SOFT LOCK -> ID:20 (coarse=0.998)
+[3642] Soft Lock ID:20 lost from frame. Resetting.
+[3643] SOFT LOCK -> ID:20 (coarse=0.998)
+[3643] Soft Lock ID:20 lost from frame. Resetting.
+[3644] SOFT LOCK -> ID:20 (coarse=0.998)
+[3644] Soft Lock ID:20 lost from frame. Resetting.
+[3645] SOFT LOCK -> ID:20 (coarse=0.998)
+[3645] Soft Lock ID:20 lost from frame. Resetting.
+[3646] SOFT LOCK -> ID:20 (coarse=0.998)
+[3646] Soft Lock ID:20 lost from frame. Resetting.
+[3647] SOFT LOCK -> ID:20 (coarse=0.998)
+[3647] Soft Lock ID:20 lost from frame. Resetting.
+[3648] SOFT LOCK -> ID:20 (coarse=0.998)
+[3648] Soft Lock ID:20 lost from frame. Resetting.
+[3649] SOFT LOCK -> ID:20 (coarse=0.998)
+[3649] Soft Lock ID:20 lost from frame. Resetting.
+[3650] SOFT LOCK -> ID:20 (coarse=0.998)
+[3650] Soft Lock ID:20 lost from frame. Resetting.
+[3651] SOFT LOCK -> ID:20 (coarse=0.998)
+[3651] Soft Lock ID:20 lost from frame. Resetting.
+[3652] SOFT LOCK -> ID:20 (coarse=0.998)
+[3652] Soft Lock ID:20 lost from frame. Resetting.
+[3653] Coarse: ID:26 score=0.997
+[3653] SOFT LOCK -> ID:20 (coarse=0.998)
+[3653] Soft Lock ID:20 lost from frame. Resetting.
+[3654] SOFT LOCK -> ID:20 (coarse=0.998)
+[3654] Soft Lock ID:20 lost from frame. Resetting.
+[3655] SOFT LOCK -> ID:20 (coarse=0.998)
+[3655] Soft Lock ID:20 lost from frame. Resetting.
+[3656] SOFT LOCK -> ID:20 (coarse=0.998)
+[3656] Soft Lock ID:20 lost from frame. Resetting.
+[3657] SOFT LOCK -> ID:20 (coarse=0.998)
+[3657] Soft Lock ID:20 lost from frame. Resetting.
+[3658] SOFT LOCK -> ID:20 (coarse=0.998)
+[3658] Soft Lock ID:20 lost from frame. Resetting.
+[3659] SOFT LOCK -> ID:20 (coarse=0.998)
+[3659] Soft Lock ID:20 lost from frame. Resetting.
+[3660] SOFT LOCK -> ID:20 (coarse=0.998)
+[3660] Soft Lock ID:20 lost from frame. Resetting.
+[3661] Coarse: ID:28 score=0.997
+[3661] SOFT LOCK -> ID:20 (coarse=0.998)
+[3661] Soft Lock ID:20 lost from frame. Resetting.
+[3662] SOFT LOCK -> ID:20 (coarse=0.998)
+[3662] Soft Lock ID:20 lost from frame. Resetting.
+[3663] SOFT LOCK -> ID:20 (coarse=0.998)
+[3663] Soft Lock ID:20 lost from frame. Resetting.
+[3664] SOFT LOCK -> ID:20 (coarse=0.998)
+[3664] Soft Lock ID:20 lost from frame. Resetting.
+[3665] SOFT LOCK -> ID:20 (coarse=0.998)
+[3665] Soft Lock ID:20 lost from frame. Resetting.
+[3666] SOFT LOCK -> ID:20 (coarse=0.998)
+[3666] Soft Lock ID:20 lost from frame. Resetting.
+[3667] SOFT LOCK -> ID:20 (coarse=0.998)
+[3667] Soft Lock ID:20 lost from frame. Resetting.
+[3668] SOFT LOCK -> ID:20 (coarse=0.998)
+[3668] Soft Lock ID:20 lost from frame. Resetting.
+[3669] Coarse: ID:29 score=0.997
+[3669] SOFT LOCK -> ID:20 (coarse=0.998)
+[3669] Soft Lock ID:20 lost from frame. Resetting.
+[3670] SOFT LOCK -> ID:20 (coarse=0.998)
+[3670] Soft Lock ID:20 lost from frame. Resetting.
+[3671] SOFT LOCK -> ID:20 (coarse=0.998)
+[3671] Soft Lock ID:20 lost from frame. Resetting.
+[3672] SOFT LOCK -> ID:20 (coarse=0.998)
+[3672] Soft Lock ID:20 lost from frame. Resetting.
+[3673] SOFT LOCK -> ID:20 (coarse=0.998)
+[3673] Soft Lock ID:20 lost from frame. Resetting.
+[3674] Coarse: ID:30 score=0.996
+[3674] SOFT LOCK -> ID:20 (coarse=0.998)
+[3674] Soft Lock ID:20 lost from frame. Resetting.
+[3675] SOFT LOCK -> ID:20 (coarse=0.998)
+[3675] Soft Lock ID:20 lost from frame. Resetting.
+[3676] SOFT LOCK -> ID:20 (coarse=0.998)
+[3676] Soft Lock ID:20 lost from frame. Resetting.
+[3677] SOFT LOCK -> ID:20 (coarse=0.998)
+[3677] Soft Lock ID:20 lost from frame. Resetting.
+[3678] SOFT LOCK -> ID:20 (coarse=0.998)
+[3678] Soft Lock ID:20 lost from frame. Resetting.
+[3679] SOFT LOCK -> ID:20 (coarse=0.998)
+[3679] Soft Lock ID:20 lost from frame. Resetting.
+[3680] SOFT LOCK -> ID:20 (coarse=0.998)
+[3680] Soft Lock ID:20 lost from frame. Resetting.
+[3681] SOFT LOCK -> ID:20 (coarse=0.998)
+[3681] Soft Lock ID:20 lost from frame. Resetting.
+[3682] SOFT LOCK -> ID:20 (coarse=0.998)
+[3682] Soft Lock ID:20 lost from frame. Resetting.
+[3683] SOFT LOCK -> ID:20 (coarse=0.998)
+[3683] Soft Lock ID:20 lost from frame. Resetting.
+[3684] SOFT LOCK -> ID:20 (coarse=0.998)
+[3684] Soft Lock ID:20 lost from frame. Resetting.
+[3685] SOFT LOCK -> ID:20 (coarse=0.998)
+[3685] Soft Lock ID:20 lost from frame. Resetting.
+[3686] SOFT LOCK -> ID:20 (coarse=0.998)
+[3686] Soft Lock ID:20 lost from frame. Resetting.
+[3687] SOFT LOCK -> ID:20 (coarse=0.998)
+[3687] Soft Lock ID:20 lost from frame. Resetting.
+[3688] SOFT LOCK -> ID:20 (coarse=0.998)
+[3688] Soft Lock ID:20 lost from frame. Resetting.
+[3689] SOFT LOCK -> ID:20 (coarse=0.998)
+[3689] Soft Lock ID:20 lost from frame. Resetting.
+[3690] SOFT LOCK -> ID:20 (coarse=0.998)
+[3690] Soft Lock ID:20 lost from frame. Resetting.
+[3691] SOFT LOCK -> ID:20 (coarse=0.998)
+[3691] Soft Lock ID:20 lost from frame. Resetting.
+[3692] SOFT LOCK -> ID:20 (coarse=0.998)
+[3692] Soft Lock ID:20 lost from frame. Resetting.
+[3693] SOFT LOCK -> ID:20 (coarse=0.998)
+[3693] Soft Lock ID:20 lost from frame. Resetting.
+[3694] SOFT LOCK -> ID:20 (coarse=0.998)
+[3694] Soft Lock ID:20 lost from frame. Resetting.
+[3695] SOFT LOCK -> ID:20 (coarse=0.998)
+[3695] Soft Lock ID:20 lost from frame. Resetting.
+[3696] SOFT LOCK -> ID:20 (coarse=0.998)
+[3696] Soft Lock ID:20 lost from frame. Resetting.
+[3697] SOFT LOCK -> ID:20 (coarse=0.998)
+[3697] Soft Lock ID:20 lost from frame. Resetting.
+[3698] SOFT LOCK -> ID:20 (coarse=0.998)
+[3698] Soft Lock ID:20 lost from frame. Resetting.
+[3699] SOFT LOCK -> ID:20 (coarse=0.998)
+[3699] Soft Lock ID:20 lost from frame. Resetting.
+[3700] SOFT LOCK -> ID:20 (coarse=0.998)
+[3700] Soft Lock ID:20 lost from frame. Resetting.
+[3701] SOFT LOCK -> ID:20 (coarse=0.998)
+[3701] Soft Lock ID:20 lost from frame. Resetting.
+[3702] SOFT LOCK -> ID:20 (coarse=0.998)
+[3702] Soft Lock ID:20 lost from frame. Resetting.
+[3703] SOFT LOCK -> ID:20 (coarse=0.998)
+[3703] Soft Lock ID:20 lost from frame. Resetting.
+[3704] SOFT LOCK -> ID:20 (coarse=0.998)
+[3704] Soft Lock ID:20 lost from frame. Resetting.
+[3705] SOFT LOCK -> ID:20 (coarse=0.998)
+[3705] Soft Lock ID:20 lost from frame. Resetting.
+[3706] SOFT LOCK -> ID:20 (coarse=0.998)
+[3706] Soft Lock ID:20 lost from frame. Resetting.
+[3707] SOFT LOCK -> ID:20 (coarse=0.998)
+[3707] Soft Lock ID:20 lost from frame. Resetting.
+[3708] SOFT LOCK -> ID:20 (coarse=0.998)
+[3708] Soft Lock ID:20 lost from frame. Resetting.
+[3709] SOFT LOCK -> ID:20 (coarse=0.998)
+[3709] Soft Lock ID:20 lost from frame. Resetting.
+[3710] SOFT LOCK -> ID:20 (coarse=0.998)
+[3710] Soft Lock ID:20 lost from frame. Resetting.
+[3711] SOFT LOCK -> ID:20 (coarse=0.998)
+[3711] Soft Lock ID:20 lost from frame. Resetting.
+[3712] SOFT LOCK -> ID:20 (coarse=0.998)
+[3712] Soft Lock ID:20 lost from frame. Resetting.
+[3713] SOFT LOCK -> ID:20 (coarse=0.998)
+[3713] Soft Lock ID:20 lost from frame. Resetting.
+[3714] SOFT LOCK -> ID:20 (coarse=0.998)
+[3714] Soft Lock ID:20 lost from frame. Resetting.
+[3715] SOFT LOCK -> ID:20 (coarse=0.998)
+[3715] Soft Lock ID:20 lost from frame. Resetting.
+[3716] SOFT LOCK -> ID:20 (coarse=0.998)
+[3716] Soft Lock ID:20 lost from frame. Resetting.
+[3717] SOFT LOCK -> ID:20 (coarse=0.998)
+[3717] Soft Lock ID:20 lost from frame. Resetting.
+[3718] SOFT LOCK -> ID:20 (coarse=0.998)
+[3718] Soft Lock ID:20 lost from frame. Resetting.
+[3719] SOFT LOCK -> ID:20 (coarse=0.998)
+[3719] Soft Lock ID:20 lost from frame. Resetting.
+[3720] SOFT LOCK -> ID:20 (coarse=0.998)
+[3720] Soft Lock ID:20 lost from frame. Resetting.
+[3721] SOFT LOCK -> ID:20 (coarse=0.998)
+[3721] Soft Lock ID:20 lost from frame. Resetting.
+[3722] SOFT LOCK -> ID:20 (coarse=0.998)
+[3722] Soft Lock ID:20 lost from frame. Resetting.
+[3723] SOFT LOCK -> ID:20 (coarse=0.998)
+[3723] Soft Lock ID:20 lost from frame. Resetting.
+[3724] SOFT LOCK -> ID:20 (coarse=0.998)
+[3724] Soft Lock ID:20 lost from frame. Resetting.
+[3725] SOFT LOCK -> ID:20 (coarse=0.998)
+[3725] Soft Lock ID:20 lost from frame. Resetting.
+[3726] SOFT LOCK -> ID:20 (coarse=0.998)
+[3726] Soft Lock ID:20 lost from frame. Resetting.
+[3727] SOFT LOCK -> ID:20 (coarse=0.998)
+[3727] Soft Lock ID:20 lost from frame. Resetting.
+[3728] SOFT LOCK -> ID:20 (coarse=0.998)
+[3728] Soft Lock ID:20 lost from frame. Resetting.
+[3729] SOFT LOCK -> ID:20 (coarse=0.998)
+[3729] Soft Lock ID:20 lost from frame. Resetting.
+[3730] SOFT LOCK -> ID:20 (coarse=0.998)
+[3730] Soft Lock ID:20 lost from frame. Resetting.
+[3731] SOFT LOCK -> ID:20 (coarse=0.998)
+[3731] Soft Lock ID:20 lost from frame. Resetting.
+[3732] SOFT LOCK -> ID:20 (coarse=0.998)
+[3732] Soft Lock ID:20 lost from frame. Resetting.
+[3733] SOFT LOCK -> ID:20 (coarse=0.998)
+[3733] Soft Lock ID:20 lost from frame. Resetting.
+[3734] SOFT LOCK -> ID:20 (coarse=0.998)
+[3734] Soft Lock ID:20 lost from frame. Resetting.
+[3735] SOFT LOCK -> ID:20 (coarse=0.998)
+[3735] Soft Lock ID:20 lost from frame. Resetting.
+[3736] SOFT LOCK -> ID:20 (coarse=0.998)
+[3736] Soft Lock ID:20 lost from frame. Resetting.
+[3737] SOFT LOCK -> ID:20 (coarse=0.998)
+[3737] Soft Lock ID:20 lost from frame. Resetting.
+[3738] SOFT LOCK -> ID:20 (coarse=0.998)
+[3738] Soft Lock ID:20 lost from frame. Resetting.
+[3739] SOFT LOCK -> ID:20 (coarse=0.998)
+[3739] Soft Lock ID:20 lost from frame. Resetting.
+[3740] SOFT LOCK -> ID:20 (coarse=0.998)
+[3740] Soft Lock ID:20 lost from frame. Resetting.
+[3741] SOFT LOCK -> ID:20 (coarse=0.998)
+[3741] Soft Lock ID:20 lost from frame. Resetting.
+[3742] SOFT LOCK -> ID:20 (coarse=0.998)
+[3742] Soft Lock ID:20 lost from frame. Resetting.
+[3743] SOFT LOCK -> ID:20 (coarse=0.998)
+[3743] Soft Lock ID:20 lost from frame. Resetting.
+[3744] SOFT LOCK -> ID:20 (coarse=0.998)
+[3744] Soft Lock ID:20 lost from frame. Resetting.
+[3745] SOFT LOCK -> ID:20 (coarse=0.998)
+[3745] Soft Lock ID:20 lost from frame. Resetting.
+[3746] SOFT LOCK -> ID:20 (coarse=0.998)
+[3746] Soft Lock ID:20 lost from frame. Resetting.
+[3747] SOFT LOCK -> ID:20 (coarse=0.998)
+[3747] Soft Lock ID:20 lost from frame. Resetting.
+[3748] SOFT LOCK -> ID:20 (coarse=0.998)
+[3748] Soft Lock ID:20 lost from frame. Resetting.
+[3749] SOFT LOCK -> ID:20 (coarse=0.998)
+[3749] Soft Lock ID:20 lost from frame. Resetting.
+[3750] SOFT LOCK -> ID:20 (coarse=0.998)
+[3750] Soft Lock ID:20 lost from frame. Resetting.
+[3751] SOFT LOCK -> ID:20 (coarse=0.998)
+[3751] Soft Lock ID:20 lost from frame. Resetting.
+[3752] SOFT LOCK -> ID:20 (coarse=0.998)
+[3752] Soft Lock ID:20 lost from frame. Resetting.
+[3753] SOFT LOCK -> ID:20 (coarse=0.998)
+[3753] Soft Lock ID:20 lost from frame. Resetting.
+[3754] SOFT LOCK -> ID:20 (coarse=0.998)
+[3754] Soft Lock ID:20 lost from frame. Resetting.
+[3755] SOFT LOCK -> ID:20 (coarse=0.998)
+[3755] Soft Lock ID:20 lost from frame. Resetting.
+[3756] SOFT LOCK -> ID:20 (coarse=0.998)
+[3756] Soft Lock ID:20 lost from frame. Resetting.
+[3757] SOFT LOCK -> ID:20 (coarse=0.998)
+[3757] Soft Lock ID:20 lost from frame. Resetting.
+[3758] SOFT LOCK -> ID:20 (coarse=0.998)
+[3758] Soft Lock ID:20 lost from frame. Resetting.
+[3759] SOFT LOCK -> ID:20 (coarse=0.998)
+[3759] Soft Lock ID:20 lost from frame. Resetting.
+[3760] SOFT LOCK -> ID:20 (coarse=0.998)
+[3760] Soft Lock ID:20 lost from frame. Resetting.
+[3761] SOFT LOCK -> ID:20 (coarse=0.998)
+[3761] Soft Lock ID:20 lost from frame. Resetting.
+[3762] SOFT LOCK -> ID:20 (coarse=0.998)
+[3762] Soft Lock ID:20 lost from frame. Resetting.
+[3763] SOFT LOCK -> ID:20 (coarse=0.998)
+[3763] Soft Lock ID:20 lost from frame. Resetting.
+[3764] SOFT LOCK -> ID:20 (coarse=0.998)
+[3764] Soft Lock ID:20 lost from frame. Resetting.
+[3765] SOFT LOCK -> ID:20 (coarse=0.998)
+[3765] Soft Lock ID:20 lost from frame. Resetting.
+[3766] SOFT LOCK -> ID:20 (coarse=0.998)
+[3766] Soft Lock ID:20 lost from frame. Resetting.
+[3767] SOFT LOCK -> ID:20 (coarse=0.998)
+[3767] Soft Lock ID:20 lost from frame. Resetting.
+[3768] SOFT LOCK -> ID:20 (coarse=0.998)
+[3768] Soft Lock ID:20 lost from frame. Resetting.
+[3769] SOFT LOCK -> ID:20 (coarse=0.998)
+[3769] Soft Lock ID:20 lost from frame. Resetting.
+[3770] SOFT LOCK -> ID:20 (coarse=0.998)
+[3770] Soft Lock ID:20 lost from frame. Resetting.
+[3771] SOFT LOCK -> ID:20 (coarse=0.998)
+[3771] Soft Lock ID:20 lost from frame. Resetting.
+[3772] SOFT LOCK -> ID:20 (coarse=0.998)
+[3772] Soft Lock ID:20 lost from frame. Resetting.
+[3773] SOFT LOCK -> ID:20 (coarse=0.998)
+[3773] Soft Lock ID:20 lost from frame. Resetting.

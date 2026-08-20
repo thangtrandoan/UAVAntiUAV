@@ -65,44 +65,63 @@ eval:
 
 # --- Inference ---
 infer:
-  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000002
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
   model_path: ./best_model.pth
   output_video: results_demo.mp4
-  reid_threshold: 0.75
-  num_frames: 16
+  out_dir: ./infer_output/UAV-Anti-UAV_Test_000059
+  # === New OOP Pipeline Thresholds ===
+  stride: 2
+  num_frames: 8
   bbox_padding: 0.2
   max_anchor_size: 5
-  max_recent_size: 5
+  max_recent_size: 15
+  soft_lock_threshold: 0.30
+  reid_threshold: 0.75
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  update_interval_sec: 2.0
 
 # --- Inference Robustness Test ---
 infer_robustness:
-  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000003
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000212
   data_root: ./data/UAV-Anti-UAV/Test
   model_path: ./best_model.pth
   output_video: ./output_robustness.mp4
-  reid_threshold: 0.75
-  num_frames: 16
+  out_dir: ./infer_robustness_new/UAV-Anti-UAV_Test_000212_2
+  # === New OOP Pipeline Thresholds ===
+  stride: 2
+  num_frames: 8
   bbox_padding: 0.2
-  num_imposters: 15
+  num_imposters: 5
   max_anchor_size: 5
   max_recent_size: 15
+  soft_lock_threshold: 0.50
+  reid_threshold: 0.75
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  update_interval_sec: 2.0
 
 # --- Real-world Inference ---
 infer_realworld:
   video: ./phan_rang/phanrang_raptor.mp4
   yolo_model: yolov8n.pt
-  detector_conf: 0.15
+  detector_conf: 0.1
   detector_imgsz: 1088
   detector_classes: [4]
   lost_threshold: 10
   model_path: ./best_model.pth
   output_video: output_phanrang.mp4
-  reid_threshold: 0.75
-  num_frames: 16
-  bbox_padding: 0.2
-  max_anchor_size: 10
-  max_recent_size: 30
+  out_dir: ./infer_realworld/phanrang_raptor_2
   query_img: ""
   start_sec: 13.0
-  coarse_threshold: 0.50
-  spatial_weight: 0.30
+  # === New Pipeline Thresholds ===
+  stride: 2                    # Cửa sổ trượt lấy đặc trưng cách quãng
+  num_frames: 16               # Số frame cần thu thập trước khi chạy Mamba
+  bbox_padding: 0.2            # Mở rộng bounding box
+  max_anchor_size: 10          # Số lượng ảnh tối đa trong Anchor Bank
+  max_recent_size: 30          # Số lượng ảnh tối đa trong Recent Bank
+  soft_lock_threshold: 0.50    # Ngưỡng Lọc Thô (Coarse ReID)
+  reid_threshold: 0.75         # Ngưỡng Lọc Tinh (Fine ReID)
+  hijack_threshold: 0.40       # Ngưỡng phát hiện bám nhầm
+  hijack_check_count: 5        # Số lần kiểm tra anti-hijack sau Hard Lock
+  update_interval_sec: 2.0     # Thời gian giữa các lần cập nhật Memory Bank (giây)

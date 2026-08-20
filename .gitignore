@@ -31,3 +31,5 @@ venv.bak/
 configs/config_colab.yaml
 
 *.mp4
+*.whl
+**/*.whl

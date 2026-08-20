@@ -1,0 +1,167 @@
+Initializing Mamba ReID Model...
+Model loaded successfully.
+Starting OOP Sequence Inference Stream...
+[14] Anchor updated. Anchor: 1/5 | Recent: 0/15
+[14] T0 -> T3_VERIFIED. Target locked.
+[70] Last-moment Memory Bank update before LOST. Bank: Anchor: 2/5 | Recent: 0/15
+[70] Target LOST! -> T1_LOST
+[100] UAV reappeared from GT. -> T2_SEARCH
+[101] Coarse FAILED! (coarse=0.166 < 0.3)
+[102] Coarse FAILED! (coarse=0.162 < 0.3)
+[103] Coarse FAILED! (coarse=0.157 < 0.3)
+[104] Coarse FAILED! (coarse=0.094 < 0.3)
+[105] Coarse FAILED! (coarse=0.172 < 0.3)
+[106] Coarse FAILED! (coarse=0.196 < 0.3)
+[107] Coarse FAILED! (coarse=0.237 < 0.3)
+[108] Coarse FAILED! (coarse=0.200 < 0.3)
+[109] UAV lost during T2_SEARCH. -> T1_LOST
+[109] Target LOST! -> T1_LOST
+[122] UAV reappeared from GT. -> T2_SEARCH
+[123] Coarse FAILED! (coarse=0.207 < 0.3)
+[124] Coarse FAILED! (coarse=0.209 < 0.3)
+[125] Coarse FAILED! (coarse=0.265 < 0.3)
+[126] Coarse FAILED! (coarse=0.191 < 0.3)
+[127] Soft Lock collecting: 1/8 (coarse=0.320)
+[128] Soft Lock collecting: 2/8 (coarse=0.375)
+[129] Coarse FAILED! (coarse=0.182 < 0.3)
+[130] Coarse FAILED! (coarse=0.296 < 0.3)
+[131] Coarse FAILED! (coarse=0.242 < 0.3)
+[132] Coarse FAILED! (coarse=0.291 < 0.3)
+[133] Coarse FAILED! (coarse=0.280 < 0.3)
+[134] Soft Lock collecting: 1/8 (coarse=0.311)
+[135] Soft Lock collecting: 2/8 (coarse=0.358)
+[136] Soft Lock collecting: 3/8 (coarse=0.339)
+[137] Soft Lock collecting: 4/8 (coarse=0.394)
+[138] Soft Lock collecting: 5/8 (coarse=0.366)
+[139] Soft Lock collecting: 6/8 (coarse=0.387)
+[140] Soft Lock collecting: 7/8 (coarse=0.420)
+[141] Coarse FAILED! (coarse=0.289 < 0.3)
+[142] Soft Lock collecting: 1/8 (coarse=0.350)
+[143] Soft Lock collecting: 2/8 (coarse=0.398)
+[144] Soft Lock collecting: 3/8 (coarse=0.377)
+[145] Soft Lock collecting: 4/8 (coarse=0.308)
+[146] Soft Lock collecting: 5/8 (coarse=0.398)
+[147] Soft Lock collecting: 6/8 (coarse=0.305)
+[148] Coarse FAILED! (coarse=0.279 < 0.3)
+[149] Soft Lock collecting: 1/8 (coarse=0.314)
+[150] Coarse FAILED! (coarse=0.283 < 0.3)
+[151] Coarse FAILED! (coarse=0.258 < 0.3)
+[152] Coarse FAILED! (coarse=0.231 < 0.3)
+[153] Soft Lock collecting: 1/8 (coarse=0.386)
+[154] Coarse FAILED! (coarse=0.157 < 0.3)
+[155] Coarse FAILED! (coarse=0.204 < 0.3)
+[156] Coarse FAILED! (coarse=0.279 < 0.3)
+[157] Coarse FAILED! (coarse=0.289 < 0.3)
+[158] Soft Lock collecting: 1/8 (coarse=0.322)
+[159] Coarse FAILED! (coarse=0.267 < 0.3)
+[160] Coarse FAILED! (coarse=0.297 < 0.3)
+[161] Coarse FAILED! (coarse=0.294 < 0.3)
+[162] Soft Lock collecting: 1/8 (coarse=0.347)
+[163] Coarse FAILED! (coarse=0.285 < 0.3)
+[164] Soft Lock collecting: 1/8 (coarse=0.381)
+[165] Soft Lock collecting: 2/8 (coarse=0.405)
+[166] Soft Lock collecting: 3/8 (coarse=0.314)
+[167] Soft Lock collecting: 4/8 (coarse=0.415)
+[168] Soft Lock collecting: 5/8 (coarse=0.309)
+[169] Soft Lock collecting: 6/8 (coarse=0.385)
+[170] Soft Lock collecting: 7/8 (coarse=0.373)
+[171] Soft Lock collecting: 8/8 (coarse=0.423)
+[171] HARD LOCK! (fine=0.803 >= 0.75) Latency: 49 frames
+[209] Last-moment Memory Bank update before LOST. Bank: Anchor: 4/5 | Recent: 0/15
+[209] Target LOST! -> T1_LOST
+[214] UAV reappeared from GT. -> T2_SEARCH
+[215] Coarse FAILED! (coarse=0.164 < 0.3)
+[216] Coarse FAILED! (coarse=0.171 < 0.3)
+[217] Coarse FAILED! (coarse=0.193 < 0.3)
+[218] Coarse FAILED! (coarse=0.254 < 0.3)
+[219] Coarse FAILED! (coarse=0.283 < 0.3)
+[220] Soft Lock collecting: 1/8 (coarse=0.431)
+[221] Coarse FAILED! (coarse=0.223 < 0.3)
+[222] Coarse FAILED! (coarse=0.174 < 0.3)
+[223] Coarse FAILED! (coarse=0.171 < 0.3)
+[224] Soft Lock collecting: 1/8 (coarse=0.303)
+[225] Coarse FAILED! (coarse=0.249 < 0.3)
+[226] Soft Lock collecting: 1/8 (coarse=0.325)
+[227] Coarse FAILED! (coarse=0.164 < 0.3)
+[228] UAV lost during T2_SEARCH. -> T1_LOST
+[228] Target LOST! -> T1_LOST
+[229] UAV reappeared from GT. -> T2_SEARCH
+[230] Coarse FAILED! (coarse=0.260 < 0.3)
+[231] Coarse FAILED! (coarse=0.282 < 0.3)
+[232] Coarse FAILED! (coarse=0.296 < 0.3)
+[233] Soft Lock collecting: 1/8 (coarse=0.408)
+[234] Soft Lock collecting: 2/8 (coarse=0.394)
+[235] Coarse FAILED! (coarse=0.277 < 0.3)
+[236] UAV lost during T2_SEARCH. -> T1_LOST
+[236] Target LOST! -> T1_LOST
+[237] UAV reappeared from GT. -> T2_SEARCH
+[238] Soft Lock collecting: 1/8 (coarse=0.402)
+[239] Coarse FAILED! (coarse=0.239 < 0.3)
+[240] Soft Lock collecting: 1/8 (coarse=0.303)
+[241] Coarse FAILED! (coarse=0.173 < 0.3)
+[242] Soft Lock collecting: 1/8 (coarse=0.308)
+[243] Coarse FAILED! (coarse=0.249 < 0.3)
+[244] UAV lost during T2_SEARCH. -> T1_LOST
+[244] Target LOST! -> T1_LOST
+[250] UAV reappeared from GT. -> T2_SEARCH
+[251] Coarse FAILED! (coarse=0.104 < 0.3)
+[252] Coarse FAILED! (coarse=0.209 < 0.3)
+[253] Coarse FAILED! (coarse=0.212 < 0.3)
+[254] Coarse FAILED! (coarse=0.191 < 0.3)
+[255] Coarse FAILED! (coarse=0.253 < 0.3)
+[256] Coarse FAILED! (coarse=0.208 < 0.3)
+[257] Coarse FAILED! (coarse=0.196 < 0.3)
+[258] Coarse FAILED! (coarse=0.259 < 0.3)
+[259] Coarse FAILED! (coarse=0.209 < 0.3)
+[260] Coarse FAILED! (coarse=0.203 < 0.3)
+[261] UAV lost during T2_SEARCH. -> T1_LOST
+[261] Target LOST! -> T1_LOST
+[533] UAV reappeared from GT. -> T2_SEARCH
+[534] Soft Lock collecting: 1/8 (coarse=0.353)
+[535] Coarse FAILED! (coarse=0.266 < 0.3)
+[536] Coarse FAILED! (coarse=0.231 < 0.3)
+[537] Soft Lock collecting: 1/8 (coarse=0.319)
+[538] Coarse FAILED! (coarse=0.275 < 0.3)
+[539] Coarse FAILED! (coarse=0.217 < 0.3)
+[540] Coarse FAILED! (coarse=0.200 < 0.3)
+[541] Coarse FAILED! (coarse=0.276 < 0.3)
+[542] Coarse FAILED! (coarse=0.282 < 0.3)
+[543] Coarse FAILED! (coarse=0.230 < 0.3)
+[544] Soft Lock collecting: 1/8 (coarse=0.375)
+[545] Coarse FAILED! (coarse=0.300 < 0.3)
+[546] Coarse FAILED! (coarse=0.142 < 0.3)
+[547] Soft Lock collecting: 1/8 (coarse=0.313)
+[548] Coarse FAILED! (coarse=0.258 < 0.3)
+[549] Soft Lock collecting: 1/8 (coarse=0.339)
+[550] Soft Lock collecting: 2/8 (coarse=0.366)
+[551] Soft Lock collecting: 3/8 (coarse=0.339)
+[552] Soft Lock collecting: 4/8 (coarse=0.463)
+[553] Soft Lock collecting: 5/8 (coarse=0.360)
+[554] Soft Lock collecting: 6/8 (coarse=0.356)
+[555] Soft Lock collecting: 7/8 (coarse=0.351)
+[556] Soft Lock collecting: 8/8 (coarse=0.359)
+[556] HARD LOCK! (fine=0.755 >= 0.75) Latency: 23 frames
+[620] Recent updated. Anchor: 5/5 | Recent: 1/15
+[620] Anti-Hijack check #1: score=1.000
+[669] Last-moment Memory Bank update before LOST. Bank: Anchor: 5/5 | Recent: 2/15
+[669] Target LOST! -> T1_LOST
+[670] UAV reappeared from GT. -> T2_SEARCH
+[671] Soft Lock collecting: 1/8 (coarse=0.364)
+[672] Soft Lock collecting: 2/8 (coarse=0.357)
+[673] Soft Lock collecting: 3/8 (coarse=0.307)
+[674] Soft Lock collecting: 4/8 (coarse=0.444)
+[675] Soft Lock collecting: 5/8 (coarse=0.487)
+[676] Soft Lock collecting: 6/8 (coarse=0.401)
+[677] Soft Lock collecting: 7/8 (coarse=0.449)
+[678] Soft Lock collecting: 8/8 (coarse=0.453)
+[678] HARD LOCK! (fine=0.887 >= 0.75) Latency: 8 frames
+[699] Last-moment Memory Bank update before LOST. Bank: Anchor: 5/5 | Recent: 4/15
+[699] Target LOST! -> T1_LOST
+Inference completed!
+
+--- PERFORMANCE METRICS ---
+Avg CNN Feature Extraction : 50.34 ms
+Avg System Throughput      : 19.86 FPS
+Avg Mamba + Head Time      : 9.84 ms
+Re-acquisition Latency     : 8 frames
+False Alarms (Fine Fails)  : 0
