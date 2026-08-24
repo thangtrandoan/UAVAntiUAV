@@ -69,3 +69,20 @@ eval:
   num_workers: 4
   backbone_only: false
   reid_threshold: 0.7
+
+# --- Inference ---
+infer:
+  seq_dir: all
+  model_path: ./best_model.pth
+  output_video: output_reid.mp4
+  out_dir: ./infer_output/infer_pipeline_2
+  stride: 2
+  num_frames: 8
+  bbox_padding: 0.2
+  max_anchor_size: 5
+  max_recent_size: 15
+  soft_lock_threshold: 0.5
+  reid_threshold: 0.75
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  update_interval_sec: 2.0

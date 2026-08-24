@@ -106,11 +106,11 @@ class TwoTierMemoryBank:
         if len(self.recent_bank) > self.max_recent:
             self.recent_bank.pop(0)
     
-    def coarse_score(self, query_visual: torch.Tensor) -> float:
-        query = F.normalize(query_visual, p=2, dim=1)
+    def coarse_score(self, query_feat: torch.Tensor) -> float:
+        query = F.normalize(query_feat, p=2, dim=1)
         max_sim = 0.0
         for entry in self.anchor_bank + self.recent_bank:
-            sim = torch.mm(query, entry["visual"].t()).item()
+            sim = torch.mm(query, entry["fused"].t()).item()
             max_sim = max(max_sim, sim)
         return max_sim
     
@@ -278,7 +278,13 @@ class SeqReIDPipeline:
                     print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
                 else:
                     # Chưa vào Soft Lock -> kiểm tra Coarse để quyết định có bắt đầu thu thập không
-                    coarse_score = self.memory_bank.coarse_score(feat_2560)
+                    # Nhân bản feat_2560 ra k frames để lấy vector 3072-dim qua BNNeck
+                    seq_feat_coarse = feat_2560.unsqueeze(1).expand(-1, self.num_frames, -1)
+                    t0_mamba = time.time()
+                    feat_3072_coarse = compute_reid_embedding(self.model, seq_feat_coarse)
+                    self.metrics_mamba_times.append((time.time() - t0_mamba) * 1000)
+                    
+                    coarse_score = self.memory_bank.coarse_score(feat_3072_coarse)
                     if coarse_score >= self.soft_lock_threshold:
                         self.soft_lock_buffer.add(feat_2560, sharpness)
                         print(f"[{frame_idx}] Soft Lock collecting: 1/{self.num_frames} (coarse={coarse_score:.3f})")
@@ -332,25 +338,17 @@ class SeqReIDPipeline:
             cv2.rectangle(display_frame, (x, y), (x+bw, y+bh), color, 2)
             cv2.putText(display_frame, text, (x, max(0, y-10)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
-def main():
-    args = parse_args()
-    cfg = {}
-    if args.config and os.path.exists(args.config):
-        with open(args.config, 'r') as f:
-            cfg = yaml.safe_load(f)
-            
-    inf_cfg = cfg.get('infer', {})
-    seq_dir = args.seq_dir or inf_cfg.get('seq_dir')
-    if not seq_dir:
-        print("Error: --seq-dir must be provided.")
-        return
 
+def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None):
     seq_name = os.path.basename(os.path.normpath(seq_dir))
     video_path = os.path.join(seq_dir, f"{seq_name}.mp4")
     gt_path = os.path.join(seq_dir, "groundtruth_rect.txt")
     absent_path = os.path.join(seq_dir, "absent.txt")
     
-    out_dir = inf_cfg.get('out_dir', f"infer_output/{seq_name}")
+    if out_base:
+        out_dir = os.path.join(out_base, seq_name)
+    else:
+        out_dir = inf_cfg.get('out_dir', f"infer_output/{seq_name}")
     os.makedirs(out_dir, exist_ok=True)
     
     with open(os.path.join(out_dir, "config_used.yaml"), "w") as f:
@@ -365,7 +363,7 @@ def main():
         if not metrics_file.closed:
             metrics_file.write(msg + "\n")
             metrics_file.flush()
-    globals()['print'] = custom_print
+    builtins.print = custom_print
 
     output_video_name = inf_cfg.get('output_video', 'output_reid.mp4')
     final_output_path = os.path.join(out_dir, os.path.basename(output_video_name))
@@ -384,6 +382,80 @@ def main():
     if os.path.exists(absent_path):
         with open(absent_path, "r") as f:
             absent = [int(line.strip()) for line in f if line.strip().isdigit()]
+
+    if not os.path.exists(video_path):
+        print(f"Error: {video_path} not found.")
+        metrics_file.close()
+        builtins.print = _orig_print
+        return None
+
+    cap = cv2.VideoCapture(video_path)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps_video = cap.get(cv2.CAP_PROP_FPS)
+    
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out_vid = cv2.VideoWriter(final_output_path, fourcc, fps_video, (width, height))
+    
+    pipeline = SeqReIDPipeline(model, device, inf_cfg)
+    
+    frame_idx = 0
+    print(f"Starting OOP Sequence Inference Stream for {seq_name}...")
+    
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret: break
+            
+        is_absent = absent[frame_idx] == 1 if frame_idx < len(absent) else True
+        bbox = bboxes[frame_idx] if frame_idx < len(bboxes) else [0,0,0,0]
+        
+        display_frame = frame.copy()
+        
+        pipeline.process_frame(frame, bbox, is_absent, frame_idx, transform)
+        pipeline.draw_ui(display_frame, bbox, frame_idx)
+        
+        out_vid.write(display_frame)
+        frame_idx += 1
+
+    cap.release()
+    out_vid.release()
+    print("Inference completed!")
+    
+    # Generate Performance Metrics
+    metrics_report = ["\n--- PERFORMANCE METRICS ---"]
+    avg_cnn = 0.0
+    avg_mamba = 0.0
+    throughput = 0.0
+    
+    if pipeline.metrics_cnn_times:
+        avg_cnn = np.mean(pipeline.metrics_cnn_times)
+        throughput = 1000.0 / avg_cnn if avg_cnn > 0 else 0.0
+        metrics_report.append(f"Avg CNN Feature Extraction : {avg_cnn:.2f} ms")
+        metrics_report.append(f"Avg System Throughput      : {throughput:.2f} FPS")
+    if pipeline.metrics_mamba_times:
+        avg_mamba = np.mean(pipeline.metrics_mamba_times)
+        metrics_report.append(f"Avg Mamba + Head Time      : {avg_mamba:.2f} ms")
+    metrics_report.append(f"Re-acquisition Latency     : {pipeline.reid_latency_frames} frames" if pipeline.reid_latency_frames >= 0 else "Re-acquisition Latency     : N/A")
+    metrics_report.append(f"False Alarms (Fine Fails)  : {pipeline.false_alarms}")
+    
+    print("\n".join(metrics_report))
+    metrics_file.close()
+    builtins.print = _orig_print
+    
+    return avg_cnn, avg_mamba, throughput, pipeline.reid_latency_frames, pipeline.false_alarms
+
+def main():
+    args = parse_args()
+    cfg = {}
+    if args.config and os.path.exists(args.config):
+        with open(args.config, 'r') as f:
+            cfg = yaml.safe_load(f)
+            
+    inf_cfg = cfg.get('infer', {})
+    seq_dir_arg = args.seq_dir or inf_cfg.get('seq_dir')
+    if not seq_dir_arg:
+        print("Error: --seq-dir must be provided.")
+        return
 
     print(f"Initializing Mamba ReID Model...")
     model = UAVReIDNet()
@@ -415,51 +487,64 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    cap = cv2.VideoCapture(video_path)
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fps_video = cap.get(cv2.CAP_PROP_FPS)
-    
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out_vid = cv2.VideoWriter(final_output_path, fourcc, fps_video, (width, height))
-    
-    pipeline = SeqReIDPipeline(model, device, inf_cfg)
-    
-    frame_idx = 0
-    print("Starting OOP Sequence Inference Stream...")
-    
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret: break
+    if seq_dir_arg.lower() == "all":
+        base_test_dir = "./data/UAV-Anti-UAV/Test"
+        all_dirs = [os.path.join(base_test_dir, d) for d in sorted(os.listdir(base_test_dir)) if os.path.isdir(os.path.join(base_test_dir, d))]
+        valid_seqs = []
+        for d in all_dirs:
+            absent_path = os.path.join(d, "absent.txt")
+            if os.path.exists(absent_path):
+                with open(absent_path, "r") as f:
+                    absent = [int(line.strip()) for line in f if line.strip().isdigit()]
+                if 1 in absent:
+                    valid_seqs.append(d)
+        print(f"Found {len(valid_seqs)} sequences with disappearance events.")
+        
+        all_cnn = []
+        all_mamba = []
+        all_throughput = []
+        all_latency = []
+        all_false_alarms = []
+        
+        base_out_dir = inf_cfg.get('out_dir', './infer_output')
+        print(f"Batch processing: Results will be saved in base directory: {base_out_dir}")
+        for sdir in valid_seqs:
+            res = run_sequence(sdir, model, device, transform, cfg, inf_cfg, out_base=base_out_dir)
+            if res:
+                c, m, t, l, f = res
+                all_cnn.append(c)
+                all_mamba.append(m)
+                all_throughput.append(t)
+                if l >= 0:
+                    all_latency.append(l)
+                all_false_alarms.append(f)
+                
+        # Calculate averages
+        avg_cnn = np.mean(all_cnn) if all_cnn else 0.0
+        avg_mamba = np.mean(all_mamba) if all_mamba else 0.0
+        avg_throughput = np.mean(all_throughput) if all_throughput else 0.0
+        avg_latency = np.mean(all_latency) if all_latency else 0.0
+        sum_false_alarms = int(np.sum(all_false_alarms)) if all_false_alarms else 0
+        
+        print("\n=== AGGREGATED METRICS ===")
+        print(f"Avg CNN Feature Extraction : {avg_cnn:.2f} ms")
+        print(f"Avg System Throughput      : {avg_throughput:.2f} FPS")
+        print(f"Avg Mamba + Head Time      : {avg_mamba:.2f} ms")
+        print(f"Avg Re-acquisition Latency : {avg_latency:.2f} frames")
+        print(f"Total False Alarms         : {sum_false_alarms}")
+        
+        # Save to summary text file
+        os.makedirs(base_out_dir, exist_ok=True)
+        with open(os.path.join(base_out_dir, "summary_metrics.txt"), "w") as sf:
+            sf.write("=== AGGREGATED METRICS ===\n")
+            sf.write(f"Avg CNN Feature Extraction : {avg_cnn:.2f} ms\n")
+            sf.write(f"Avg System Throughput      : {avg_throughput:.2f} FPS\n")
+            sf.write(f"Avg Mamba + Head Time      : {avg_mamba:.2f} ms\n")
+            sf.write(f"Avg Re-acquisition Latency : {avg_latency:.2f} frames\n")
+            sf.write(f"Total False Alarms         : {sum_false_alarms}\n")
             
-        is_absent = absent[frame_idx] == 1 if frame_idx < len(absent) else True
-        bbox = bboxes[frame_idx] if frame_idx < len(bboxes) else [0,0,0,0]
-        
-        display_frame = frame.copy()
-        
-        pipeline.process_frame(frame, bbox, is_absent, frame_idx, transform)
-        pipeline.draw_ui(display_frame, bbox, frame_idx)
-        
-        out_vid.write(display_frame)
-        frame_idx += 1
-
-    cap.release()
-    out_vid.release()
-    print("Inference completed!")
-    
-    # Generate Performance Metrics
-    metrics_report = ["\n--- PERFORMANCE METRICS ---"]
-    if pipeline.metrics_cnn_times:
-        avg_cnn = np.mean(pipeline.metrics_cnn_times)
-        metrics_report.append(f"Avg CNN Feature Extraction : {avg_cnn:.2f} ms")
-        metrics_report.append(f"Avg System Throughput      : {1000.0 / avg_cnn:.2f} FPS")
-    if pipeline.metrics_mamba_times:
-        metrics_report.append(f"Avg Mamba + Head Time      : {np.mean(pipeline.metrics_mamba_times):.2f} ms")
-    metrics_report.append(f"Re-acquisition Latency     : {pipeline.reid_latency_frames} frames" if pipeline.reid_latency_frames >= 0 else "Re-acquisition Latency     : N/A")
-    metrics_report.append(f"False Alarms (Fine Fails)  : {pipeline.false_alarms}")
-    
-    print("\n".join(metrics_report))
-    metrics_file.close()
+    else:
+        run_sequence(seq_dir_arg, model, device, transform, cfg, inf_cfg, out_base=None)
 
 if __name__ == "__main__":
     main()

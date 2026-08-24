@@ -29,6 +29,7 @@ env.bak/
 venv.bak/
 
 configs/config_colab.yaml
+infer_output/
 
 *.mp4
 *.whl
