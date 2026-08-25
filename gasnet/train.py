@@ -180,7 +180,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pk-k", type=int, default=4, help="Images per identity in PK sampler")
     parser.add_argument("--use-gem", action="store_true", help="Use GeM pooling instead of average pooling")
     parser.add_argument("--gem-p", type=float, default=3.0, help="GeM pooling exponent")
-    parser.add_argument("--backbone", choices=["resnet50", "resnet50_ibn", "swin_t"], default="resnet50")
+    parser.add_argument("--backbone", choices=["resnet50", "resnet50_ibn", "swin_t", "convnext_small"], default="resnet50")
     parser.add_argument("--disable-camera-balanced-sampler", action="store_true")
     parser.add_argument("--disable-attribute-hard-negative-sampler", action="store_true")
     parser.add_argument("--use-part-branch", action="store_true", help="Enable unsupervised horizontal part feature branch")
@@ -669,6 +669,47 @@ class SwinBackbone(nn.Module):
         return feat1, feat2, feat3, feat4
 
 
+class DINOv3ConvNeXtBackbone(nn.Module):
+    """
+    Tích hợp DINOv3 ConvNeXt-Small (LVD-1689M) qua HuggingFace.
+    Dùng 1x1 Conv để điều hợp số kênh cho khớp với GASNet ReID Head.
+    """
+    def __init__(self, weight_path=None, pretrained=True):
+        super().__init__()
+        from transformers import AutoModel, AutoConfig
+        
+        model_name = "facebook/dinov3-convnext-small-pretrain-lvd1689m"
+        if pretrained:
+            print(f"Loading pretrained DINOv3 from HuggingFace: {model_name}...")
+            self.model = AutoModel.from_pretrained(model_name)
+        else:
+            config = AutoConfig.from_pretrained(model_name)
+            self.model = AutoModel.from_config(config)
+            
+        # Nếu truyền weight_path local (đã tải sẵn), nạp đè lên
+        if weight_path and os.path.exists(weight_path):
+            state = torch.load(weight_path, map_location='cpu')
+            self.model.load_state_dict(state, strict=False)
+            print(f" Loaded local weights từ {weight_path}")
+            
+        # 1x1 Conv adapters: ConvNeXt channels -> ResNet channels
+        self.adapt1 = nn.Sequential(nn.Conv2d(96, 256, 1, bias=False), nn.BatchNorm2d(256), nn.ReLU(inplace=True))
+        self.adapt2 = nn.Sequential(nn.Conv2d(192, 512, 1, bias=False), nn.BatchNorm2d(512), nn.ReLU(inplace=True))
+        self.adapt3 = nn.Sequential(nn.Conv2d(384, 1024, 1, bias=False), nn.BatchNorm2d(1024), nn.ReLU(inplace=True))
+        self.adapt4 = nn.Sequential(nn.Conv2d(768, 2048, 1, bias=False), nn.BatchNorm2d(2048), nn.ReLU(inplace=True))
+
+    def forward(self, x):
+        outputs = self.model(pixel_values=x, output_hidden_states=True)
+        hidden_states = outputs.hidden_states
+        
+        feat1 = self.adapt1(hidden_states[1])
+        feat2 = self.adapt2(hidden_states[2])
+        feat3 = self.adapt3(hidden_states[3])
+        feat4 = self.adapt4(hidden_states[4])
+        
+        return feat1, feat2, feat3, feat4
+
+
 class GASNet(nn.Module):
     def __init__(
         self,
@@ -691,6 +732,9 @@ class GASNet(nn.Module):
         self.backbone_type = backbone
         if backbone == "swin_t":
             self.swin_backbone = SwinBackbone(pretrained=use_pretrained)
+        elif backbone == "convnext_small":
+            # Nếu có sẵn file weights thì bạn truyền vào biến weight_path ở đây, hoặc để HuggingFace tự tải
+            self.convnext_backbone = DINOv3ConvNeXtBackbone(pretrained=use_pretrained)
         elif backbone == "resnet50":
             weights = models.ResNet50_Weights.DEFAULT if use_pretrained else None
             base = models.resnet50(weights=weights)
@@ -701,7 +745,7 @@ class GASNet(nn.Module):
         else:
             raise ValueError(f"Unsupported backbone: {backbone}")
         
-        if backbone != "swin_t":
+        if backbone not in ["swin_t", "convnext_small"]:
             self.stem = nn.Sequential(base.conv1, base.bn1, base.relu, base.maxpool)
             self.layer1 = base.layer1
             self.layer2 = base.layer2
@@ -782,6 +826,15 @@ class GASNet(nn.Module):
             # Swin already has self-attention; skip RGA blocks
             fs = self.fs1(feat3)
             fs = self.fs2(fs)
+            x = feat4
+        elif self.backbone_type == "convnext_small":
+            feat1, feat2, feat3, feat4 = self.convnext_backbone(x)
+            
+            # Gắn nhánh Full Scale vào stage 3 (tương đương layer 3)
+            fs = self.fs1(feat3)
+            fs = self.fs2(fs)
+            
+            # Gắn RGA nếu cần (ở đây ta vứt bỏ RGA tương tự swin_t để giữ nguyên tính toàn vẹn của DINOv3)
             x = feat4
         else:
             x = self.stem(x)

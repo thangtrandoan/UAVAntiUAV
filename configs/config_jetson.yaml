@@ -65,17 +65,17 @@ eval:
 
 # --- Inference ---
 infer:
-  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  seq_dir: all
   model_path: ./best_model.pth
   output_video: results_demo.mp4
-  out_dir: ./infer_output/UAV-Anti-UAV_Test_000059
+  out_dir: ./infer_output/infer_pipeline_2_5
   # === New OOP Pipeline Thresholds ===
   stride: 2
   num_frames: 8
   bbox_padding: 0.2
   max_anchor_size: 5
   max_recent_size: 15
-  soft_lock_threshold: 0.30
+  soft_lock_threshold: 0.6
   reid_threshold: 0.75
   hijack_threshold: 0.40
   hijack_check_count: 5

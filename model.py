@@ -241,7 +241,7 @@ class ReIDHead(nn.Module):
 
 
 class UAVReIDNet(nn.Module):
-    def __init__(self, gasnet_weights_path=None, num_identities=1000, freeze_backbone=True):
+    def __init__(self, gasnet_weights_path=None, num_identities=1000, freeze_backbone=True, backbone='resnet50_ibn'):
         super().__init__()
         
         # Tự động trỏ path mặc định nếu không truyền
@@ -251,7 +251,7 @@ class UAVReIDNet(nn.Module):
             
         # 1. Visual Backbone
         if HAS_GASNET:
-            self.backbone = GASNet(num_classes=num_identities, backbone='resnet50_ibn', use_gem=True)
+            self.backbone = GASNet(num_classes=num_identities, backbone=backbone, use_gem=True)
             if os.path.exists(gasnet_weights_path):
                 state_dict = torch.load(gasnet_weights_path, map_location='cpu')
                 self.backbone.load_state_dict(state_dict, strict=False)

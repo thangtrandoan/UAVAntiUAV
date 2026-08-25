@@ -299,6 +299,7 @@ def main():
     args.pin_memory     = tc.get('pin_memory', False)
     args.use_compile    = tc.get('use_compile', False) # Thêm cờ bật/tắt compile
     args.val_freq       = tc.get('val_freq', 5) # Đọc số epoch đánh giá từ config (mặc định 5)
+    args.backbone       = tc.get('backbone', 'resnet50_ibn')
 
     
     args.epochs_stage1      = tc.get('stage1', {}).get('epochs', 30)
@@ -395,7 +396,12 @@ def main():
         os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
         
     from model import UAVReIDNet
-    model = UAVReIDNet(gasnet_weights_path=args.gasnet_weights or None, num_identities=num_identities, freeze_backbone=True)
+    model = UAVReIDNet(
+        gasnet_weights_path=args.gasnet_weights or None,
+        num_identities=num_identities,
+        freeze_backbone=True,
+        backbone=args.backbone
+    )
     model.cuda()
     
     # --- torch.compile cho tốc độ tối đa trên A100/H100 ---

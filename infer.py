@@ -365,8 +365,12 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
             metrics_file.flush()
     builtins.print = custom_print
 
-    output_video_name = inf_cfg.get('output_video', 'output_reid.mp4')
+    output_video_name = inf_cfg.get('output_video', 'output.mp4')
     final_output_path = os.path.join(out_dir, os.path.basename(output_video_name))
+    
+    backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
+    print(f"Initializing Mamba ReID Model with {backbone_type} backbone...")
+    model = UAVReIDNet(backbone=backbone_type)
     
     bboxes = []
     if os.path.exists(gt_path):

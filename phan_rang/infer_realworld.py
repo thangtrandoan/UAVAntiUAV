@@ -444,8 +444,9 @@ def main():
     output_video_name = inf_cfg.get('output_video', 'output_realworld.mp4')
     final_output_path = os.path.join(out_dir, os.path.basename(output_video_name))
     
-    print(f"Initializing Mamba ReID Model...")
-    model = UAVReIDNet()
+    backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
+    print(f"Initializing Mamba ReID Model with {backbone_type} backbone...")
+    model = UAVReIDNet(backbone=backbone_type)
     model_path = inf_cfg.get('model_path', './best_model.pth')
     if os.path.exists(model_path):
         checkpoint = torch.load(model_path, map_location='cpu')
