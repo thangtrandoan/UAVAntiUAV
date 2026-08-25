@@ -415,7 +415,8 @@ def main():
 
     criterion_id = LabelSmoothCrossEntropy()
     criterion_triplet = HardTripletLoss(margin=0.3)
-    criterion_center = CenterLoss(num_classes=num_identities, feat_dim=3072).cuda()
+    feat_dim = 1472 if args.backbone == "convnext_small" else 3072
+    criterion_center = CenterLoss(num_classes=num_identities, feat_dim=feat_dim).cuda()
 
     # Stage 1 Optimizer (Backbone frozen)
     optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), 
