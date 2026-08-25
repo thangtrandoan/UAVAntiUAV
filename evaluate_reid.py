@@ -178,6 +178,7 @@ def main():
     args.intra_sequence = ec.get('intra_sequence', False)
     args.max_correct_vis = ec.get('max_correct_vis', -1)
     args.num_frames    = cfg.get('train', {}).get('num_frames', 16)
+    args.backbone      = ec.get('backbone', 'resnet50_ibn')
     args.gpu_jetson    = cfg.get('device', {}).get('gpu_jetson', False)
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -209,7 +210,7 @@ def main():
         os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
         
     from model import UAVReIDNet
-    model = UAVReIDNet(freeze_backbone=False)
+    model = UAVReIDNet(freeze_backbone=False, backbone=args.backbone)
     if not args.backbone_only:
         if os.path.exists(args.model_path):
             checkpoint = torch.load(args.model_path, map_location='cpu')

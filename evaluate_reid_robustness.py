@@ -483,7 +483,8 @@ def main():
             absent = [int(line.strip()) for line in f if line.strip().isdigit()]
 
     print(f"Initializing Model...")
-    model = UAVReIDNet(freeze_backbone=False)
+    backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
+    model = UAVReIDNet(freeze_backbone=False, backbone=backbone_type)
     model_path = inf_cfg.get('model_path', args.checkpoint)
     if os.path.exists(model_path):
         checkpoint = torch.load(model_path, map_location='cpu')
