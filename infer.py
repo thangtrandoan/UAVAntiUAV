@@ -182,7 +182,7 @@ class SeqReIDPipeline:
         self.metrics_cnn_times = []
         self.metrics_mamba_times = []
         self.false_alarms = 0
-        self.reid_latency_frames = -1
+        self.reid_latency_frames = []
         self.reappeared_frame_idx = -1
         
     def _transition_to_lost(self, frame_idx):
@@ -202,8 +202,10 @@ class SeqReIDPipeline:
                     while not self.sliding_window.is_ready():
                         self.sliding_window.add(self.sliding_window.features[-1], self.sliding_window.sharpness_scores[-1])
                         
+                    if self.device.type == 'cuda': torch.cuda.synchronize()
                     t0 = time.time()
                     visual_mean, fused_feat = compute_fused_vector(self.model, self.sliding_window)
+                    if self.device.type == 'cuda': torch.cuda.synchronize()
                     self.metrics_mamba_times.append((time.time() - t0) * 1000)
                     if len(self.memory_bank.anchor_bank) < self.memory_bank.max_anchor:
                         self.memory_bank.add_anchor(visual_mean, fused_feat)
@@ -217,15 +219,19 @@ class SeqReIDPipeline:
             if crop is not None and self.sliding_window.should_extract():
                 sharpness = compute_sharpness(crop)
                 tensor_frame = transform(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)).unsqueeze(0).to(self.device)
+                if self.device.type == 'cuda': torch.cuda.synchronize()
                 t0 = time.time()
                 feat_2560 = extract_cnn_feature(self.model, tensor_frame)
+                if self.device.type == 'cuda': torch.cuda.synchronize()
                 self.metrics_cnn_times.append((time.time() - t0) * 1000)
                 self.sliding_window.add(feat_2560, sharpness)
                 
             time_elapsed = current_time - self.last_update_time
             if self.sliding_window.is_ready() and time_elapsed >= self.update_interval_sec:
+                if self.device.type == 'cuda': torch.cuda.synchronize()
                 t0 = time.time()
                 visual_mean, fused_feat = compute_fused_vector(self.model, self.sliding_window)
+                if self.device.type == 'cuda': torch.cuda.synchronize()
                 self.metrics_mamba_times.append((time.time() - t0) * 1000)
                 
                 if len(self.memory_bank.anchor_bank) < self.memory_bank.max_anchor:
@@ -268,8 +274,10 @@ class SeqReIDPipeline:
             if crop is not None:
                 sharpness = compute_sharpness(crop)
                 tensor_frame = transform(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)).unsqueeze(0).to(self.device)
+                if self.device.type == 'cuda': torch.cuda.synchronize()
                 t0 = time.time()
                 feat_2560 = extract_cnn_feature(self.model, tensor_frame)
+                if self.device.type == 'cuda': torch.cuda.synchronize()
                 self.metrics_cnn_times.append((time.time() - t0) * 1000)
                 
                 # Nếu đang trong quá trình thu thập Soft Lock, tiếp tục thu thập vô điều kiện
@@ -286,15 +294,18 @@ class SeqReIDPipeline:
                 
                 # Đủ k frame -> chạy Lọc Tinh
                 if self.soft_lock_buffer.is_ready():
+                    if self.device.type == 'cuda': torch.cuda.synchronize()
                     t0 = time.time()
                     visual_mean, fused_feat = compute_fused_vector(self.model, self.soft_lock_buffer)
+                    if self.device.type == 'cuda': torch.cuda.synchronize()
                     mamba_time = (time.time() - t0) * 1000
                     self.metrics_mamba_times.append(mamba_time)
                     
                     fine_score = self.memory_bank.fine_score(fused_feat)
                     if fine_score >= self.reid_threshold:
-                        self.reid_latency_frames = frame_idx - self.reappeared_frame_idx
-                        print(f"[{frame_idx}] HARD LOCK! (fine={fine_score:.3f} >= {self.reid_threshold}) Latency: {self.reid_latency_frames} frames")
+                        latency = frame_idx - self.reappeared_frame_idx
+                        self.reid_latency_frames.append(latency)
+                        print(f"[{frame_idx}] HARD LOCK! (fine={fine_score:.3f} >= {self.reid_threshold}) Latency: {latency} frames")
                         self.state = self.T3_VERIFIED
                         self._hijack_checks_remaining = self.hijack_check_count
                         self.last_update_time = time.time()
@@ -397,6 +408,8 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     frame_idx = 0
     print(f"Starting OOP Sequence Inference Stream for {seq_name}...")
     
+    total_processing_time = 0.0
+    
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret: break
@@ -404,12 +417,16 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
         is_absent = absent[frame_idx] == 1 if frame_idx < len(absent) else True
         bbox = bboxes[frame_idx] if frame_idx < len(bboxes) else [0,0,0,0]
         
+        t_start = time.time()
         display_frame = frame.copy()
         
         pipeline.process_frame(frame, bbox, is_absent, frame_idx, transform)
         pipeline.draw_ui(display_frame, bbox, frame_idx)
         
         out_vid.write(display_frame)
+        if device.type == 'cuda': torch.cuda.synchronize()
+        total_processing_time += time.time() - t_start
+        
         frame_idx += 1
 
     cap.release()
@@ -424,20 +441,29 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     
     if pipeline.metrics_cnn_times:
         avg_cnn = np.mean(pipeline.metrics_cnn_times)
-        throughput = 1000.0 / avg_cnn if avg_cnn > 0 else 0.0
         metrics_report.append(f"Avg CNN Feature Extraction : {avg_cnn:.2f} ms")
-        metrics_report.append(f"Avg System Throughput      : {throughput:.2f} FPS")
+        
+    throughput = frame_idx / total_processing_time if total_processing_time > 0 else 0.0
+    metrics_report.append(f"Avg System Throughput      : {throughput:.2f} FPS")
+        
     if pipeline.metrics_mamba_times:
         avg_mamba = np.mean(pipeline.metrics_mamba_times)
         metrics_report.append(f"Avg Mamba + Head Time      : {avg_mamba:.2f} ms")
-    metrics_report.append(f"Re-acquisition Latency     : {pipeline.reid_latency_frames} frames" if pipeline.reid_latency_frames >= 0 else "Re-acquisition Latency     : N/A")
+        
+    if pipeline.reid_latency_frames:
+        avg_lat = np.mean(pipeline.reid_latency_frames)
+        metrics_report.append(f"Re-acquisition Latency     : {avg_lat:.2f} frames")
+    else:
+        metrics_report.append("Re-acquisition Latency     : N/A")
+        
     metrics_report.append(f"False Alarms (Fine Fails)  : {pipeline.false_alarms}")
     
     print("\n".join(metrics_report))
     metrics_file.close()
     builtins.print = _orig_print
     
-    return avg_cnn, avg_mamba, throughput, pipeline.reid_latency_frames, pipeline.false_alarms
+    mean_latency = np.mean(pipeline.reid_latency_frames) if pipeline.reid_latency_frames else -1.0
+    return avg_cnn, avg_mamba, throughput, mean_latency, pipeline.false_alarms
 
 def main():
     args = parse_args()

@@ -76,15 +76,15 @@ eval:
 infer:
   backbone: dinov3_convnext
   seq_dir: all
-  model_path: ./best_model.pth
+  model_path: ./best_model_dino_convnext.pth
   output_video: output_reid.mp4
-  out_dir: ./infer_output/infer_pipeline_2
+  out_dir: ./infer_output/infer_pipeline_3
   stride: 2
   num_frames: 8
   bbox_padding: 0.2
   max_anchor_size: 5
   max_recent_size: 15
-  soft_lock_threshold: 0.5
+  soft_lock_threshold: 0.3
   reid_threshold: 0.75
   hijack_threshold: 0.40
   hijack_check_count: 5
