@@ -26,6 +26,7 @@ data_pipeline:
 # --- Training ---
 train:
   resume: ""
+  backbone: "convnext_small"
   batch_size: 8
   num_instances: 2
   num_frames: 16
@@ -60,15 +61,17 @@ eval:
   output_dir: ./eval_results/gasnet_mamba_v2
   batch_size: 4
   num_workers: 2
+  backbone: "convnext_small"
   backbone_only: false
   reid_threshold: 0.7
 
 # --- Inference ---
 infer:
-  seq_dir: all
-  model_path: ./best_model.pth
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  model_path: ./best_model_conv.pth
   output_video: results_demo.mp4
-  out_dir: ./infer_output/infer_pipeline_2_5
+  out_dir: ./infer_output/UAV-Anti-UAV_Test_000059
+  backbone: "convnext_small"
   # === New OOP Pipeline Thresholds ===
   stride: 2
   num_frames: 8
@@ -88,6 +91,7 @@ infer_robustness:
   model_path: ./best_model.pth
   output_video: ./output_robustness.mp4
   out_dir: ./infer_robustness_new/UAV-Anti-UAV_Test_000212_2
+  backbone: "convnext_small"
   # === New OOP Pipeline Thresholds ===
   stride: 2
   num_frames: 8

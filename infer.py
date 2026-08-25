@@ -110,7 +110,7 @@ class TwoTierMemoryBank:
         query = F.normalize(query_feat, p=2, dim=1)
         max_sim = 0.0
         for entry in self.anchor_bank + self.recent_bank:
-            sim = torch.mm(query, entry["fused"].t()).item()
+            sim = torch.mm(query, entry["visual"].t()).item()
             max_sim = max(max_sim, sim)
         return max_sim
     
@@ -277,14 +277,7 @@ class SeqReIDPipeline:
                     self.soft_lock_buffer.add(feat_2560, sharpness)
                     print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
                 else:
-                    # Chưa vào Soft Lock -> kiểm tra Coarse để quyết định có bắt đầu thu thập không
-                    # Nhân bản feat_2560 ra k frames để lấy vector 3072-dim qua BNNeck
-                    seq_feat_coarse = feat_2560.unsqueeze(1).expand(-1, self.num_frames, -1)
-                    t0_mamba = time.time()
-                    feat_3072_coarse = compute_reid_embedding(self.model, seq_feat_coarse)
-                    self.metrics_mamba_times.append((time.time() - t0_mamba) * 1000)
-                    
-                    coarse_score = self.memory_bank.coarse_score(feat_3072_coarse)
+                    coarse_score = self.memory_bank.coarse_score(feat_2560)
                     if coarse_score >= self.soft_lock_threshold:
                         self.soft_lock_buffer.add(feat_2560, sharpness)
                         print(f"[{frame_idx}] Soft Lock collecting: 1/{self.num_frames} (coarse={coarse_score:.3f})")

@@ -680,14 +680,14 @@ class DINOv3ConvNeXtBackbone(nn.Module):
         import os
         from huggingface_hub import get_token
         
-        model_name = "facebook/dinov3-convnext-small-pretrain-lvd1689m"
+        model_name = "facebook/convnext-small-224"
         hf_token = get_token() or os.environ.get("HF_TOKEN")
         
         if pretrained:
-            print(f"Loading pretrained DINOv3 from HuggingFace: {model_name}...")
-            self.model = AutoModel.from_pretrained(model_name, token=hf_token)
+            print(f"Loading pretrained ConvNeXt from HuggingFace: {model_name}...")
+            self.model = AutoModel.from_pretrained(model_name, use_auth_token=hf_token)
         else:
-            config = AutoConfig.from_pretrained(model_name, token=hf_token)
+            config = AutoConfig.from_pretrained(model_name, use_auth_token=hf_token)
             self.model = AutoModel.from_config(config)
             
         # Nếu truyền weight_path local (đã tải sẵn), nạp đè lên

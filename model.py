@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 # Ưu tiên: ENV > relative path > hardcode fallback
 gasnet_path = os.environ.get('GASNET_PATH', 
-    os.path.abspath(os.path.join(os.path.dirname(__file__), '../UAV/gasnet_project')))
+    os.path.abspath(os.path.join(os.path.dirname(__file__), 'gasnet')))
 if gasnet_path not in sys.path:
     sys.path.append(gasnet_path)
 
