@@ -677,13 +677,17 @@ class DINOv3ConvNeXtBackbone(nn.Module):
     def __init__(self, weight_path=None, pretrained=True):
         super().__init__()
         from transformers import AutoModel, AutoConfig
+        import os
+        from huggingface_hub import get_token
         
         model_name = "facebook/dinov3-convnext-small-pretrain-lvd1689m"
+        hf_token = get_token() or os.environ.get("HF_TOKEN")
+        
         if pretrained:
             print(f"Loading pretrained DINOv3 from HuggingFace: {model_name}...")
-            self.model = AutoModel.from_pretrained(model_name)
+            self.model = AutoModel.from_pretrained(model_name, token=hf_token)
         else:
-            config = AutoConfig.from_pretrained(model_name)
+            config = AutoConfig.from_pretrained(model_name, token=hf_token)
             self.model = AutoModel.from_config(config)
             
         # Nếu truyền weight_path local (đã tải sẵn), nạp đè lên
