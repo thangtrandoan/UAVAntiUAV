@@ -696,22 +696,12 @@ class DINOv3ConvNeXtBackbone(nn.Module):
             self.model.load_state_dict(state, strict=False)
             print(f" Loaded local weights từ {weight_path}")
             
-        # 1x1 Conv adapters: ConvNeXt channels -> ResNet channels
-        self.adapt1 = nn.Sequential(nn.Conv2d(96, 256, 1, bias=False), nn.BatchNorm2d(256), nn.ReLU(inplace=True))
-        self.adapt2 = nn.Sequential(nn.Conv2d(192, 512, 1, bias=False), nn.BatchNorm2d(512), nn.ReLU(inplace=True))
-        self.adapt3 = nn.Sequential(nn.Conv2d(384, 1024, 1, bias=False), nn.BatchNorm2d(1024), nn.ReLU(inplace=True))
-        self.adapt4 = nn.Sequential(nn.Conv2d(768, 2048, 1, bias=False), nn.BatchNorm2d(2048), nn.ReLU(inplace=True))
-
     def forward(self, x):
         outputs = self.model(pixel_values=x, output_hidden_states=True)
         hidden_states = outputs.hidden_states
         
-        feat1 = self.adapt1(hidden_states[1])
-        feat2 = self.adapt2(hidden_states[2])
-        feat3 = self.adapt3(hidden_states[3])
-        feat4 = self.adapt4(hidden_states[4])
-        
-        return feat1, feat2, feat3, feat4
+        # Trả về trực tiếp đặc trưng nguyên bản
+        return hidden_states[1], hidden_states[2], hidden_states[3], hidden_states[4]
 
 
 class GASNet(nn.Module):
@@ -748,55 +738,68 @@ class GASNet(nn.Module):
                 _load_matching_resnet50_weights(base)
         else:
             raise ValueError(f"Unsupported backbone: {backbone}")
-        
+
+        # Thiết lập Channel cho từng Backbone
+        if backbone == "convnext_small":
+            c1, c2, c3, c4 = 96, 192, 384, 768
+            dim_fs = 192
+        else:
+            c1, c2, c3, c4 = 256, 512, 1024, 2048
+            dim_fs = 512
+            
         if backbone not in ["swin_t", "convnext_small"]:
             self.stem = nn.Sequential(base.conv1, base.bn1, base.relu, base.maxpool)
             self.layer1 = base.layer1
             self.layer2 = base.layer2
             self.layer3 = base.layer3
             self.layer4 = base.layer4
-            self.ga1 = RGABlock(256, spatial_size=(56, 56))
-            self.ga2 = RGABlock(512, spatial_size=(28, 28))
-            self.ga3 = RGABlock(1024, spatial_size=(14, 14))
-            self.ga4 = RGABlock(2048, spatial_size=(7, 7))
+            self.ga1 = RGABlock(c1, spatial_size=(56, 56))
+            self.ga2 = RGABlock(c2, spatial_size=(28, 28))
+            self.ga3 = RGABlock(c3, spatial_size=(14, 14))
+            self.ga4 = RGABlock(c4, spatial_size=(7, 7))
         
-        self.fs1 = OSBlockFS(1024, 512)
-        self.fs2 = OSBlockFS(512, 512)
+        # Nếu dùng convnext, ta chỉ giữ lại ga3 và ga4
+        if backbone == "convnext_small":
+            self.ga3 = RGABlock(c3, spatial_size=(14, 14))
+            self.ga4 = RGABlock(c4, spatial_size=(7, 7))
+            
+        self.fs1 = OSBlockFS(c3, dim_fs)
+        self.fs2 = OSBlockFS(dim_fs, dim_fs)
         
         self.gap = GeMPool(p=gem_p) if use_gem else nn.AdaptiveAvgPool2d(1)
-        self.bnneck_global = BNNeck(2048)
-        self.bnneck_fs = BNNeck(512)
+        self.bnneck_global = BNNeck(c4)
+        self.bnneck_fs = BNNeck(dim_fs)
         if self.use_part_branch:
             self.part_reduce = nn.Sequential(
-                nn.Linear(2048 * num_parts, 512, bias=False),
-                nn.BatchNorm1d(512),
+                nn.Linear(c4 * num_parts, dim_fs, bias=False),
+                nn.BatchNorm1d(dim_fs),
                 nn.ReLU(inplace=True),
             )
-            self.bnneck_part = BNNeck(512)
-            self.classifier_part = nn.Linear(512, num_classes, bias=False)
+            self.bnneck_part = BNNeck(dim_fs)
+            self.classifier_part = nn.Linear(dim_fs, num_classes, bias=False)
         if self.use_attention_local:
             self.attn_local = AttentionLocalBranch(
-                in_channels=2048,
+                in_channels=c4,
                 num_heads=num_attention_heads,
             )
-            # Per-head reduction: 2048 -> 256
+            # Per-head reduction: c4 -> 256
             self.attn_head_reduce = nn.ModuleList([
-                nn.Linear(2048, 256, bias=False)
+                nn.Linear(c4, 256, bias=False)
                 for _ in range(num_attention_heads)
             ])
-            # Concat reduction: 256*num_heads -> 512
+            # Concat reduction: 256*num_heads -> dim_fs
             self.attn_local_reduce = nn.Sequential(
                 nn.BatchNorm1d(256 * num_attention_heads),
                 nn.ReLU(inplace=True),
-                nn.Linear(256 * num_attention_heads, 512, bias=False),
-                nn.BatchNorm1d(512),
+                nn.Linear(256 * num_attention_heads, dim_fs, bias=False),
+                nn.BatchNorm1d(dim_fs),
                 nn.ReLU(inplace=True),
             )
-            self.bnneck_attn_local = BNNeck(512)
-            self.classifier_attn_local = nn.Linear(512, num_classes, bias=False)
-        
-        self.classifier_global = nn.Linear(2048, num_classes, bias=False)
-        self.classifier_fs = nn.Linear(512, num_classes, bias=False)
+            self.bnneck_attn_local = BNNeck(dim_fs)
+            self.classifier_attn_local = nn.Linear(dim_fs, num_classes, bias=False)
+            
+        self.classifier_global = nn.Linear(c4, num_classes, bias=False)
+        self.classifier_fs = nn.Linear(dim_fs, num_classes, bias=False)
 
     def _part_pool(self, x: torch.Tensor) -> torch.Tensor:
         stripes = torch.chunk(x, self.num_parts, dim=2)

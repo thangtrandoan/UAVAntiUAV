@@ -275,12 +275,18 @@ class UAVReIDNet(nn.Module):
             self.freeze_backbone()
             
         # 2. Temporal Memory Engine
+        # Kích thước vector đầu ra của GASNet phụ thuộc vào Backbone
+        if backbone == "convnext_small":
+            visual_dim = 960  # 768 (Global) + 192 (FS)
+        else:
+            visual_dim = 2560 # 2048 (Global) + 512 (FS)
+            
         self.temporal_encoder = TemporalMambaEncoder(
-            d_in=2560, d_model=512, d_out=512, max_seq_len=64, num_layers=2
+            d_in=visual_dim, d_model=512, d_out=512, max_seq_len=64, num_layers=2
         )
         
         # 3. ReID Head
-        self.head = ReIDHead(in_dim=3072, num_identities=num_identities)
+        self.head = ReIDHead(in_dim=visual_dim + 512, num_identities=num_identities)
         
     def freeze_backbone(self):
         """Đóng băng trọng số của Visual Backbone."""

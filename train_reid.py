@@ -374,7 +374,8 @@ def main():
         qf, gf, q_pids, g_pids = [], [], [], []
         start_t = time.time()
         with torch.no_grad():
-            for before, after, pids, _, _, _ in loader:
+            for batch in loader:
+                before, after, pids = batch[0], batch[1], batch[2]
                 before, after = before.cuda(), after.cuda()
                 bn_feat_g = model(before)
                 bn_feat_q = model(after)
