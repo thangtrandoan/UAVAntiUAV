@@ -183,7 +183,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pk-k", type=int, default=4, help="Images per identity in PK sampler")
     parser.add_argument("--use-gem", action="store_true", help="Use GeM pooling instead of average pooling")
     parser.add_argument("--gem-p", type=float, default=3.0, help="GeM pooling exponent")
-    parser.add_argument("--backbone", choices=["resnet50", "resnet50_ibn", "swin_t", "convnext_small"], default="resnet50")
+    parser.add_argument("--backbone", choices=["resnet50", "resnet50_ibn", "swin_t", "convnext_small", "dinov3_convnext"], default="resnet50")
     parser.add_argument("--disable-camera-balanced-sampler", action="store_true")
     parser.add_argument("--disable-attribute-hard-negative-sampler", action="store_true")
     parser.add_argument("--use-part-branch", action="store_true", help="Enable unsupervised horizontal part feature branch")
@@ -677,20 +677,31 @@ class DINOv3ConvNeXtBackbone(nn.Module):
     Tích hợp DINOv3 ConvNeXt-Small (LVD-1689M) qua HuggingFace.
     Dùng 1x1 Conv để điều hợp số kênh cho khớp với GASNet ReID Head.
     """
-    def __init__(self, weight_path=None, pretrained=True):
+    def __init__(self, weight_path=None, pretrained=True, backbone_type="convnext_small"):
         super().__init__()
         from transformers import AutoModel, AutoConfig
         import os
         from huggingface_hub import get_token
+        import transformers
+        from packaging import version
         
-        model_name = "facebook/convnext-small-224"
+        kwargs = {}
         hf_token = get_token() or os.environ.get("HF_TOKEN")
+        
+        if backbone_type == "dinov3_convnext":
+            model_name = "facebook/dinov3-convnext-small-pretrain-lvd1689m"
+            if version.parse(transformers.__version__) >= version.parse("4.32.0"):
+                kwargs["token"] = hf_token
+            else:
+                kwargs["use_auth_token"] = hf_token
+        else:
+            model_name = "facebook/convnext-small-224"
         
         if pretrained:
             print(f"Loading pretrained ConvNeXt from HuggingFace: {model_name}...")
-            self.model = AutoModel.from_pretrained(model_name)
+            self.model = AutoModel.from_pretrained(model_name, **kwargs)
         else:
-            config = AutoConfig.from_pretrained(model_name)
+            config = AutoConfig.from_pretrained(model_name, **kwargs)
             self.model = AutoModel.from_config(config)
             
         # Nếu truyền weight_path local (đã tải sẵn), nạp đè lên
@@ -729,9 +740,9 @@ class GASNet(nn.Module):
         self.backbone_type = backbone
         if backbone == "swin_t":
             self.swin_backbone = SwinBackbone(pretrained=use_pretrained)
-        elif backbone == "convnext_small":
+        elif backbone == "convnext_small" or backbone == "dinov3_convnext":
             # Nếu có sẵn file weights thì bạn truyền vào biến weight_path ở đây, hoặc để HuggingFace tự tải
-            self.convnext_backbone = DINOv3ConvNeXtBackbone(pretrained=use_pretrained)
+            self.convnext_backbone = DINOv3ConvNeXtBackbone(pretrained=use_pretrained, backbone_type=backbone)
         elif backbone == "resnet50":
             weights = models.ResNet50_Weights.DEFAULT if use_pretrained else None
             base = models.resnet50(weights=weights)
@@ -743,14 +754,14 @@ class GASNet(nn.Module):
             raise ValueError(f"Unsupported backbone: {backbone}")
 
         # Thiết lập Channel cho từng Backbone
-        if backbone == "convnext_small":
+        if backbone in ["convnext_small", "dinov3_convnext"]:
             c1, c2, c3, c4 = 96, 192, 384, 768
             dim_fs = 192
         else:
             c1, c2, c3, c4 = 256, 512, 1024, 2048
             dim_fs = 512
             
-        if backbone not in ["swin_t", "convnext_small"]:
+        if backbone not in ["swin_t", "convnext_small", "dinov3_convnext"]:
             self.stem = nn.Sequential(base.conv1, base.bn1, base.relu, base.maxpool)
             self.layer1 = base.layer1
             self.layer2 = base.layer2
@@ -762,7 +773,7 @@ class GASNet(nn.Module):
             self.ga4 = RGABlock(c4, spatial_size=(7, 7))
         
         # Nếu dùng convnext, ta chỉ giữ lại ga3 và ga4
-        if backbone == "convnext_small":
+        if backbone in ["convnext_small", "dinov3_convnext"]:
             self.ga3 = RGABlock(c3, spatial_size=(14, 14))
             self.ga4 = RGABlock(c4, spatial_size=(7, 7))
             
@@ -837,7 +848,7 @@ class GASNet(nn.Module):
             fs = self.fs1(feat3)
             fs = self.fs2(fs)
             x = feat4
-        elif self.backbone_type == "convnext_small":
+        elif self.backbone_type in ["convnext_small", "dinov3_convnext"]:
             feat1, feat2, feat3, feat4 = self.convnext_backbone(x)
             
             # Gắn nhánh Full Scale vào stage 3 (tương đương layer 3)

@@ -276,7 +276,7 @@ class UAVReIDNet(nn.Module):
             
         # 2. Temporal Memory Engine
         # Kích thước vector đầu ra của GASNet phụ thuộc vào Backbone
-        if backbone == "convnext_small":
+        if backbone in ["convnext_small", "dinov3_convnext"]:
             visual_dim = 960  # 768 (Global) + 192 (FS)
         else:
             visual_dim = 2560 # 2048 (Global) + 512 (FS)

@@ -26,6 +26,9 @@ class Logger(object):
         self.terminal.flush()
         self.log.flush()
 
+    def isatty(self):
+        return getattr(self.terminal, 'isatty', lambda: False)()
+
 class EvalDataset(Dataset):
     def __init__(self, data_dir, query_json, gallery_json, transform=None, num_frames=16):
         self.data_dir = data_dir
