@@ -33,6 +33,9 @@ class Logger(object):
         self.terminal.flush()
         self.log.flush()
 
+    def isatty(self):
+        return getattr(self.terminal, 'isatty', lambda: False)()
+
 # ==========================================
 # 1. LOSS FUNCTIONS
 # ==========================================

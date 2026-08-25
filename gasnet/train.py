@@ -135,6 +135,9 @@ class Logger(object):
         self.stream.flush()
         self.log.flush()
 
+    def isatty(self):
+        return getattr(self.stream, 'isatty', lambda: False)()
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train GASNet on VRU")
