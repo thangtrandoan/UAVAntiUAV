@@ -685,9 +685,9 @@ class DINOv3ConvNeXtBackbone(nn.Module):
         
         if pretrained:
             print(f"Loading pretrained ConvNeXt from HuggingFace: {model_name}...")
-            self.model = AutoModel.from_pretrained(model_name, use_auth_token=hf_token)
+            self.model = AutoModel.from_pretrained(model_name)
         else:
-            config = AutoConfig.from_pretrained(model_name, use_auth_token=hf_token)
+            config = AutoConfig.from_pretrained(model_name)
             self.model = AutoModel.from_config(config)
             
         # Nếu truyền weight_path local (đã tải sẵn), nạp đè lên
