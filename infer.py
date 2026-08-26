@@ -25,9 +25,10 @@ def extract_cnn_feature(model, tensor_frame):
             feats = torch.cat([global_feat, fs_feat], dim=-1)
     return feats
 
-def compute_reid_embedding(model, seq_feats):
+def compute_reid_embedding(model, seq_feats, visual_feat=None):
     with torch.no_grad():
-        visual_feat = seq_feats.mean(dim=1)
+        if visual_feat is None:
+            visual_feat = seq_feats.mean(dim=1)
         temporal_token = model.temporal_encoder(seq_feats)
         bn_feat = model.head(visual_feat, temporal_token)
         bn_feat = F.normalize(bn_feat, p=2, dim=1)
@@ -81,7 +82,7 @@ class SlidingWindowBuffer:
 def compute_fused_vector(model, sliding_window: SlidingWindowBuffer) -> tuple:
     visual_mean = sliding_window.get_weighted_visual_mean()
     seq = sliding_window.get_sequence()
-    fused_feat = compute_reid_embedding(model, seq)
+    fused_feat = compute_reid_embedding(model, seq, visual_feat=visual_mean)
     return visual_mean, fused_feat
 
 class TwoTierMemoryBank:
@@ -131,7 +132,7 @@ class TwoTierMemoryBank:
 def parse_args():
     parser = argparse.ArgumentParser(description="Sequence Inference for UAV ReID (OOP Pipeline)")
     parser.add_argument("--seq-dir", type=str, default=None)
-    parser.add_argument("--checkpoint", type=str, default="checkpoints/best_model.pth")
+    parser.add_argument("--checkpoint", type=str, default=None)
     parser.add_argument("--config", type=str, default="configs/config_jetson.yaml")
     return parser.parse_args()
 
@@ -234,6 +235,16 @@ class SeqReIDPipeline:
                 if self.device.type == 'cuda': torch.cuda.synchronize()
                 self.metrics_mamba_times.append((time.time() - t0) * 1000)
                 
+                # Anti-Hijack: so sánh với bank CŨ trước khi thêm vector hiện tại vào bank
+                if self.state == self.T3_VERIFIED and self._hijack_checks_remaining > 0:
+                    hijack_score = self.memory_bank.fine_score(fused_feat)
+                    self._hijack_checks_remaining -= 1
+                    print(f"[{frame_idx}] Anti-Hijack check #{self.hijack_check_count - self._hijack_checks_remaining}: score={hijack_score:.3f}")
+                    if hijack_score < self.hijack_threshold:
+                        print(f"[{frame_idx}] WARNING: HIJACK DETECTED! -> T1_LOST")
+                        self._transition_to_lost(frame_idx)
+                        return
+                
                 if len(self.memory_bank.anchor_bank) < self.memory_bank.max_anchor:
                     self.memory_bank.add_anchor(visual_mean, fused_feat)
                     print(f"[{frame_idx}] Anchor updated. {self.memory_bank.size_info()}")
@@ -246,15 +257,6 @@ class SeqReIDPipeline:
                         self.state = self.T3_VERIFIED
                         self._hijack_checks_remaining = 0
                         print(f"[{frame_idx}] T0 -> T3_VERIFIED. Target locked.")
-                elif self.state == self.T3_VERIFIED:
-                    if self._hijack_checks_remaining > 0:
-                        hijack_score = self.memory_bank.fine_score(fused_feat)
-                        self._hijack_checks_remaining -= 1
-                        print(f"[{frame_idx}] Anti-Hijack check #{self.hijack_check_count - self._hijack_checks_remaining}: score={hijack_score:.3f}")
-                        if hijack_score < self.hijack_threshold:
-                            print(f"[{frame_idx}] WARNING: HIJACK DETECTED! -> T1_LOST")
-                            self._transition_to_lost(frame_idx)
-                            return
                 self.last_update_time = current_time
 
         elif self.state == self.T1_LOST:
@@ -285,7 +287,11 @@ class SeqReIDPipeline:
                     self.soft_lock_buffer.add(feat_2560, sharpness)
                     print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
                 else:
-                    coarse_score = self.memory_bank.coarse_score(feat_2560)
+                    if self.memory_bank.is_empty():
+                        # Chưa có target identity (sequence bắt đầu bằng absent): bbox từ GT chính là target
+                        coarse_score = 1.0
+                    else:
+                        coarse_score = self.memory_bank.coarse_score(feat_2560)
                     if coarse_score >= self.soft_lock_threshold:
                         self.soft_lock_buffer.add(feat_2560, sharpness)
                         print(f"[{frame_idx}] Soft Lock collecting: 1/{self.num_frames} (coarse={coarse_score:.3f})")
@@ -301,7 +307,10 @@ class SeqReIDPipeline:
                     mamba_time = (time.time() - t0) * 1000
                     self.metrics_mamba_times.append(mamba_time)
                     
-                    fine_score = self.memory_bank.fine_score(fused_feat)
+                    if self.memory_bank.is_empty():
+                        fine_score = 1.0
+                    else:
+                        fine_score = self.memory_bank.fine_score(fused_feat)
                     if fine_score >= self.reid_threshold:
                         latency = frame_idx - self.reappeared_frame_idx
                         self.reid_latency_frames.append(latency)
@@ -481,7 +490,7 @@ def main():
     print(f"Initializing Mamba ReID Model...")
     backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
     model = UAVReIDNet(backbone=backbone_type)
-    model_path = inf_cfg.get('model_path', './best_model.pth')
+    model_path = args.checkpoint or inf_cfg.get('model_path', './best_model.pth')
     if os.path.exists(model_path):
         checkpoint = torch.load(model_path, map_location='cpu')
         state_dict = checkpoint.get('model_state_dict', checkpoint)

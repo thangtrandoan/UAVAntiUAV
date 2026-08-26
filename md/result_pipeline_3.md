@@ -2,6 +2,8 @@
 
 *Báo cáo này được sử dụng làm mẫu (template) chuẩn để theo dõi và đối chiếu hiệu năng của hệ thống mỗi khi có sự thay đổi về tham số cấu hình (Config) hoặc thuật toán cốt lõi. Hãy điền kết quả vào các bảng bên dưới sau mỗi lần chạy thử nghiệm.*
 
+**Test backbone dino-convnext**
+
 ---
 
 ## 1. Cấu Trúc Pipeline Chống Nhiễu & Bám Sát (Anti-Hijack & Re-Tracking)
