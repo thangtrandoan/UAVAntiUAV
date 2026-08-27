@@ -772,8 +772,10 @@ class GASNet(nn.Module):
             self.ga3 = RGABlock(c3, spatial_size=(14, 14))
             self.ga4 = RGABlock(c4, spatial_size=(7, 7))
         
-        # Nếu dùng convnext, ta chỉ giữ lại ga3 và ga4
+        # ConvNeXt: giữ nguyên đầy đủ 4 RGA blocks giống ResNet
         if backbone in ["convnext_small", "dinov3_convnext"]:
+            self.ga1 = RGABlock(c1, spatial_size=(56, 56))
+            self.ga2 = RGABlock(c2, spatial_size=(28, 28))
             self.ga3 = RGABlock(c3, spatial_size=(14, 14))
             self.ga4 = RGABlock(c4, spatial_size=(7, 7))
             
@@ -851,12 +853,15 @@ class GASNet(nn.Module):
         elif self.backbone_type in ["convnext_small", "dinov3_convnext"]:
             feat1, feat2, feat3, feat4 = self.convnext_backbone(x)
             
-            # Gắn nhánh Full Scale vào stage 3 (tương đương layer 3)
+            # Flow giống hệt ResNet: chỉ thay backbone, giữ nguyên RGA
+            feat1 = self.ga1(feat1)
+            feat2 = self.ga2(feat2)
+            
             fs = self.fs1(feat3)
             fs = self.fs2(fs)
+            feat3 = self.ga3(feat3)
             
-            # Gắn RGA nếu cần (ở đây ta vứt bỏ RGA tương tự swin_t để giữ nguyên tính toàn vẹn của DINOv3)
-            x = feat4
+            x = self.ga4(feat4)
         else:
             x = self.stem(x)
             x = self.layer1(x)
