@@ -675,7 +675,18 @@ class SwinBackbone(nn.Module):
 class DINOv3ConvNeXtBackbone(nn.Module):
     """
     Tích hợp DINOv3 ConvNeXt-Small (LVD-1689M) qua HuggingFace.
-    Dùng 1x1 Conv để điều hợp số kênh cho khớp với GASNet ReID Head.
+    Tách model thành từng stage riêng biệt để GASNet có thể xen RGA
+    giữa các stage — giống hệt flow tuần tự của ResNet.
+    
+    Cấu trúc HuggingFace ConvNeXt:
+        embeddings (patch_embed + layernorm) → stage0 → stage1 → stage2 → stage3
+        
+    Sau khi tách:
+        self.stem       = embeddings          [3, 224, 224] → [96, 56, 56]
+        self.stage1     = encoder.stages[0]   [96, 56, 56]  → [96, 56, 56]
+        self.stage2     = encoder.stages[1]   [96, 56, 56]  → [192, 28, 28]
+        self.stage3     = encoder.stages[2]   [192, 28, 28] → [384, 14, 14]
+        self.stage4     = encoder.stages[3]   [384, 14, 14] → [768, 7, 7]
     """
     def __init__(self, weight_path=None, pretrained=True, backbone_type="convnext_small"):
         super().__init__()
@@ -699,23 +710,36 @@ class DINOv3ConvNeXtBackbone(nn.Module):
         
         if pretrained:
             print(f"Loading pretrained ConvNeXt from HuggingFace: {model_name}...")
-            self.model = AutoModel.from_pretrained(model_name, **kwargs)
+            full_model = AutoModel.from_pretrained(model_name, **kwargs)
         else:
             config = AutoConfig.from_pretrained(model_name, **kwargs)
-            self.model = AutoModel.from_config(config)
+            full_model = AutoModel.from_config(config)
             
         # Nếu truyền weight_path local (đã tải sẵn), nạp đè lên
         if weight_path and os.path.exists(weight_path):
             state = torch.load(weight_path, map_location='cpu')
-            self.model.load_state_dict(state, strict=False)
-            print(f" Loaded local weights từ {weight_path}")
-            
-    def forward(self, x):
-        outputs = self.model(pixel_values=x, output_hidden_states=True)
-        hidden_states = outputs.hidden_states
+            full_model.load_state_dict(state, strict=False)
+            print(f"  Loaded local weights từ {weight_path}")
         
-        # Trả về trực tiếp đặc trưng nguyên bản
-        return hidden_states[1], hidden_states[2], hidden_states[3], hidden_states[4]
+        # Tách model thành từng stage riêng biệt
+        if hasattr(full_model, 'embeddings'):
+            # ConvNeXt chuẩn
+            self.stem = full_model.embeddings      # [3,224,224] → [96,56,56]
+            self.stage1 = full_model.encoder.stages[0]  # [96,56,56]  → [96,56,56]
+            self.stage2 = full_model.encoder.stages[1]  # [96,56,56]  → [192,28,28]
+            self.stage3 = full_model.encoder.stages[2]  # [192,28,28] → [384,14,14]
+            self.stage4 = full_model.encoder.stages[3]  # [384,14,14] → [768,7,7]
+        else:
+            # DINOv3 ConvNeXt: embeddings được gộp vào stage 0
+            import torch.nn as nn
+            self.stem = nn.Identity()
+            self.stage1 = full_model.model.stages[0]    # [3,224,224] → [96,56,56]
+            self.stage2 = full_model.model.stages[1]    # [96,56,56]  → [192,28,28]
+            self.stage3 = full_model.model.stages[2]    # [192,28,28] → [384,14,14]
+            self.stage4 = full_model.model.stages[3]    # [384,14,14] → [768,7,7]
+            
+        # Giải phóng reference tới full_model (các module đã được move sang self.*)
+        del full_model
 
 
 class GASNet(nn.Module):
@@ -851,17 +875,21 @@ class GASNet(nn.Module):
             fs = self.fs2(fs)
             x = feat4
         elif self.backbone_type in ["convnext_small", "dinov3_convnext"]:
-            feat1, feat2, feat3, feat4 = self.convnext_backbone(x)
+            x = self.convnext_backbone.stem(x)
             
-            # Flow giống hệt ResNet: chỉ thay backbone, giữ nguyên RGA
-            feat1 = self.ga1(feat1)
-            feat2 = self.ga2(feat2)
+            x = self.convnext_backbone.stage1(x)
+            x = self.ga1(x)
             
-            fs = self.fs1(feat3)
+            x = self.convnext_backbone.stage2(x)
+            x = self.ga2(x)
+            
+            x = self.convnext_backbone.stage3(x)
+            fs = self.fs1(x)
             fs = self.fs2(fs)
-            feat3 = self.ga3(feat3)
+            x = self.ga3(x)
             
-            x = self.ga4(feat4)
+            x = self.convnext_backbone.stage4(x)
+            x = self.ga4(x)
         else:
             x = self.stem(x)
             x = self.layer1(x)
