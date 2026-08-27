@@ -25,6 +25,7 @@ data_pipeline:
 
 # --- Training ---
 train:
+  backbone: dinov3_convnext
   resume: ""
   batch_size: 128
   num_instances: 8

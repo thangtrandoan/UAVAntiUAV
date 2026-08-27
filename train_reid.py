@@ -558,10 +558,23 @@ def main():
         
         model.unfreeze_backbone()
         
+        # Phân tách trọng số có sẵn (pretrained) và trọng số random (GA, FS, Head...)
+        pretrained_params = []
+        random_params = []
+        
+        for name, param in model.backbone.named_parameters():
+            # Nếu dùng convnext/dinov3_convnext thì phần pretrained nằm trong convnext_backbone
+            if "convnext_backbone" in name or "swin_backbone" in name or "base" in name:
+                pretrained_params.append(param)
+            else:
+                # ga1-4, fs1-2, bnneck, classifier... là random
+                random_params.append(param)
+                
         param_groups = [
-            {'params': model.backbone.parameters(), 'lr': args.lr_stage2_backbone},
-            {'params': model.temporal_encoder.parameters(), 'lr': args.lr_stage2_temporal},
-            {'params': model.head.parameters(), 'lr': args.lr_stage2_head}
+            {'params': pretrained_params, 'lr': args.lr_stage2_backbone},              # 1e-5
+            {'params': random_params, 'lr': args.lr_stage2_temporal},                  # 1e-4 (dùng chung mức LR to)
+            {'params': model.temporal_encoder.parameters(), 'lr': args.lr_stage2_temporal}, # 1e-4
+            {'params': model.head.parameters(), 'lr': args.lr_stage2_head}             # 1e-4
         ]
         optimizer2 = torch.optim.AdamW(param_groups, weight_decay=5e-4)
         scheduler2 = get_warmup_cosine_scheduler(optimizer2, warmup_epochs=5, total_epochs=epochs_stage2)

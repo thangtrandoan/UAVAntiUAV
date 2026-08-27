@@ -25,6 +25,7 @@ data_pipeline:
 
 # --- Training (SMOKE TEST: 1 epoch/stage) ---
 train:
+  backbone: dinov3_convnext
   resume: ""
   batch_size: 16              # Kích thước an toàn cho Jetson
   num_instances: 4
