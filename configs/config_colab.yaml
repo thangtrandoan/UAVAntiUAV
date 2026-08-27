@@ -80,13 +80,21 @@ eval:
 
 # --- Inference ---
 infer:
-  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
-  model_path: ./best_model.pth
-  output_video: results_demo.mp4
-  backbone: "convnext_small"
-  reid_threshold: 0.75
-  num_frames: 16
+  backbone: dinov3_convnext
+  seq_dir: all
+  model_path: /content/best_model.pth
+  output_video: output_reid.mp4
+  out_dir: ./infer_output/infer_pipeline_3.5
+  stride: 2
+  num_frames: 8
   bbox_padding: 0.2
+  max_anchor_size: 5
+  max_recent_size: 15
+  soft_lock_threshold: 0.3
+  reid_threshold: 0.75
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  update_interval_sec: 2.0
 
 # --- Inference Robustness Test ---
 infer_robustness:
