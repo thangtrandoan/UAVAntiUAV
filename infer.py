@@ -95,11 +95,14 @@ class SlidingWindowBuffer:
         self.sharpness_scores.clear()
         self._frame_counter = 0
 
-def compute_fused_vector(model, sliding_window: SlidingWindowBuffer) -> tuple:
-    visual_mean = sliding_window.get_weighted_visual_mean()
-    seq = sliding_window.get_sequence()
-    fused_feat = compute_reid_embedding(model, seq, visual_feat=visual_mean)
-    return visual_mean, fused_feat
+def compute_fused_vector(model, sliding_window):
+    seq_feats = sliding_window.get_sequence()
+    # Dùng đúng 1 frame ngay cuối cùng của GASNet làm đặc trưng hình dáng (Visual)
+    # Không dùng trung bình (mean) nữa để chuẩn xác với Pipeline
+    visual_last = sliding_window.features[-1].unsqueeze(0)
+    
+    fused_feat = compute_reid_embedding(model, seq_feats, visual_last)
+    return visual_last, fused_feat
 
 class TwoTierMemoryBank:
     def __init__(self, max_anchor: int = 10, max_recent: int = 30):
@@ -268,11 +271,6 @@ class SeqReIDPipeline:
                     self.memory_bank.add_recent(visual_mean, fused_feat)
                     print(f"[{frame_idx}] Recent updated. {self.memory_bank.size_info()}")
                 
-                if self.state == self.T0_INIT:
-                    if len(self.memory_bank.anchor_bank) >= self.memory_bank.max_anchor:
-                        self.state = self.T3_VERIFIED
-                        self._hijack_checks_remaining = 0
-                        print(f"[{frame_idx}] T0 -> T3_VERIFIED. Anchor Bank FULL ({self.memory_bank.max_anchor}). Target locked.")
                 self.last_update_time = current_time
 
         elif self.state == self.T1_LOST:
