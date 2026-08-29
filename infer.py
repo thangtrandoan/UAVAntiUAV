@@ -29,7 +29,12 @@ def compute_reid_embedding(model, seq_feats, visual_feat=None):
     with torch.no_grad():
         if visual_feat is None:
             visual_feat = seq_feats.mean(dim=1)
+<<<<<<< HEAD
         temporal_token, _ = model.temporal_encoder(seq_feats)
+=======
+            
+        temporal_token = model.temporal_encoder(seq_feats)
+>>>>>>> 5b7a73791f4f2520c8c0566a1754eac8dc650c4f
         bn_feat = model.head(visual_feat, temporal_token)
         bn_feat = F.normalize(bn_feat, p=2, dim=1)
     return bn_feat
@@ -79,11 +84,18 @@ class SlidingWindowBuffer:
         self.sharpness_scores.clear()
         self._frame_counter = 0
 
-def compute_fused_vector(model, sliding_window: SlidingWindowBuffer) -> tuple:
+def compute_fused_vector(model, sliding_window):
+    seq_feats = sliding_window.get_sequence()
+    
+    # 1. BẮT BUỘC dùng mean để đưa vào khối Fusion Head (vì lúc train model học bằng mean)
+    # Nếu đưa 1 frame vào Fusion Head, phân phối (variance) bị sai lệch dẫn đến Mamba tính sai bét
     visual_mean = sliding_window.get_weighted_visual_mean()
-    seq = sliding_window.get_sequence()
-    fused_feat = compute_reid_embedding(model, seq, visual_feat=visual_mean)
-    return visual_mean, fused_feat
+    fused_feat = compute_reid_embedding(model, seq_feats, visual_mean)
+    
+    # 2. Nhưng LƯU VÀO BANK (Coarse) thì dùng đúng 1 frame cuối cùng của GASNet theo đúng thiết kế Pipeline của bạn
+    visual_last = sliding_window.features[-1]
+    
+    return visual_last, fused_feat
 
 class TwoTierMemoryBank:
     def __init__(self, max_anchor: int = 10, max_recent: int = 30):
@@ -252,11 +264,6 @@ class SeqReIDPipeline:
                     self.memory_bank.add_recent(visual_mean, fused_feat)
                     print(f"[{frame_idx}] Recent updated. {self.memory_bank.size_info()}")
                 
-                if self.state == self.T0_INIT:
-                    if len(self.memory_bank.anchor_bank) >= 1:
-                        self.state = self.T3_VERIFIED
-                        self._hijack_checks_remaining = 0
-                        print(f"[{frame_idx}] T0 -> T3_VERIFIED. Target locked.")
                 self.last_update_time = current_time
 
         elif self.state == self.T1_LOST:
