@@ -35,7 +35,7 @@ data_pipeline:
 # --- Training (Tối ưu cho A100) ---
 train:
   resume: ""
-  backbone: "convnext_small"  # Sử dụng kiến trúc mới DINOv3
+  backbone: "dinov3_convnext"  # Sử dụng kiến trúc mới DINOv3
   batch_size: 12              # A100 có VRAM khổng lồ, thoải mái set 64 hoặc thậm chí 128
   num_instances: 3            # 4 ảnh cho mỗi đối tượng -> Rất tốt cho Triplet Loss
   num_frames: 12
@@ -73,7 +73,7 @@ eval:
   output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results
   batch_size: 32             # Khi test không cần tính gradient nên để batch size rất lớn
   num_workers: 8
-  backbone: "convnext_small"
+  backbone: "dinov3_convnext"
   backbone_only: false
   reid_threshold: 0.7
   intra_sequence: true
@@ -102,7 +102,7 @@ infer_robustness:
   data_root: /content/UAV-Anti-UAV/Test
   model_path: /content/best_model.pth
   output_video: output_robustness.mp4
-  backbone: "convnext_small"
+  backbone: "dinov3_convnext"
   reid_threshold: 0.7
   num_frames: 16
   bbox_padding: 0.2
