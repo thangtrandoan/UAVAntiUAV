@@ -183,12 +183,15 @@ class TemporalMambaEncoder(nn.Module):
             x_bwd = mamba_layer(x.flip(dims=[1])).flip(dims=[1])
             x = norm(x_fwd + x_bwd + res)
             
+        # Lưu sequence features trước mean pooling (cho temporal consistency loss)
+        temporal_seq = x  # [B, N, d_model]
+        
         # Mean pooling thay vì chỉ lấy frame cuối cùng
         x = x.mean(dim=1) # [B, d_model]
         
         # MLP Head
         x = self.out_mlp(x) # [B, d_out]
-        return x
+        return x, temporal_seq
 
 
 def weights_init_kaiming(m):
@@ -254,8 +257,36 @@ class UAVReIDNet(nn.Module):
             self.backbone = GASNet(num_classes=num_identities, backbone=backbone, use_gem=True)
             if os.path.exists(gasnet_weights_path):
                 state_dict = torch.load(gasnet_weights_path, map_location='cpu')
-                self.backbone.load_state_dict(state_dict, strict=False)
+                # torch.compile lưu state_dict với prefix _orig_mod. — phải strip trước khi load
+                state_dict = {
+                    (k[len('_orig_mod.'):] if k.startswith('_orig_mod.') else k): v
+                    for k, v in state_dict.items()
+                }
+                # load_state_dict(strict=False) VẪN throw RuntimeError nếu shape mismatch
+                # (vd: classifier_global của VRU có num_classes khác num_identities UAV)
+                # → lọc trước chỉ giữ key có shape khớp chính xác.
+                model_state = self.backbone.state_dict()
+                filtered = {}
+                for k, v in state_dict.items():
+                    if k in model_state and tuple(model_state[k].shape) == tuple(v.shape):
+                        filtered[k] = v
+                missing = [k for k in model_state if k not in filtered]
+                unexpected = [k for k in state_dict if k not in filtered]
+                self.backbone.load_state_dict(filtered, strict=False)
                 print(f" Đã load GASNet weights từ {gasnet_weights_path}")
+                if missing:
+                    print(f" ⚠️ {len(missing)} keys KHÔNG tìm thấy / shape không khớp (giữ random init):")
+                    for mk in missing[:10]:
+                        print(f"    - {mk}")
+                if unexpected:
+                    print(f" ⚠️ {len(unexpected)} keys trong checkpoint KHÔNG dùng được (shape/name không khớp):")
+                    for uk in unexpected[:10]:
+                        print(f"    - {uk}")
+                # Cảnh báo nếu backbone convnext không được load (nguyên nhân chính gây kết quả tệ)
+                if any('convnext_backbone' in m for m in missing):
+                    print(" ❌ CẢNH BÁO NGHIÊM TRỌNG: convnext_backbone KHÔNG được load từ gasnet weights!")
+                    print("    Kiểm tra: 1) file gasnet_weights có phải train với backbone dinov3_convnext?")
+                    print("              2) config paths.gasnet_weights trỏ đúng file .pth?")
             else:
                 print(f" Cảnh báo: Không tìm thấy pre-trained weights tại {gasnet_weights_path}")
             self.backbone.return_raw_features_eval = True
@@ -333,9 +364,9 @@ class UAVReIDNet(nn.Module):
         visual_feat = feats.mean(dim=1) # [B, 2560]
         
         # Temporal Token: Qua Mamba Block
-        temporal_token = self.temporal_encoder(feats) # [B, 256]
+        temporal_token, temporal_seq = self.temporal_encoder(feats) # temporal_token [B, 256], temporal_seq [B, N, d_model]
         
-        return visual_feat, temporal_token
+        return visual_feat, temporal_token, temporal_seq
         
     def forward(self, before_clips, after_clips=None, backbone_only=False):
         """
@@ -343,21 +374,21 @@ class UAVReIDNet(nn.Module):
         """
         # Inference mode (Matching/Tracking)
         if not self.training:
-            v_feat, t_token = self.extract_features(before_clips)
+            v_feat, t_token, _ = self.extract_features(before_clips)
             if backbone_only:
                 return v_feat
             return self.head(v_feat, t_token) # Return bn_feat [B, 2816]
             
         # Training mode
-        v_feat_before, t_token_before = self.extract_features(before_clips)
+        v_feat_before, t_token_before, t_seq_before = self.extract_features(before_clips)
         feat_b, bn_feat_b, logits_b = self.head(v_feat_before, t_token_before)
         
         # Nếu có provide both clips cho việc train pair (Siamese training)
         if after_clips is not None:
-            v_feat_after, t_token_after = self.extract_features(after_clips)
+            v_feat_after, t_token_after, t_seq_after = self.extract_features(after_clips)
             feat_a, bn_feat_a, logits_a = self.head(v_feat_after, t_token_after)
             
             # Trả về features, bn_feats, logits phục vụ tính toán Loss (ID Loss + Triplet Loss)
-            return (feat_b, bn_feat_b, logits_b), (feat_a, bn_feat_a, logits_a)
+            return (feat_b, bn_feat_b, logits_b), (feat_a, bn_feat_a, logits_a), (t_seq_before, t_seq_after)
             
         return feat_b, bn_feat_b, logits_b

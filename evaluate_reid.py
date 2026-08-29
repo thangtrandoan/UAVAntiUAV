@@ -202,7 +202,11 @@ def main():
     
     test_dir = os.path.join(args.data_dir, "test")
     if not os.path.exists(test_dir):
-        test_dir = os.path.join(args.data_dir, "train")
+        raise FileNotFoundError(
+            f"Không tìm thấy test dir tại {test_dir}. "
+            "KHÔNG được fallback về train dir để eval (sẽ cho metric ảo cao). "
+            "Chạy data_pipeline trước để tạo test set + query_test.json/gallery_test.json."
+        )
         
     dataset = EvalDataset(test_dir, args.query_json, args.gallery_json, transform=transform_test, num_frames=args.num_frames)
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
@@ -385,35 +389,9 @@ def main():
         with open(os.path.join(args.output_dir, "eval_cases_info.json"), "w") as f:
             json.dump(eval_info, f, indent=4)
 
-    print("\n=== ONLINE SEQUENTIAL EVALUATION (STREAM PROTOCOL) ===")
-    threshold = 0.7
-    latencies = []
-    false_alarms = 0
-    
-    if args.intra_sequence and q_seq_ids and g_seq_ids:
-        q_seqs = np.asarray(q_seq_ids)
-        g_seqs = np.asarray(g_seq_ids)
-        mask = (q_seqs[:, np.newaxis] != g_seqs[np.newaxis, :])
-        sim_matrix[mask] = -np.inf
-        
-    for i in range(len(q_pids)):
-        true_pid = q_pids[i]
-        sims = sim_matrix[i]
-        best_match_idx = np.argmax(sims)
-        best_score = sims[best_match_idx]
-        
-        if best_score > threshold:
-            pred_pid = g_pids[best_match_idx]
-            if pred_pid != true_pid:
-                false_alarms += 1
-            else:
-                latencies.append(np.random.randint(1, 5)) 
-                
-    avg_latency = np.mean(latencies) if latencies else 0
-    far = false_alarms / len(q_pids) if len(q_pids) > 0 else 0
-    
-    print(f"Average Re-acquisition Latency: {avg_latency:.2f} frames")
-    print(f"False Alarm Rate (Score > {threshold}): {far*100:.2f}%")
+    # (Đã xóa khối "ONLINE SEQUENTIAL EVALUATION" — trước đây bịa latency bằng
+    #  np.random.randint(1,5), không đo được gì thật. Latency theo frame chỉ có
+    #  ở infer.py qua SeqReIDPipeline.reid_latency_frames.)
 
 if __name__ == '__main__':
     main()

@@ -11,8 +11,8 @@ device:
 paths:
   # Nơi chứa thư mục UAV-Anti-UAV gốc trên Google Drive
   raw_data_dir: /content/UAV-Anti-UAV
-  # Trọng số pre-train của mạng GASNet trên Google Drive
-  gasnet_weights: /content/gasnet.best.pth
+  # Trọng số pre-train của mạng GASNet trên Google Drive (sau khi train VRU)
+  gasnet_weights: /content/drive/MyDrive/output/gasnet_convnext_v0.best.pth
   
   # Đường dẫn thư mục chứa mã nguồn GASNet (4 file python bạn vừa copy vào)
   gasnet_dir: /content/UAVAntiUAV/gasnet
@@ -60,7 +60,8 @@ train:
   loss:
     lam1: 1.0
     lam2: 0.5
-    lam3: 0.05
+    # lam3 nhỏ (0.001) vì center loss tính trên feature THÔ (1472-d) — lam3=0.05 sẽ dominate gradient
+    lam3: 0.001
     lr_center: 0.5
     triplet_margin: 0.3
     label_smooth: 0.1

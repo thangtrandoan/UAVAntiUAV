@@ -37,7 +37,7 @@ def compute_reid_embedding(model, seq_feats):
     """Trích xuất 3072-dim fused feature (Visual + Mamba Temporal)."""
     with torch.no_grad():
         visual_feat = seq_feats.mean(dim=1)
-        temporal_token = model.temporal_encoder(seq_feats)
+        temporal_token, _ = model.temporal_encoder(seq_feats)
         bn_feat = model.head(visual_feat, temporal_token)
         bn_feat = F.normalize(bn_feat, p=2, dim=1)
     return bn_feat

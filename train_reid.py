@@ -99,7 +99,10 @@ class CenterLoss(nn.Module):
         super().__init__()
         self.num_classes = num_classes
         self.feat_dim = feat_dim
-        self.centers = nn.Parameter(torch.randn(self.num_classes, self.feat_dim))
+        # Khởi tạo centers = 0 thay vì randn:
+        # centers randn → ||c||² ≈ feat_dim (vd 1472) → center loss ban đầu cực lớn,
+        # cộng thêm ||x||² của feature thô sẽ dominate gradient, phá vỡ training.
+        self.centers = nn.Parameter(torch.zeros(self.num_classes, self.feat_dim))
         self.lr_center = lr_center
 
     def forward(self, x, labels):
@@ -361,7 +364,11 @@ def main():
         ])
         test_dir = os.path.join(args.data_dir, "test")
         if not os.path.exists(test_dir):
-            test_dir = os.path.join(args.data_dir, "train")
+            raise FileNotFoundError(
+                f"Không tìm thấy test dir tại {test_dir}. "
+                "KHÔNG được fallback về train dir để validate (sẽ cho Rank-1 ảo cao). "
+                "Chạy data_pipeline trước để tạo test set + query_test.json/gallery_test.json."
+            )
         val_query_json = args.query_json.replace('query_train', 'query_test')
         val_gallery_json = args.gallery_json.replace('gallery_train', 'gallery_test')
         val_dataset = EvalDataset(test_dir, val_query_json, val_gallery_json, transform=transform_test, num_frames=args.num_frames)
@@ -420,6 +427,7 @@ def main():
     criterion_triplet = HardTripletLoss(margin=0.3)
     feat_dim = 1472 if args.backbone == "dinov3_convnext" else 3072
     criterion_center = CenterLoss(num_classes=num_identities, feat_dim=feat_dim).cuda()
+    criterion_temporal = TemporalConsistencyLoss()
 
     # Stage 1 Optimizer (Backbone frozen)
     optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), 
@@ -440,6 +448,7 @@ def main():
         epoch_loss_id = 0.0
         epoch_loss_tri = 0.0
         epoch_loss_center = 0.0
+        epoch_loss_temp = 0.0
         
         from tqdm import tqdm
         pbar = tqdm(enumerate(dataloader), total=len(dataloader), desc=f"[{stage_name}] Epoch {epoch}", leave=False, dynamic_ncols=True)
@@ -451,16 +460,24 @@ def main():
             
             amp_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
             with torch.amp.autocast('cuda', dtype=amp_dtype, enabled=args.use_amp):
-                (feat_b, bn_b, logit_b), (feat_a, bn_a, logit_a) = model(before, after)
+                (feat_b, bn_b, logit_b), (feat_a, bn_a, logit_a), (t_seq_b, t_seq_a) = model(before, after)
                 
+                # ID Loss (dùng logits)
+                loss_id = criterion_id(logit_b, pids) + criterion_id(logit_a, pids)
+                
+                # Triplet Loss (dùng features đã L2-normalize)
                 bn_b_norm = F.normalize(bn_b, p=2, dim=1)
                 bn_a_norm = F.normalize(bn_a, p=2, dim=1)
-                
-                loss_id = criterion_id(logit_b, pids) + criterion_id(logit_a, pids)
                 loss_tri = criterion_triplet(bn_b_norm, pids) + criterion_triplet(bn_a_norm, pids)
-                loss_center = criterion_center(bn_b_norm, pids) + criterion_center(bn_a_norm, pids)
                 
-                loss = loss_id + lam1 * loss_tri + lam3 * loss_center 
+                # Center Loss (dùng features THÔ chưa normalize — đúng theo paper!)
+                # Giảm lam3 từ 0.05 xuống 0.001 để tránh center loss dominate gradient
+                loss_center = criterion_center(bn_b, pids) + criterion_center(bn_a, pids)
+                
+                # Temporal Consistency Loss (lam2)
+                loss_temp = criterion_temporal(t_seq_b) + criterion_temporal(t_seq_a)
+                
+                loss = loss_id + lam1 * loss_tri + lam2 * loss_temp + lam3 * loss_center 
                 
             scaler.scale(loss).backward()
             scaler.unscale_(optim)
@@ -472,6 +489,7 @@ def main():
             epoch_loss_id += loss_id.item()
             epoch_loss_tri += loss_tri.item()
             epoch_loss_center += loss_center.item()
+            epoch_loss_temp += loss_temp.item()
             if (i+1) % 1 == 0:
                 lr = optim.param_groups[0]['lr']
                 pbar.set_postfix({
@@ -479,6 +497,7 @@ def main():
                     'ID': f"{loss_id.item():.3f}",
                     'Tri': f"{loss_tri.item():.3f}",
                     'Cen': f"{loss_center.item():.3f}",
+                    'Tmp': f"{loss_temp.item():.3f}",
                     'LR': f"{lr:.1e}"
                 })
                 
@@ -490,6 +509,7 @@ def main():
               f"Tổng Loss = {epoch_loss/num_batches:.4f} | "
               f"ID = {epoch_loss_id/num_batches:.4f} | "
               f"Triplet = {epoch_loss_tri/num_batches:.4f} | "
+              f"Temporal = {epoch_loss_temp/num_batches:.4f} | "
               f"Center = {epoch_loss_center/num_batches:.4f}\n")
               
         return epoch_loss / num_batches
@@ -563,11 +583,12 @@ def main():
         random_params = []
         
         for name, param in model.backbone.named_parameters():
-            # Nếu dùng convnext/dinov3_convnext thì phần pretrained nằm trong convnext_backbone
+            # convnext_backbone + ga1-4 + fs1-2 đều có weights từ GASNet đã train VRU
+            # → thuộc nhóm pretrained (lr thấp 1e-5, fine-tune nhẹ lên domain UAV)
             if "convnext_backbone" in name or "swin_backbone" in name or "base" in name or "ga" in name or "fs" in name:
                 pretrained_params.append(param)
             else:
-                # ga1-4, fs1-2, bnneck, classifier... là random
+                # bnneck, classifier... là random/thay đổi theo num_identities UAV
                 random_params.append(param)
                 
         param_groups = [

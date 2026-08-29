@@ -29,7 +29,7 @@ def compute_reid_embedding(model, seq_feats, visual_feat=None):
     with torch.no_grad():
         if visual_feat is None:
             visual_feat = seq_feats.mean(dim=1)
-        temporal_token = model.temporal_encoder(seq_feats)
+        temporal_token, _ = model.temporal_encoder(seq_feats)
         bn_feat = model.head(visual_feat, temporal_token)
         bn_feat = F.normalize(bn_feat, p=2, dim=1)
     return bn_feat
@@ -397,7 +397,6 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     if os.path.exists(absent_path):
         with open(absent_path, "r") as f:
             absent = [int(line.strip()) for line in f if line.strip().isdigit()]
-
     if not os.path.exists(video_path):
         print(f"Error: {video_path} not found.")
         metrics_file.close()
@@ -419,11 +418,19 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     
     total_processing_time = 0.0
     
+    # Cảnh báo nếu absent.txt bị cắt ngắn — trước đây mặc định True (coi là "mất") 
+    # làm pipeline KHÔNG BAO GIỜ re-acquire → latency N/A âm thầm.
+    if absent and len(absent) < len(bboxes):
+        print(f" ⚠️ CẢNH BÁO: absent.txt có {len(absent)} dòng < GT {len(bboxes)} frame. "
+              f"Các frame thiếu sẽ được coi là PRESENT (is_absent=False) để pipeline có thể re-acquire.")
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret: break
             
-        is_absent = absent[frame_idx] == 1 if frame_idx < len(absent) else True
+        # Mặc định is_absent = False (present) khi absent.txt thiếu dòng.
+        # Trước đây là True (absent) → target bị coi là mất vĩnh viễn ở các frame bị cắt → kết quả tệ âm thầm.
+        is_absent = (absent[frame_idx] == 1) if frame_idx < len(absent) else False
         bbox = bboxes[frame_idx] if frame_idx < len(bboxes) else [0,0,0,0]
         
         t_start = time.time()
