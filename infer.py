@@ -269,10 +269,10 @@ class SeqReIDPipeline:
                     print(f"[{frame_idx}] Recent updated. {self.memory_bank.size_info()}")
                 
                 if self.state == self.T0_INIT:
-                    if len(self.memory_bank.anchor_bank) >= 1:
+                    if len(self.memory_bank.anchor_bank) >= self.memory_bank.max_anchor:
                         self.state = self.T3_VERIFIED
                         self._hijack_checks_remaining = 0
-                        print(f"[{frame_idx}] T0 -> T3_VERIFIED. Target locked.")
+                        print(f"[{frame_idx}] T0 -> T3_VERIFIED. Anchor Bank FULL ({self.memory_bank.max_anchor}). Target locked.")
                 self.last_update_time = current_time
 
         elif self.state == self.T1_LOST:
