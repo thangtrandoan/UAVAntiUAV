@@ -99,7 +99,8 @@ def compute_fused_vector(model, sliding_window):
     seq_feats = sliding_window.get_sequence()
     # Dùng đúng 1 frame ngay cuối cùng của GASNet làm đặc trưng hình dáng (Visual)
     # Không dùng trung bình (mean) nữa để chuẩn xác với Pipeline
-    visual_last = sliding_window.features[-1].unsqueeze(0)
+    # features[-1] đã có shape [1, 960] nên không cần unsqueeze(0) nữa
+    visual_last = sliding_window.features[-1]
     
     fused_feat = compute_reid_embedding(model, seq_feats, visual_last)
     return visual_last, fused_feat
