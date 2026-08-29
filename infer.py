@@ -29,7 +29,23 @@ def compute_reid_embedding(model, seq_feats, visual_feat=None):
     with torch.no_grad():
         if visual_feat is None:
             visual_feat = seq_feats.mean(dim=1)
-        temporal_token = model.temporal_encoder(seq_feats)
+            
+        # [CRITICAL FIX]: Pad sequence to exactly 16 frames (matching training).
+        # Mamba uses a learnable positional encoding of length 16 and extracts the last token.
+        # If we feed <16 frames, it extracts an earlier token with a different positional embedding,
+        # causing a massive distribution shift and dropping fine_score.
+        B, N, D = seq_feats.shape
+        target_len = 16
+        if N < target_len:
+            # Pad by repeating the last frame
+            pad_tensor = seq_feats[:, -1:, :].repeat(1, target_len - N, 1)
+            padded_seq = torch.cat([seq_feats, pad_tensor], dim=1)
+        elif N > target_len:
+            padded_seq = seq_feats[:, -target_len:, :]
+        else:
+            padded_seq = seq_feats
+            
+        temporal_token = model.temporal_encoder(padded_seq)
         bn_feat = model.head(visual_feat, temporal_token)
         bn_feat = F.normalize(bn_feat, p=2, dim=1)
     return bn_feat
