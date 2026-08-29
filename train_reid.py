@@ -564,7 +564,7 @@ def main():
         
         for name, param in model.backbone.named_parameters():
             # Nếu dùng convnext/dinov3_convnext thì phần pretrained nằm trong convnext_backbone
-            if "convnext_backbone" in name or "swin_backbone" in name or "base" in name:
+            if "convnext_backbone" in name or "swin_backbone" in name or "base" in name or "ga" in name or "fs" in name:
                 pretrained_params.append(param)
             else:
                 # ga1-4, fs1-2, bnneck, classifier... là random

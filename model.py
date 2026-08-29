@@ -258,6 +258,7 @@ class UAVReIDNet(nn.Module):
                 print(f" Đã load GASNet weights từ {gasnet_weights_path}")
             else:
                 print(f" Cảnh báo: Không tìm thấy pre-trained weights tại {gasnet_weights_path}")
+            self.backbone.return_raw_features_eval = True
         else:
             # Dummy cho mục đích debugging nếu mất mã nguồn GASNet
             class DummyGASNet(nn.Module):

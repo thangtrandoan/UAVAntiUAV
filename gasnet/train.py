@@ -941,7 +941,14 @@ class GASNet(nn.Module):
             if self.use_part_branch:
                 return (global_feat, fs_feat, part_feat), (logits_global, logits_fs, logits_part)
             return (global_feat, fs_feat), (logits_global, logits_fs)
-        
+            
+        if getattr(self, "return_raw_features_eval", False):
+            if self.use_attention_local:
+                return global_feat, fs_feat, attn_local_feat
+            if self.use_part_branch:
+                return global_feat, fs_feat, part_feat
+            return global_feat, fs_feat
+
         if self.use_attention_local:
             return bn_global, bn_fs, bn_attn_local
         if self.use_part_branch:
