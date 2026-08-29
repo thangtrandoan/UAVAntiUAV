@@ -30,22 +30,7 @@ def compute_reid_embedding(model, seq_feats, visual_feat=None):
         if visual_feat is None:
             visual_feat = seq_feats.mean(dim=1)
             
-        # [CRITICAL FIX]: Pad sequence to exactly 16 frames (matching training).
-        # Mamba uses a learnable positional encoding of length 16 and extracts the last token.
-        # If we feed <16 frames, it extracts an earlier token with a different positional embedding,
-        # causing a massive distribution shift and dropping fine_score.
-        B, N, D = seq_feats.shape
-        target_len = 16
-        if N < target_len:
-            # Pad by repeating the last frame
-            pad_tensor = seq_feats[:, -1:, :].repeat(1, target_len - N, 1)
-            padded_seq = torch.cat([seq_feats, pad_tensor], dim=1)
-        elif N > target_len:
-            padded_seq = seq_feats[:, -target_len:, :]
-        else:
-            padded_seq = seq_feats
-            
-        temporal_token = model.temporal_encoder(padded_seq)
+        temporal_token = model.temporal_encoder(seq_feats)
         bn_feat = model.head(visual_feat, temporal_token)
         bn_feat = F.normalize(bn_feat, p=2, dim=1)
     return bn_feat
@@ -97,12 +82,15 @@ class SlidingWindowBuffer:
 
 def compute_fused_vector(model, sliding_window):
     seq_feats = sliding_window.get_sequence()
-    # Dùng đúng 1 frame ngay cuối cùng của GASNet làm đặc trưng hình dáng (Visual)
-    # Không dùng trung bình (mean) nữa để chuẩn xác với Pipeline
-    # features[-1] đã có shape [1, 960] nên không cần unsqueeze(0) nữa
+    
+    # 1. BẮT BUỘC dùng mean để đưa vào khối Fusion Head (vì lúc train model học bằng mean)
+    # Nếu đưa 1 frame vào Fusion Head, phân phối (variance) bị sai lệch dẫn đến Mamba tính sai bét
+    visual_mean = sliding_window.get_weighted_visual_mean()
+    fused_feat = compute_reid_embedding(model, seq_feats, visual_mean)
+    
+    # 2. Nhưng LƯU VÀO BANK (Coarse) thì dùng đúng 1 frame cuối cùng của GASNet theo đúng thiết kế Pipeline của bạn
     visual_last = sliding_window.features[-1]
     
-    fused_feat = compute_reid_embedding(model, seq_feats, visual_last)
     return visual_last, fused_feat
 
 class TwoTierMemoryBank:
