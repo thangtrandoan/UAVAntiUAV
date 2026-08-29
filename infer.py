@@ -29,12 +29,7 @@ def compute_reid_embedding(model, seq_feats, visual_feat=None):
     with torch.no_grad():
         if visual_feat is None:
             visual_feat = seq_feats.mean(dim=1)
-<<<<<<< HEAD
         temporal_token, _ = model.temporal_encoder(seq_feats)
-=======
-            
-        temporal_token = model.temporal_encoder(seq_feats)
->>>>>>> 5b7a73791f4f2520c8c0566a1754eac8dc650c4f
         bn_feat = model.head(visual_feat, temporal_token)
         bn_feat = F.normalize(bn_feat, p=2, dim=1)
     return bn_feat
