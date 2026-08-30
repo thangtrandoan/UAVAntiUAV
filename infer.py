@@ -91,13 +91,14 @@ def compute_fused_vector(model, sliding_window):
     # vì head được train với plain mean → weighted mean làm fused feature lệch → fine score thấp.
     visual_mean = sliding_window.get_weighted_visual_mean()   # dùng cho coarse score (không qua head)
     visual_plain = seq_feats.mean(dim=1)                     # giống hệt training → cho head
-    fused_feat = compute_reid_embedding(model, seq_feats, visual_plain)
-    return visual_mean, fused_feat
     
-    # 2. Nhưng LƯU VÀO BANK (Coarse) thì dùng đúng 1 frame cuối cùng của GASNet theo đúng thiết kế Pipeline của bạn
-    visual_last = sliding_window.features[-1]
+    # Tính temporal_token + fused_feat MỘT LẦN (không gọi temporal_encoder 2 lần)
+    with torch.no_grad():
+        temporal_token, _ = model.temporal_encoder(seq_feats)
+        bn_feat = model.head(visual_plain, temporal_token)
+        fused_feat = F.normalize(bn_feat, p=2, dim=1)
     
-    return visual_last, fused_feat
+    return visual_mean, temporal_token, fused_feat
 
 class TwoTierMemoryBank:
     def __init__(self, max_anchor: int = 10, max_recent: int = 30):
@@ -106,17 +107,19 @@ class TwoTierMemoryBank:
         self.anchor_bank = []
         self.recent_bank = []
     
-    def add_anchor(self, visual_feat: torch.Tensor, fused_feat: torch.Tensor):
+    def add_anchor(self, visual_feat: torch.Tensor, fused_feat: torch.Tensor, temporal_token: torch.Tensor = None):
         if len(self.anchor_bank) < self.max_anchor:
             self.anchor_bank.append({
                 "visual": F.normalize(visual_feat, p=2, dim=1),
-                "fused": F.normalize(fused_feat, p=2, dim=1)
+                "fused": F.normalize(fused_feat, p=2, dim=1),
+                "temporal": F.normalize(temporal_token, p=2, dim=1) if temporal_token is not None else None
             })
     
-    def add_recent(self, visual_feat: torch.Tensor, fused_feat: torch.Tensor):
+    def add_recent(self, visual_feat: torch.Tensor, fused_feat: torch.Tensor, temporal_token: torch.Tensor = None):
         self.recent_bank.append({
             "visual": F.normalize(visual_feat, p=2, dim=1),
-            "fused": F.normalize(fused_feat, p=2, dim=1)
+            "fused": F.normalize(fused_feat, p=2, dim=1),
+            "temporal": F.normalize(temporal_token, p=2, dim=1) if temporal_token is not None else None
         })
         if len(self.recent_bank) > self.max_recent:
             self.recent_bank.pop(0)
@@ -127,6 +130,16 @@ class TwoTierMemoryBank:
         for entry in self.anchor_bank + self.recent_bank:
             sim = torch.mm(query, entry["visual"].t()).item()
             max_sim = max(max_sim, sim)
+        return max_sim
+    
+    # DEBUG: so sánh riêng temporal token với anchor
+    def temporal_score(self, query_temporal: torch.Tensor) -> float:
+        query = F.normalize(query_temporal, p=2, dim=1)
+        max_sim = 0.0
+        for entry in self.anchor_bank + self.recent_bank:
+            if entry["temporal"] is not None:
+                sim = torch.mm(query, entry["temporal"].t()).item()
+                max_sim = max(max_sim, sim)
         return max_sim
     
     def fine_score(self, query_fused: torch.Tensor) -> float:
@@ -219,13 +232,13 @@ class SeqReIDPipeline:
                         
                     if self.device.type == 'cuda': torch.cuda.synchronize()
                     t0 = time.time()
-                    visual_mean, fused_feat = compute_fused_vector(self.model, self.sliding_window)
+                    visual_mean, temporal_token, fused_feat = compute_fused_vector(self.model, self.sliding_window)
                     if self.device.type == 'cuda': torch.cuda.synchronize()
                     self.metrics_mamba_times.append((time.time() - t0) * 1000)
                     if len(self.memory_bank.anchor_bank) < self.memory_bank.max_anchor:
-                        self.memory_bank.add_anchor(visual_mean, fused_feat)
+                        self.memory_bank.add_anchor(visual_mean, fused_feat, temporal_token)
                     else:
-                        self.memory_bank.add_recent(visual_mean, fused_feat)
+                        self.memory_bank.add_recent(visual_mean, fused_feat, temporal_token)
                     print(f"[{frame_idx}] Last-moment Memory Bank update before LOST. Bank: {self.memory_bank.size_info()}")
                 self._transition_to_lost(frame_idx)
                 return
@@ -245,7 +258,7 @@ class SeqReIDPipeline:
             if self.sliding_window.is_ready() and time_elapsed >= self.update_interval_sec:
                 if self.device.type == 'cuda': torch.cuda.synchronize()
                 t0 = time.time()
-                visual_mean, fused_feat = compute_fused_vector(self.model, self.sliding_window)
+                visual_mean, temporal_token, fused_feat = compute_fused_vector(self.model, self.sliding_window)
                 if self.device.type == 'cuda': torch.cuda.synchronize()
                 self.metrics_mamba_times.append((time.time() - t0) * 1000)
                 
@@ -260,10 +273,10 @@ class SeqReIDPipeline:
                         return
                 
                 if len(self.memory_bank.anchor_bank) < self.memory_bank.max_anchor:
-                    self.memory_bank.add_anchor(visual_mean, fused_feat)
+                    self.memory_bank.add_anchor(visual_mean, fused_feat, temporal_token)
                     print(f"[{frame_idx}] Anchor updated. {self.memory_bank.size_info()}")
                 else:
-                    self.memory_bank.add_recent(visual_mean, fused_feat)
+                    self.memory_bank.add_recent(visual_mean, fused_feat, temporal_token)
                     print(f"[{frame_idx}] Recent updated. {self.memory_bank.size_info()}")
                 
                 self.last_update_time = current_time
@@ -311,7 +324,7 @@ class SeqReIDPipeline:
                 if self.soft_lock_buffer.is_ready():
                     if self.device.type == 'cuda': torch.cuda.synchronize()
                     t0 = time.time()
-                    visual_mean, fused_feat = compute_fused_vector(self.model, self.soft_lock_buffer)
+                    visual_mean, temporal_token, fused_feat = compute_fused_vector(self.model, self.soft_lock_buffer)
                     if self.device.type == 'cuda': torch.cuda.synchronize()
                     mamba_time = (time.time() - t0) * 1000
                     self.metrics_mamba_times.append(mamba_time)
@@ -320,6 +333,11 @@ class SeqReIDPipeline:
                         fine_score = 1.0
                     else:
                         fine_score = self.memory_bank.fine_score(fused_feat)
+                        # 🛠️ DEBUG: tách riêng visual_mean vs temporal_token để biết phần nào gây lệch
+                        debug_vis = self.memory_bank.coarse_score(visual_mean)
+                        debug_temp = self.memory_bank.temporal_score(temporal_token)
+                        debug_fused = fine_score
+                        print(f"[{frame_idx}] DEBUG sim: visual_mean={debug_vis:.3f} | temporal={debug_temp:.3f} | fused(fine)={debug_fused:.3f}")
                     if fine_score >= self.reid_threshold:
                         latency = frame_idx - self.reappeared_frame_idx
                         self.reid_latency_frames.append(latency)
@@ -329,9 +347,9 @@ class SeqReIDPipeline:
                         self.last_update_time = time.time()
                         
                         if len(self.memory_bank.anchor_bank) < self.memory_bank.max_anchor:
-                            self.memory_bank.add_anchor(visual_mean, fused_feat)
+                            self.memory_bank.add_anchor(visual_mean, fused_feat, temporal_token)
                         else:
-                            self.memory_bank.add_recent(visual_mean, fused_feat)
+                            self.memory_bank.add_recent(visual_mean, fused_feat, temporal_token)
                             
                         self.sliding_window = self.soft_lock_buffer
                         self.sliding_window.stride = self.stride
