@@ -479,6 +479,13 @@ def main():
                 
                 loss = loss_id + lam1 * loss_tri + lam2 * loss_temp + lam3 * loss_center 
                 
+            # 🛠️ FIX NaN: nếu loss không finite (NaN/inf) → BỎ QUA bước này,
+            # không backward/step để tránh đầu độc toàn bộ weights.
+            # (Backbone vừa unfreeze + BN batch stats có thể tạo 1 batch xấu → inf grad)
+            if not torch.isfinite(loss):
+                print(f"[{i}] ⚠️ Bỏ qua batch (loss={loss.item():.3e} không finite).")
+                continue
+                
             scaler.scale(loss).backward()
             scaler.unscale_(optim)
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
@@ -575,6 +582,19 @@ def main():
             del scheduler1
         gc.collect()
         torch.cuda.empty_cache()
+        
+        # 🛠️ FIX NaN: GradScaler phải được TẠO MỚI ở Stage 2.
+        # - Scale factor cũ đã tích lũy qua 30 epoch Stage 1 (lớn dần ×2 mỗi 2000 steps),
+        #   khiến gradient scaled của backbone (mạng sâu vừa unfreeze) bị overflow → inf → NaN.
+        # - State cũ của optimizer Stage 1 vẫn nằm trong scaler, làm scaler.update() hoạt động sai.
+        # - torch.compile cũng cần graph mới khi backbone chuyển requires_grad=True → reset dynamo.
+        scaler = torch.amp.GradScaler('cuda', enabled=args.use_amp)
+        if args.use_compile and hasattr(torch, '_dynamo'):
+            try:
+                torch._dynamo.reset()
+                print("  Đã reset torch._dynamo trước Stage 2 (graph cũ chứa backbone frozen).")
+            except Exception as e:
+                print(f"  Cảnh báo: không reset được dynamo: {e}")
         
         model.unfreeze_backbone()
         
