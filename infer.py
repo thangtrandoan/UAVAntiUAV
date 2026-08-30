@@ -84,8 +84,15 @@ def compute_fused_vector(model, sliding_window):
     
     # 1. BẮT BUỘC dùng mean để đưa vào khối Fusion Head (vì lúc train model học bằng mean)
     # Nếu đưa 1 frame vào Fusion Head, phân phối (variance) bị sai lệch dẫn đến Mamba tính sai bét
-    visual_mean = sliding_window.get_weighted_visual_mean()
-    fused_feat = compute_reid_embedding(model, seq_feats, visual_mean)
+    #
+    # 🛠️ FIX: Fused Feature (qua head) phải dùng PLAIN MEAN giống training
+    # (model.py: visual_feat = feats.mean(dim=1)). Weighted mean (theo sharpness)
+    # chỉ nên dùng cho COARSE score (backbone feature), KHÔNG đưa vào head,
+    # vì head được train với plain mean → weighted mean làm fused feature lệch → fine score thấp.
+    visual_mean = sliding_window.get_weighted_visual_mean()   # dùng cho coarse score (không qua head)
+    visual_plain = seq_feats.mean(dim=1)                     # giống hệt training → cho head
+    fused_feat = compute_reid_embedding(model, seq_feats, visual_plain)
+    return visual_mean, fused_feat
     
     # 2. Nhưng LƯU VÀO BANK (Coarse) thì dùng đúng 1 frame cuối cùng của GASNet theo đúng thiết kế Pipeline của bạn
     visual_last = sliding_window.features[-1]
