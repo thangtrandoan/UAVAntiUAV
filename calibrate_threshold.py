@@ -155,22 +155,54 @@ def extract_features(model, dataloader, backbone_only=False, spaces=('fused',)):
 
 
 # Score computation
+def similarity_matrix(qf, gf):
+    """Cosine similarity matrix (num_q, num_g) — L2-normalize rồi matmul."""
+    qf_n = F.normalize(qf, p=2, dim=1)
+    gf_n = F.normalize(gf, p=2, dim=1)
+    return torch.mm(qf_n, gf_n.t()).cpu().numpy()
+
+
+def scores_from_matrix(sim, q_pids, g_pids):
+    """
+    Tách genuine/impostor từ ma trận similarity. Vector hoá (nhanh hơn vòng lặp Python).
+
+    Ngữ nghĩa GIỐNG HỆT `compute_scores` bản cũ: bỏ self-match i==j khỏi **cả hai** tập.
+    """
+    q_pids = np.asarray(q_pids)
+    g_pids = np.asarray(g_pids)
+    same = (g_pids[None, :] == q_pids[:, None])
+    valid = np.ones_like(same, dtype=bool)
+    if sim.shape[0] == sim.shape[1]:
+        np.fill_diagonal(valid, False)  # bỏ self-match
+    genuine = sim[same & valid]
+    impostor = sim[(~same) & valid]
+    return genuine.astype(np.float32), impostor.astype(np.float32)
+
+
 def compute_scores(qf, gf, q_pids, g_pids):
     """Trả về genuine_scores, impostor_scores (numpy arrays) từ pairwise cosine sim."""
-    qf_n = F.normalize(qf, p=2, dim=1).numpy()
-    gf_n = F.normalize(gf, p=2, dim=1).numpy()
-    sim = qf_n @ gf_n.T  # (num_q, num_g)
+    return scores_from_matrix(similarity_matrix(qf, gf), q_pids, g_pids)
 
-    genuine, impostor = [], []
-    for i in range(len(q_pids)):
-        for j in range(len(g_pids)):
-            if i == j:
-                continue  # bỏ self-match
-            if q_pids[i] == g_pids[j]:
-                genuine.append(sim[i, j])
-            else:
-                impostor.append(sim[i, j])
-    return np.array(genuine, dtype=np.float32), np.array(impostor, dtype=np.float32)
+
+def per_query_znorm(sim):
+    """
+    🛠️ (14/9): chuẩn hoá điểm theo TỪNG TRUY VẤN (z-norm / cohort normalization).
+
+        z[i, j] = (s[i, j] - mean_j s[i, :]) / std_j s[i, :]
+
+    Vì sao: Rank-1 cao mà TAR@FAR thấp nghĩa là THỨ TỰ trong mỗi truy vấn đúng, nhưng MỨC
+    điểm không so sánh được giữa các truy vấn (mỗi truy vấn có offset/scale khác nhau) -> một
+    ngưỡng cosine TUYỆT ĐỐI dùng chung cho mọi truy vấn là sai công cụ.
+
+    KHÔNG dùng nhãn: mean/std lấy trên toàn bộ gallery của chính truy vấn đó.
+    Đây là **upper bound** của hướng "đổi luật quyết định" (deployment thật cần một cohort cố
+    định — t-norm — thay cho toàn bộ gallery).
+
+    Lưu ý: đây là biến đổi đơn điệu theo từng hàng -> **Rank-1 không đổi**, chỉ DET/TAR đổi.
+    """
+    mu = sim.mean(axis=1, keepdims=True)
+    sd = sim.std(axis=1, keepdims=True)
+    return (sim - mu) / (sd + 1e-12)
 
 
 def rank_metrics(qf, gf, q_pids, g_pids):
@@ -571,6 +603,62 @@ def main():
     print(f"  -> Doc bang nay: neu TAR tang VOT khi noi FAR thi diem lam viec 0.1% moi la van de,")
     print(f"     khong phai embedding. Chon nguong theo nhu cau that (latency vs lock sai), khong theo FAR 0.1%.")
 
+    # === THU NGHIEM: CHUAN HOA DIEM THEO TUNG TRUY VAN (z-norm) =========================
+    # Rank-1 cao + TAR@FAR thap => thu tu trong moi truy van dung, nhung MUC diem khong so sanh
+    # duoc giua cac truy van. z-norm bien moi truy van ve cung mot thang -> do duoc "tran" cua
+    # huong "doi LUAT QUYET DINH" ma khong can train lai. (Rank-1 bat bien, chi DET/TAR doi.)
+    print(f"\n  === THU NGHIEM: chuan hoa diem theo TUNG TRUY VAN (z-norm, cohort = toan bo gallery) ===")
+    print(f"  {'Space':<10} {'t* (z, cal)':>12} {'TAR@FAR=0.1% (eval)':>21} {'so voi goc':>11} "
+          f"{'FAR 1%':>8} {'FAR 5%':>8} {'FAR 10%':>8}")
+    znorm = {}
+    for s in list(results.keys()):
+        sim_cal = similarity_matrix(feats_cal[s][0], feats_cal[s][1])
+        sim_eval = similarity_matrix(feats_eval[s][0], feats_eval[s][1])
+        gz_cal, iz_cal = scores_from_matrix(per_query_znorm(sim_cal), pids_cal, pids_cal)
+        gz_eval, iz_eval = scores_from_matrix(per_query_znorm(sim_eval), pids_eval, pids_eval)
+
+        t_z, far_z_cal = calibrate_fixed_far(iz_cal, far_target)
+        tar_z, far_z, _ = eval_at_threshold(gz_eval, iz_eval, t_z)
+        grid = []
+        for f in far_grid:
+            t_f, _ = calibrate_fixed_far(iz_cal, f)
+            tar_f, far_a, _ = eval_at_threshold(gz_eval, iz_eval, t_f)
+            grid.append({'far_target': f, 'threshold': float(t_f),
+                         'tar_eval': float(tar_f), 'far_eval': float(far_a)})
+        znorm[s] = {
+            'threshold': float(t_z), 'far_target': float(far_target),
+            'actual_far_cal': float(far_z_cal), 'tar_eval': float(tar_z), 'far_eval': float(far_z),
+            'tar_raw_eval': float(results[s]['eval_tar']),
+            'gain_vs_raw': float(tar_z - results[s]['eval_tar']),
+            'far_curve': grid,
+        }
+        g5 = next((x['tar_eval'] for x in grid if abs(x['far_target'] - 0.05) < 1e-9), float('nan'))
+        g10 = next((x['tar_eval'] for x in grid if abs(x['far_target'] - 0.10) < 1e-9), float('nan'))
+        g1 = next((x['tar_eval'] for x in grid if abs(x['far_target'] - 0.01) < 1e-9), float('nan'))
+        print(f"  {s:<10} {t_z:>12.4f} {tar_z*100:>20.2f}% {(tar_z - results[s]['eval_tar'])*100:>+10.2f}% "
+              f"{g1*100:>7.1f}% {g5*100:>7.1f}% {g10*100:>7.1f}%")
+    best_gain = max((v['gain_vs_raw'] for v in znorm.values()), default=0.0)
+    if best_gain > 0.05:
+        print(f"  => z-norm giup TAR tang {best_gain*100:+.2f}% o cung FAR -> KHANG DINH: van de la LUAT QUYET DINH.")
+        print(f"     Buoc tiep: hien thuc cohort co dinh (t-norm) trong infer.py thay vi dung toan bo gallery.")
+    else:
+        print(f"  => z-norm khong giup dang ke (tot nhat {best_gain*100:+.2f}%) -> diem cosine da tuong thich")
+        print(f"     giua cac truy van; van de nam sau hon (chat luong embedding / du lieu).")
+
+    # === TAI NGUONG DANG TRIEN KHAI =====================================================
+    # Cau hoi: pipeline dung reid_threshold (vd 0.75) va chi HARD LOCK ~6% cua so. Offline tai
+    # DUNG nguong do thi TAR la bao nhieu? Neu offline cao hon nhieu -> cua so T2_SEARCH kho hon
+    # du lieu query/gallery (occlusion, crop loi), chu khong phai loi nguong.
+    deployed_thr = float((cfg.get('infer') or {}).get('reid_threshold', 0.75))
+    deployed = {}
+    print(f"\n  === TAI NGUONG DANG TRIEN KHAI cua infer.py (reid_threshold = {deployed_thr}) ===")
+    for s in results:
+        tar_d, far_d, _ = eval_at_threshold(scores[s]['gen_eval'], scores[s]['imp_eval'], deployed_thr)
+        deployed[s] = {'threshold': deployed_thr, 'tar_eval': float(tar_d), 'far_eval': float(far_d)}
+        print(f"    [{s}] TAR(eval)={tar_d*100:>6.2f}%   FAR(eval)={far_d*100:>8.4f}%")
+    print(f"    -> So TAR nay voi ti le HARD LOCK thuc te cua pipeline (md/15thg9.md §1.2: <=6.08%).")
+    print(f"       Neu offline cao hon nhieu -> cua so T2_SEARCH kho hon du lieu query/gallery.")
+
     t_star = results[primary]['threshold']
     cal_actual_far = results[primary]['cal_actual_far']
     cal_tar = results[primary]['cal_tar']
@@ -628,6 +716,10 @@ def main():
         'spaces': results,
         # 🛠️ (14/9): TAR tại nhiều mốc FAR (threshold calibrate trên cal, đo trên eval)
         'far_curve': far_curve,
+        # 🛠️ (14/9): thử nghiệm z-norm theo từng truy vấn (upper bound của "đổi luật quyết định")
+        'znorm': znorm,
+        # 🛠️ (14/9): TAR/FAR offline tại đúng ngưỡng pipeline đang dùng (cầu nối offline <-> online)
+        'deployed_threshold': deployed,
         # backward compat: giữ nguyên hình dạng cũ cho không gian chính
         'calibration': {
             'threshold': float(t_star),
