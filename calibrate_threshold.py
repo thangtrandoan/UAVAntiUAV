@@ -78,8 +78,13 @@ class CalibDataset(Dataset):
             if key in g_dict:
                 g = g_dict[key]
                 if q.get('identity_id') is not None:
+                    # 🛠️ (14/9) GIỮ LẠI metadata định danh để chẩn đoán nhiễu nhãn/trùng danh tính
+                    # (`diagnose_top_impostors`). KHÔNG đổi `__getitem__`/dataloader: DataLoader dùng
+                    # `shuffle=False` nên hàng feature khớp 1:1 với `valid_pairs` -> truy cập trực tiếp.
                     self.valid_pairs.append({
                         'identity_id': q['identity_id'],
+                        'sequence_id': q['sequence_id'],
+                        'event_index': q.get('event_index'),
                         'gallery_frames': g['frames'],
                         'gallery_dir': g['frame_dir'],
                         'query_frames': q['frames'],
@@ -196,6 +201,134 @@ def scores_from_matrix(sim, q_pids, g_pids):
 def compute_scores(qf, gf, q_pids, g_pids):
     """Trả về genuine_scores, impostor_scores (numpy arrays) từ pairwise cosine sim."""
     return scores_from_matrix(similarity_matrix(qf, gf), q_pids, g_pids)
+
+
+def diagnose_top_impostors(qf, gf, pids, meta, space='fused', top_k=50,
+                           threshold=None, data_dir=None, top_pid_pairs=20):
+    """
+    🛠️ (14/9) CHẨN ĐOÁN "NHIỄU NHÃN / TRÙNG DANH TÍNH".
+
+    Vì sao cần: TAR@FAR thấp bất thường (8.45% @FAR 0.1%) có thể do **một số ít cặp "impostor"
+    thực chất là CÙNG MỘT VẬT** — cùng drone mang 2 `identity_id`, hoặc frame gần trùng. Chúng đẩy
+    phân vị 99.9% của impostor lên rất cao → mọi ngưỡng tuyệt đối bị vô hiệu. **z-norm KHÔNG THỂ
+    sửa loại lỗi này** (§11.2/§11.3), nên phải kiểm tra trực tiếp.
+
+    Ba đầu ra:
+      (A) `top_pairs`      : top-K cặp impostor điểm cao nhất, kèm `identity_id`/`sequence_id`/
+                             khoảng cách frame/**đường dẫn ảnh** để mở ra xem tận mắt.
+      (B) `top_pid_pairs`  : các CẶP DANH TÍNH dễ nhầm nhất (theo sim trung bình) — nếu một cặp
+                             danh tính có sim TB ~0.9 thì gần như chắc chắn là cùng một vật.
+      (C) `concentration`  : khối lượng impostor vượt ngưỡng tập trung vào bao nhiêu cặp danh tính?
+                             Tập trung cao = dấu hiệu mạnh của nhiễu nhãn.
+
+    DIỄN GIẢI (quan trọng, tránh kết luận sai):
+      • `same_seq=True`  → distractor KHÁC danh tính trong CÙNG chuỗi = **hard negative hợp lệ**
+        (đúng loại pipeline gặp), KHÔNG phải nhiễu nhãn.
+      • `same_seq=False` + ảnh giống hệt → **nghi nhiễu nhãn / trùng danh tính** (phải xem ảnh).
+      • Cặp danh tính có sim TB rất cao mà khác `identity_id` → nhiễu nhãn gần như chắc chắn.
+
+    Trả về dict (JSON-serializable) để lưu vào report.
+    """
+    sim = similarity_matrix(qf, gf)
+    q = np.asarray(pids)
+    n_q, n_g = sim.shape
+    imp_mask = ~(q[:, None] == q[None, :])
+    if n_q == n_g:
+        np.fill_diagonal(imp_mask, False)          # bỏ self-match
+
+    n_imp = int(imp_mask.sum())
+    out = {'space': space, 'n_impostor_pairs': n_imp, 'top_k': int(top_k),
+           'threshold': None if threshold is None else float(threshold)}
+
+    # ---------- (A) top-K cặp impostor điểm cao nhất ----------
+    if n_imp == 0:
+        out['top_pairs'] = []
+        return out
+    k = min(int(top_k), n_imp)
+    flat = np.where(imp_mask, sim, -np.inf).ravel()
+    idx = np.argpartition(-flat, k - 1)[:k]
+    idx = idx[np.argsort(-flat[idx])]
+    ii, jj = np.unravel_index(idx, sim.shape)
+
+    def _paths(entry, which):
+        d = entry.get(f'{which}_dir')
+        fr = entry.get(f'{which}_frames') or []
+        if data_dir is not None and d is not None and fr:
+            return [os.path.join(data_dir, d, f) for f in list(fr)[:3]]
+        return [str(f) for f in list(fr)[:3]]
+
+    def _n_frames(entry, which):
+        return len(entry.get(f'{which}_frames') or [])
+
+    top_pairs = []
+    for a, b in zip(ii, jj):
+        me, mg = meta[int(a)], meta[int(b)]
+        top_pairs.append({
+            'score': float(sim[a, b]),
+            'q_identity_id': me['identity_id'],
+            'g_identity_id': mg['identity_id'],
+            'q_sequence_id': me.get('sequence_id'),
+            'g_sequence_id': mg.get('sequence_id'),
+            'same_sequence': bool(me.get('sequence_id') == mg.get('sequence_id')),
+            'q_event_index': me.get('event_index'),
+            'g_event_index': mg.get('event_index'),
+            'q_n_frames': _n_frames(me, 'query'),
+            'g_n_frames': _n_frames(mg, 'gallery'),
+            'q_image_paths': _paths(me, 'query'),
+            'g_image_paths': _paths(mg, 'gallery'),
+            'above_threshold': None if threshold is None else bool(sim[a, b] >= threshold),
+        })
+    out['top_pairs'] = top_pairs
+
+    # ---------- (B) các CẶP DANH TÍNH dễ nhầm nhất (theo sim trung bình) ----------
+    pid_pairs = {}
+    for a in range(n_q):
+        row = imp_mask[a]
+        if not row.any():
+            continue
+        cols = np.nonzero(row)[0]
+        for b in cols:
+            # gộp theo cặp KHÔNG THỨ TỰ (n_pairs = tổng số cặp giữa 2 danh tính)
+            key = (min(int(q[a]), int(q[b])), max(int(q[a]), int(q[b])))
+            v = pid_pairs.get(key)
+            if v is None:
+                pid_pairs[key] = [1, float(sim[a, b]), float(sim[a, b])]   # n, sum, max
+            else:
+                v[0] += 1; v[1] += float(sim[a, b])
+                v[2] = max(v[2], float(sim[a, b]))
+    ranked = sorted(pid_pairs.items(), key=lambda kv: -(kv[1][1] / kv[1][0]))[:int(top_pid_pairs)]
+    out['top_pid_pairs'] = [{
+        'pid_a': ka, 'pid_b': kb, 'n_pairs': v[0],
+        'mean_sim': v[1] / v[0], 'max_sim': v[2],
+    } for (ka, kb), v in ranked]
+
+    # ---------- (C) độ TẬP TRUNG của khối lượng impostor vượt ngưỡng ----------
+    if threshold is not None:
+        over = imp_mask & (sim >= threshold)
+        n_over = int(over.sum())
+        out['n_impostor_above_threshold'] = n_over
+        out['far_above_threshold'] = n_over / max(n_imp, 1)
+        # đếm theo cặp danh tính
+        cnt = {}
+        ii2, jj2 = np.nonzero(over)
+        for a, b in zip(ii2, jj2):
+            # gộp theo cặp KHÔNG THỨ TỰ (n_pairs = tổng số cặp giữa 2 danh tính)
+            key = (min(int(q[a]), int(q[b])), max(int(q[a]), int(q[b])))
+            cnt[key] = cnt.get(key, 0) + 1
+        # theo chuỗi: cùng chuỗi (hard negative hợp lệ) vs khác chuỗi (nghi nhiễu nhãn)
+        same_seq_over = sum(1 for a, b in zip(ii2, jj2)
+                            if meta[int(a)].get('sequence_id') == meta[int(b)].get('sequence_id'))
+        out['concentration'] = {
+            'n_distinct_pid_pairs_total': len(pid_pairs),
+            'n_distinct_pid_pairs_above': len(cnt),
+            'top_pid_pairs_share': [
+                {'pid_a': kk[0], 'pid_b': kk[1], 'n': nn, 'share': nn / max(n_over, 1)}
+                for kk, nn in sorted(cnt.items(), key=lambda kv: -kv[1])[:10]
+            ],
+            'frac_above_same_sequence': (same_seq_over / n_over) if n_over else None,
+            'frac_above_cross_sequence': ((n_over - same_seq_over) / n_over) if n_over else None,
+        }
+    return out
 
 
 def per_query_znorm(sim, q_pids=None, g_pids=None, cohort='all'):
@@ -607,12 +740,21 @@ def main():
                    "pre_bn ~= fused -> BN vo hai ve mat phan biet")
         print(f"\n  ΔTAR(eval, pre_bn - fused) = {d_tar*100:+.2f}%  -> {verdict}")
         # ⚠️ So sánh TƯƠNG ĐỐI chỉ nói BN có phải thủ phạm hay không; còn phải xét MỨC TUYỆT ĐỐI.
-        best_tar = max(results[s]['eval_tar'] for s in ('fused', 'pre_bn'))
+        # 🛠️ (14/9) FIX: bản cũ hardcode "CẢ HAI" + "8.45%" và kết luận "đổi LUẬT QUYẾT ĐỊNH" —
+        # SAI, vì khối z-norm ở dưới đã bác bỏ giả thuyết đó (tốt nhất +0.22%). Giờ không kết luận
+        # thay, chỉ nêu 2 nhánh và để khối z-norm + ablation quyết định.
+        best_space = max(results, key=lambda k: results[k]['eval_tar'])
+        best_tar = results[best_space]['eval_tar']
         if best_tar < 0.30:
-            print(f"  ⚠️ CA HAI khong gian deu TAR rat thap (tot nhat {best_tar*100:.2f}% @FAR<={far_target*100:.2f}%)")
-            print(f"     -> Nut that KHONG phai BatchNorm1d. Xem Rank-1 o tren:")
-            print(f"        Rank-1 tot  -> doi LUAT QUYET DINH (dung xep hang/margin thay vi nguong cosine tuyet doi)")
-            print(f"        Rank-1 thap -> EMBEDDING mat kha nang phan biet (train / backbone / nhan)")
+            n_sp = len(results)
+            print(f"  ⚠️ TAR@FAR<={far_target*100:.2f}% rat thap o MOI khong gian "
+                  f"({n_sp} khong gian, tot nhat {best_space}={best_tar*100:.2f}%)")
+            print(f"     -> Nut that KHONG phai BatchNorm1d. Hai gia thuyet, KHONG ket luan thay:")
+            print(f"        (a) LUAT QUYET DINH: diem cosine khong so sanh duoc giua cac truy van")
+            print(f"            -> PHEP THU: khoi Z-NORM ben duoi (cohort=impostor la upper bound)")
+            print(f"        (b) EMBEDDING/DU LIEU: genuine va impostor CHONG LAN that su")
+            print(f"            -> PHEP THU: khoi ABLATION + kiem tra nhiem nhan/trung danh tinh")
+            print(f"        Luu y: Rank-1 cao KHONG tu no phan biet duoc (a) va (b).")
 
     # 🛠️ (14/9): TAR tại NHIỀU mốc FAR — threshold calibrate trên CAL, đo TAR trên EVAL (out-of-sample).
     # Vì sao cần: TAR@FAR=0.1% chỉ là MỘT điểm làm việc. Nếu TAR tăng vọt ở FAR 1–5% thì vấn đề nằm ở
@@ -697,7 +839,7 @@ def main():
             if s not in results:
                 continue
             r = results[s]
-            g1 = next((x['tar_eval'] for x in r.get('far_curve', [])
+            g1 = next((x['tar_eval'] for x in far_curve.get(s, [])
                        if abs(x['far_target'] - 0.01) < 1e-9), float('nan'))
             print(f"  {s:<10} {dims.get(s, 0):>6} {r['rank1_eval']*100:>13.2f}% "
                   f"{r['mAP_eval']*100:>7.2f}% {r['eval_tar']*100:>11.2f}% {g1*100:>9.2f}%")
@@ -742,6 +884,53 @@ def main():
                 print(f"  ⇒ Tra loi cau hoi 'diem temporal thap hon visual thi temporal co y nghia khong?':")
                 print(f"     CO — temporal-only dat Rank-1={r1t*100:.2f}% ≫ moc ngau nhien {chance*100:.2f}%.")
                 print(f"     'Diem thap hon' chi la khac biet THANG DO giua cac khong gian, khong phai chat luong.")
+
+    # === CHAN DOAN NHIEU NHAN / TRUNG DANH TINH =========================================
+    # Nghi pham hang dau con lai (§11.3): vai cap "impostor" thuc chat la CUNG MOT VAT -> day
+    # phan vi 99.9% len cao -> pha moi nguong tuyet doi. z-norm KHONG sua duoc. Xem tan mat.
+    diag = None
+    if len(results) > 0:
+        diag_space = primary if primary in results else next(iter(results))
+        diag_thr = float(results[diag_space]['threshold'])
+        diag = diagnose_top_impostors(
+            feats_eval[diag_space][0], feats_eval[diag_space][1], pids_eval,
+            ds_eval.valid_pairs, space=diag_space, top_k=50,
+            threshold=diag_thr, data_dir=data_dir)
+        print(f"\n  === CHAN DOAN NHIEU NHAN / TRUNG DANH TINH (eval, space={diag_space}, "
+              f"nguong t*={diag_thr:.4f}) ===")
+        print(f"  Tong cap impostor: {diag['n_impostor_pairs']:,} | "
+              f"vuot nguong: {diag.get('n_impostor_above_threshold', 0):,} "
+              f"(FAR={diag.get('far_above_threshold', 0)*100:.4f}%)")
+        print(f"  Top {min(10, len(diag['top_pairs']))} cap impostor diem cao nhat "
+              f"([VUOT] = >= t*):")
+        for p in diag['top_pairs'][:10]:
+            mark = "[VUOT]" if p.get('above_threshold') else "      "
+            print(f"   {mark} {p['score']:.4f}  pid {p['q_identity_id']} -> {p['g_identity_id']}  "
+                  f"seq {p['q_sequence_id']} vs {p['g_sequence_id']}  "
+                  f"same_seq={p['same_sequence']}  ev {p['q_event_index']}/{p['g_event_index']}")
+            print(f"            q: {p['q_image_paths']}")
+            print(f"            g: {p['g_image_paths']}")
+        print(f"  Cac CAP DANH TINH de nham nhat (sim trung binh):")
+        for p in diag['top_pid_pairs'][:10]:
+            print(f"    pid {p['pid_a']} <-> {p['pid_b']}: n={p['n_pairs']:>5}  "
+                  f"mean={p['mean_sim']:.4f}  max={p['max_sim']:.4f}")
+        conc = diag.get('concentration') or {}
+        if conc:
+            print(f"  Do TAP TRUNG cua khoi luong vuot nguong:")
+            print(f"    {conc.get('n_distinct_pid_pairs_above')} cap pid / "
+                  f"{conc.get('n_distinct_pid_pairs_total')} tong so cap (KHONG thu tu) "
+                  f"chiem toan bo khoi vuot nguong")
+            for s2 in conc.get('top_pid_pairs_share', [])[:5]:
+                print(f"      pid {s2['pid_a']}<->{s2['pid_b']}: n={s2['n']} "
+                      f"share={s2['share']*100:.1f}%")
+            print(f"    Trong khoi vuot nguong: CUNG chuoi="
+                  f"{(conc.get('frac_above_same_sequence') or 0)*100:.1f}%  "
+                  f"KHAC chuoi={(conc.get('frac_above_cross_sequence') or 0)*100:.1f}%")
+        print(f"  -> DIEN GIAI: mean_sim cua mot cap pid ~0.9 (bang muc genuine) => NHIEU NHAN.")
+        print(f"     CUNG chuoi = hard negative hop le (khong phai loi nhan); KHAC chuoi + anh")
+        print(f"     giong het = nghi trung danh tinh. Hay MO ANH o cac duong dan tren de xac nhan.")
+        print(f"     (Khong ket luan thay: neu cac cap tren la drone KHAC NHAU that thi gia thuyet")
+        print(f"      nhieu nhan bi loai, va van de nam o chat luong embedding/du lieu.)")
 
     # === TAI NGUONG DANG TRIEN KHAI =====================================================
     # Cau hoi: pipeline dung reid_threshold (vd 0.75) va chi HARD LOCK ~6% cua so. Offline tai
@@ -818,6 +1007,8 @@ def main():
         'znorm': znorm,
         # 🛠️ (14/9): TAR/FAR offline tại đúng ngưỡng pipeline đang dùng (cầu nối offline <-> online)
         'deployed_threshold': deployed,
+        # 🛠️ (14/9): chẩn đoán nhiễu nhãn / trùng danh tính (top cặp impostor + độ tập trung)
+        'label_noise_diagnosis': diag,
         # backward compat: giữ nguyên hình dạng cũ cho không gian chính
         'calibration': {
             'threshold': float(t_star),
