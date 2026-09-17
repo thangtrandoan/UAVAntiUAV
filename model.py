@@ -216,6 +216,23 @@ def weights_init_classifier(m):
             nn.init.constant_(m.bias, 0.0)
 
 
+def _is_classifier_key(name):
+    """
+    Key của các đầu CLASSIFIER (không tham gia trích feature khi eval).
+
+    Vì sao cần phân biệt: checkpoint train với `num_identities` khác model khởi tạo
+    (vd: 502 danh tính lúc train vs 1000 default) sẽ khiến các key này lệch shape.
+    Đó là chuyện BÌNH THƯỜNG, không phải lỗi:
+      - `backbone.classifier_global` / `classifier_fs`: đầu phân loại pretrain của DINOv3/GASNet
+        (chỉ dùng cho pretraining objective)
+      - `head.classifier`: đầu ID classifier trong ReIDHead — `ReIDHead.forward` chỉ gọi nó khi
+        `self.training == True`; eval trả về `bn_feat` TRƯỚC đó (xem ReIDHead.forward).
+    Nên thiếu/lệch các key này KHÔNG ảnh hưởng feature dùng để matching.
+    """
+    n = name.lower()
+    return ('classifier' in n) or n.endswith('.fc.weight') or n.endswith('.fc.bias')
+
+
 def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print):
     """
     Load checkpoint vào model, ĐỒNG THỜI báo cáo đầy đủ:
@@ -227,6 +244,11 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
     (ví dụ TOÀN BỘ `backbone.*`) vẫn in ra "Loaded" như thành công. Nếu backbone
     không được nạp, visual feature là feature pretrain chung chứ không phải feature
     đã train → mọi kết luận eval/infer đều nhiễu.
+
+    🛠️ (14/9) FIX: các key CLASSIFIER (xem `_is_classifier_key`) được tách riêng và KHÔNG
+    kích hoạt cảnh báo nghiêm trọng — lệch `num_identities` giữa checkpoint và model khởi tạo
+    là chuyện bình thường và chúng không nằm trên đường trích feature. Cảnh báo nghiêm trọng
+    chỉ bật khi thiếu key `backbone.*` KHÔNG phải classifier.
 
     Trả về dict summary để caller log/lưu.
     """
@@ -247,7 +269,14 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
 
     n_model = len(model_state)
     n_loaded = sum(1 for k in model_state if k in new_state_dict)
-    backbone_missing = [k for k in missing if k.startswith('backbone.')]
+    # Chỉ tính các key ẢNH HƯỞNG ĐẶC TRƯNG là "nghiêm trọng"
+    backbone_missing = [k for k in missing
+                        if k.startswith('backbone.') and not _is_classifier_key(k)]
+    head_feature_missing = [k for k in missing
+                            if k.startswith('head.') and not _is_classifier_key(k)
+                            and 'bnneck' not in k]
+    classifier_missing = [k for k in missing if _is_classifier_key(k)]
+    classifier_mismatch = [s for s in skipped_shape if _is_classifier_key(s[0])]
 
     log(f"  [{tag}] {os.path.basename(str(checkpoint_path))}: "
         f"{n_loaded}/{n_model} keys của model được nạp "
@@ -272,12 +301,81 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
         for name, ck_shape, md_shape in skipped_shape[:10]:
             log(f"      - {name}: checkpoint{ck_shape} vs model{md_shape}")
 
-    if backbone_missing:
-        log(f"  [{tag}] ❌ CẢNH BÁO NGHIÊM TRỌNG: {len(backbone_missing)} keys `backbone.*` "
-            f"KHÔNG được nạp từ checkpoint.")
-        log(f"      → Visual backbone đang chạy bằng init/pretrain, KHÔNG phải trọng số đã train.")
-        log(f"      → Kết quả eval/infer có thể nhiễu (visual feature không khớp temporal/head).")
-        log(f"      → Kiểm tra: checkpoint có chứa 'backbone.' không? Có lệch tên/shape không?")
+    # --- Chẩn đoán implementation của TEMPORAL ENCODER (Mamba thật vs SimpleS6Block fallback) ---
+    # Vì sao quan trọng: `TemporalMambaEncoder.__init__` chọn module theo `HAS_MAMBA`. Nếu lúc TRAIN
+    # có `mamba_ssm` mà lúc EVAL không (hoặc ngược lại) thì trọng số temporal KHÔNG khớp và nhánh
+    # temporal chạy random — một confound bậc một khi đánh giá "temporal có ý nghĩa không".
+    # Phân biệt bằng shape (hai implementation KHÁC shape):
+    #   SimpleS6Block : x_proj = Linear(d_inner, d_state*2 + 1) = (33, d_inner), dt_proj = (d_inner, 1)
+    #   mamba_ssm     : x_proj = Linear(d_inner, dt_rank + 2*d_state) = (64, d_inner) với d_model=512,
+    #                   dt_rank = ceil(512/16) = 32, dt_proj = (d_inner, dt_rank)
+    def _find_shape(sd, target):
+        for k, v in sd.items():
+            nk = k[len('_orig_mod.'):] if k.startswith('_orig_mod.') else k
+            if nk == target:
+                return tuple(v.shape)
+        return None
+
+    _xk = 'temporal_encoder.layers.0.x_proj.weight'
+    _dk = 'temporal_encoder.layers.0.dt_proj.weight'
+    ck_x = _find_shape(state_dict, _xk)
+    ck_d = _find_shape(state_dict, _dk)
+    ms_x = _find_shape(model_state, _xk)
+    active_impl = 'mamba_ssm.Mamba (thật)' if HAS_MAMBA else 'SimpleS6Block (fallback)'
+    temporal_arch_ok = True
+
+    if ck_x is None:
+        log(f"  [{tag}] ℹ️ Checkpoint KHÔNG có `{_xk}` → không xác định được implementation "
+            f"temporal (checkpoint có thể thiếu cả nhánh temporal).")
+        temporal_arch_ok = False
+    else:
+        if ck_x[0] == 33:
+            ck_impl = 'SimpleS6Block (fallback)'
+        elif ms_x is not None and ck_x[0] == ms_x[0]:
+            ck_impl = active_impl
+        else:
+            ck_impl = f'KHÁC (x_proj={ck_x}, model={ms_x})'
+        if ms_x is not None and ck_x != ms_x:
+            temporal_arch_ok = False
+            log(f"  [{tag}] ❌ CẢNH BÁO NGHIÊM TRỌNG: trọng số TEMPORAL KHÔNG khớp implementation!")
+            log(f"      checkpoint: x_proj{ck_x}, dt_proj{ck_d}  ({ck_impl})")
+            log(f"      model     : x_proj{ms_x}, dt_proj{_find_shape(model_state, _dk)}  ({active_impl})")
+            log(f"      → `x_proj`/`dt_proj` bị bỏ do lệch shape → nhánh temporal chạy RANDOM.")
+            log(f"      → Mọi kết luận về 'temporal/Mamba' đều vô hiệu. Phải cài đúng mamba_ssm "
+                f"hoặc TRAIN LẠI với implementation đang dùng.")
+        else:
+            log(f"  [{tag}] ℹ️ Temporal encoder: cả checkpoint và model đều dùng **{ck_impl}** "
+                f"(x_proj{ck_x}) → trọng số temporal khớp.")
+            if not HAS_MAMBA and ck_impl == 'SimpleS6Block (fallback)':
+                log(f"      ⚠️ Đây KHÔNG phải Mamba thật (`mamba_ssm` chưa cài). Muốn dùng Mamba thật:")
+                log(f"         1) `pip install mamba-ssm causal-conv1d`; 2) **TRAIN LẠI** — không chuyển")
+                log(f"         được trọng số vì `x_proj`/`dt_proj` khác shape. Trọng số còn lại (conv1d,")
+                log(f"         A_log, D, in_proj, out_proj) thì tương thích.")
+
+    # --- Giải thích các key classifier (BÌNH THƯỜNG, không phải lỗi) ---
+    if classifier_missing or classifier_mismatch:
+        ck_cls = [s[1][0] for s in classifier_mismatch if s[0].endswith('.weight')]
+        md_cls = [s[2][0] for s in classifier_mismatch if s[0].endswith('.weight')]
+        detail = ""
+        if ck_cls and md_cls:
+            detail = (f" (số lớp: checkpoint={ck_cls[0]} vs model={md_cls[0]})"
+                      f" → model khởi tạo `num_identities` khác lúc train")
+        log(f"  [{tag}] ℹ️ {len(classifier_missing)} missing + {len(classifier_mismatch)} lệch shape "
+            f"thuộc đầu CLASSIFIER{detail}")
+        log(f"      → KHÔNG phải lỗi: `head.classifier` chỉ dùng khi training "
+            f"(eval trả `bn_feat` trước đó); `backbone.classifier_*` là đầu phân loại pretrain.")
+        log(f"      → Đường trích feature (backbone trunk + temporal + bnneck) KHÔNG bị ảnh hưởng.")
+        # Nếu muốn eval với đúng num_classes: truyền num_identities=<số lớp của checkpoint>.
+
+    if backbone_missing or head_feature_missing:
+        log(f"  [{tag}] ❌ CẢNH BÁO NGHIÊM TRỌNG: "
+            f"{len(backbone_missing)} keys `backbone.*` + {len(head_feature_missing)} keys "
+            f"feature của `head.*` KHÔNG được nạp từ checkpoint.")
+        for k in (backbone_missing + head_feature_missing)[:5]:
+            log(f"      - {k}")
+        log(f"      → Trọng số ĐẶC TRƯNG đang là init/pretrain, KHÔNG phải trọng số đã train.")
+        log(f"      → Kết quả eval/infer sẽ nhiễu (visual feature không khớp temporal/head).")
+        log(f"      → Kiểm tra: checkpoint có chứa các key này không? Có lệch tên/shape không?")
 
     return {
         'tag': tag,
@@ -288,6 +386,12 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
         'unexpected': list(unexpected),
         'skipped_shape': [s[0] for s in skipped_shape],
         'backbone_missing': backbone_missing,
+        'head_feature_missing': head_feature_missing,
+        'classifier_missing': classifier_missing,
+        'classifier_shape_mismatch': [s[0] for s in classifier_mismatch],
+        'temporal_impl_checkpoint': ck_impl if ck_x is not None else None,
+        'temporal_impl_active': active_impl,
+        'temporal_arch_ok': temporal_arch_ok,
     }
 
 

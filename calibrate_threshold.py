@@ -128,6 +128,14 @@ def extract_features(model, dataloader, backbone_only=False, spaces=('fused',)):
       'pre_bn'   : cat(visual, temporal) — ĐẦU VÀO của bnneck (raw);
                    dùng để kiểm chứng giả thuyết "BatchNorm1d phá cosine" (xem md/15thg9.md)
       'backbone' : chỉ visual backbone (chỉ dùng khi backbone_only=True)
+      'visual'   : CHỈ nhánh visual (2560-d) — ablation nhánh temporal
+      'temporal' : CHỈ token temporal (512-d) — ablation nhánh visual
+
+    🛠️ (14/9) Thêm 'visual' và 'temporal' để trả lời "nhánh temporal có thực sự đóng góp không?".
+    ⚠️ PHƯƠNG PHÁP: **không được so MỨC điểm** giữa các nhánh. `temporal ≈ 0.938 < visual ≈ 0.990`
+    KHÔNG có nghĩa temporal kém hơn — cosine ở các không gian/số chiều khác nhau không so sánh
+    được (đúng loại lỗi đã mắc với `pre_bn` vs `fused`). Phải so **khả năng phân biệt**:
+    Rank-1 / mAP / TAR@FAR.
 
     Return: (feats, pids) với feats[space] = (qf, gf) đã concat theo batch.
     """
@@ -142,6 +150,12 @@ def extract_features(model, dataloader, backbone_only=False, spaces=('fused',)):
             else:
                 v_g, t_g, _ = model.extract_features(before)
                 v_q, t_q, _ = model.extract_features(after)
+                if 'visual' in spaces:
+                    acc['visual']['gf'].append(v_g.cpu())
+                    acc['visual']['qf'].append(v_q.cpu())
+                if 'temporal' in spaces:
+                    acc['temporal']['gf'].append(t_g.cpu())
+                    acc['temporal']['qf'].append(t_q.cpu())
                 if 'fused' in spaces:
                     acc['fused']['gf'].append(model.head(v_g, t_g).cpu())
                     acc['fused']['qf'].append(model.head(v_q, t_q).cpu())
@@ -184,25 +198,37 @@ def compute_scores(qf, gf, q_pids, g_pids):
     return scores_from_matrix(similarity_matrix(qf, gf), q_pids, g_pids)
 
 
-def per_query_znorm(sim):
+def per_query_znorm(sim, q_pids=None, g_pids=None, cohort='all'):
     """
     🛠️ (14/9): chuẩn hoá điểm theo TỪNG TRUY VẤN (z-norm / cohort normalization).
 
-        z[i, j] = (s[i, j] - mean_j s[i, :]) / std_j s[i, :]
+        z[i, j] = (s[i, j] - mu_i) / sd_i
 
-    Vì sao: Rank-1 cao mà TAR@FAR thấp nghĩa là THỨ TỰ trong mỗi truy vấn đúng, nhưng MỨC
-    điểm không so sánh được giữa các truy vấn (mỗi truy vấn có offset/scale khác nhau) -> một
-    ngưỡng cosine TUYỆT ĐỐI dùng chung cho mọi truy vấn là sai công cụ.
+    cohort='all'      : mu_i/sd_i trên TOÀN BỘ gallery của truy vấn i. Không dùng nhãn.
+    cohort='impostor' : mu_i/sd_i CHỈ trên các cột KHÁC danh tính với truy vấn i.
 
-    KHÔNG dùng nhãn: mean/std lấy trên toàn bộ gallery của chính truy vấn đó.
-    Đây là **upper bound** của hướng "đổi luật quyết định" (deployment thật cần một cohort cố
-    định — t-norm — thay cho toàn bộ gallery).
+    ⚠️ Vì sao phải có cả 2: gallery có ~21 cặp genuine mỗi truy vấn (2.9%), và chúng chính là
+    các điểm CAO NHẤT → đưa chúng vào mu/sd sẽ làm mu, sd phồng lên và **đè z-score của chính
+    genuine xuống**. Vì vậy `cohort='all'` là một phép thử THIÊN VỊ (thiên vị chống z-norm).
+    `cohort='impostor'` là UPPER BOUND đúng của hướng này, nhưng nó DÙNG NHÃN để chọn cohort →
+    deployment thật phải thay bằng một cohort tham chiếu CÓ NHÃN (t-norm), không phải toàn gallery.
 
-    Lưu ý: đây là biến đổi đơn điệu theo từng hàng -> **Rank-1 không đổi**, chỉ DET/TAR đổi.
+    Đây là biến đổi affine theo từng hàng → **Rank-1 không đổi**, chỉ DET/TAR đổi.
     """
-    mu = sim.mean(axis=1, keepdims=True)
-    sd = sim.std(axis=1, keepdims=True)
-    return (sim - mu) / (sd + 1e-12)
+    sim = np.asarray(sim, dtype=np.float64)
+    if cohort == 'impostor' and q_pids is not None and g_pids is not None:
+        q = np.asarray(q_pids)
+        g = np.asarray(g_pids)
+        mask = (g[None, :] != q[:, None]).astype(np.float64)
+        if sim.shape[0] == sim.shape[1]:
+            np.fill_diagonal(mask, 0.0)          # bỏ self-match
+        n = np.maximum(mask.sum(axis=1, keepdims=True), 1.0)
+        mu = (sim * mask).sum(axis=1, keepdims=True) / n
+        var = (((sim - mu) ** 2) * mask).sum(axis=1, keepdims=True) / n
+    else:
+        mu = sim.mean(axis=1, keepdims=True)
+        var = sim.var(axis=1, keepdims=True)
+    return (sim - mu) / (np.sqrt(np.maximum(var, 0.0)) + 1e-12)
 
 
 def rank_metrics(qf, gf, q_pids, g_pids):
@@ -472,7 +498,7 @@ def main():
     # "BatchNorm1d trong ReIDHead có thật sự làm mất khả năng phân biệt không?"
     #   fused  = qua head (BatchNorm1d) — pipeline hiện tại
     #   pre_bn = cat(visual, temporal)  — đầu vào bnneck (raw)
-    spaces = ['backbone'] if backbone_only else ['fused', 'pre_bn']
+    spaces = ['backbone'] if backbone_only else ['fused', 'pre_bn', 'visual', 'temporal']
     print("\n[3/5] Extracting features...")
     print(f"  Spaces    : {', '.join(spaces)}")
     print(f"  -> Cal split ({len(cal_seqs)} sequences)...")
@@ -604,46 +630,99 @@ def main():
     print(f"     khong phai embedding. Chon nguong theo nhu cau that (latency vs lock sai), khong theo FAR 0.1%.")
 
     # === THU NGHIEM: CHUAN HOA DIEM THEO TUNG TRUY VAN (z-norm) =========================
-    # Rank-1 cao + TAR@FAR thap => thu tu trong moi truy van dung, nhung MUC diem khong so sanh
-    # duoc giua cac truy van. z-norm bien moi truy van ve cung mot thang -> do duoc "tran" cua
-    # huong "doi LUAT QUYET DINH" ma khong can train lai. (Rank-1 bat bien, chi DET/TAR doi.)
-    print(f"\n  === THU NGHIEM: chuan hoa diem theo TUNG TRUY VAN (z-norm, cohort = toan bo gallery) ===")
-    print(f"  {'Space':<10} {'t* (z, cal)':>12} {'TAR@FAR=0.1% (eval)':>21} {'so voi goc':>11} "
+    # Rank-1 cao + TAR@FAR thap co the do MUC diem khong so sanh duoc giua cac truy van.
+    # Do ca 2 bien the de tranh ket luan sai:
+    #   cohort='all'      : mu/sd tren toan bo gallery  -> THIEN VI (gallery chua ~21 genuine
+    #                       diem CAO moi truy van, lam mu/sd phong len va de z_genuine xuong)
+    #   cohort='impostor' : mu/sd chi tren cot KHAC danh tinh -> UPPER BOUND dung cua huong nay
+    #                       (dung nhan -> deployment phai dung cohort tham chieu co nhan)
+    # Rank-1 bat bien o ca 2 (bien doi affine theo hang), chi DET/TAR doi.
+    print(f"\n  === THU NGHIEM: chuan hoa diem theo TUNG TRUY VAN (z-norm) ===")
+    print(f"  {'Space':<10} {'cohort':<9} {'t* (z, cal)':>12} {'TAR@FAR=0.1%':>13} {'so voi goc':>11} "
           f"{'FAR 1%':>8} {'FAR 5%':>8} {'FAR 10%':>8}")
     znorm = {}
     for s in list(results.keys()):
         sim_cal = similarity_matrix(feats_cal[s][0], feats_cal[s][1])
         sim_eval = similarity_matrix(feats_eval[s][0], feats_eval[s][1])
-        gz_cal, iz_cal = scores_from_matrix(per_query_znorm(sim_cal), pids_cal, pids_cal)
-        gz_eval, iz_eval = scores_from_matrix(per_query_znorm(sim_eval), pids_eval, pids_eval)
+        znorm[s] = {}
+        for cohort in ('all', 'impostor'):
+            gz_cal, iz_cal = scores_from_matrix(
+                per_query_znorm(sim_cal, pids_cal, pids_cal, cohort=cohort), pids_cal, pids_cal)
+            gz_eval, iz_eval = scores_from_matrix(
+                per_query_znorm(sim_eval, pids_eval, pids_eval, cohort=cohort), pids_eval, pids_eval)
 
-        t_z, far_z_cal = calibrate_fixed_far(iz_cal, far_target)
-        tar_z, far_z, _ = eval_at_threshold(gz_eval, iz_eval, t_z)
-        grid = []
-        for f in far_grid:
-            t_f, _ = calibrate_fixed_far(iz_cal, f)
-            tar_f, far_a, _ = eval_at_threshold(gz_eval, iz_eval, t_f)
-            grid.append({'far_target': f, 'threshold': float(t_f),
-                         'tar_eval': float(tar_f), 'far_eval': float(far_a)})
-        znorm[s] = {
-            'threshold': float(t_z), 'far_target': float(far_target),
-            'actual_far_cal': float(far_z_cal), 'tar_eval': float(tar_z), 'far_eval': float(far_z),
-            'tar_raw_eval': float(results[s]['eval_tar']),
-            'gain_vs_raw': float(tar_z - results[s]['eval_tar']),
-            'far_curve': grid,
-        }
-        g5 = next((x['tar_eval'] for x in grid if abs(x['far_target'] - 0.05) < 1e-9), float('nan'))
-        g10 = next((x['tar_eval'] for x in grid if abs(x['far_target'] - 0.10) < 1e-9), float('nan'))
-        g1 = next((x['tar_eval'] for x in grid if abs(x['far_target'] - 0.01) < 1e-9), float('nan'))
-        print(f"  {s:<10} {t_z:>12.4f} {tar_z*100:>20.2f}% {(tar_z - results[s]['eval_tar'])*100:>+10.2f}% "
-              f"{g1*100:>7.1f}% {g5*100:>7.1f}% {g10*100:>7.1f}%")
-    best_gain = max((v['gain_vs_raw'] for v in znorm.values()), default=0.0)
+            t_z, far_z_cal = calibrate_fixed_far(iz_cal, far_target)
+            tar_z, far_z, _ = eval_at_threshold(gz_eval, iz_eval, t_z)
+            grid = []
+            for f in far_grid:
+                t_f, _ = calibrate_fixed_far(iz_cal, f)
+                tar_f, far_a, _ = eval_at_threshold(gz_eval, iz_eval, t_f)
+                grid.append({'far_target': f, 'threshold': float(t_f),
+                             'tar_eval': float(tar_f), 'far_eval': float(far_a)})
+            znorm[s][cohort] = {
+                'threshold': float(t_z), 'far_target': float(far_target),
+                'actual_far_cal': float(far_z_cal), 'tar_eval': float(tar_z), 'far_eval': float(far_z),
+                'tar_raw_eval': float(results[s]['eval_tar']),
+                'gain_vs_raw': float(tar_z - results[s]['eval_tar']),
+                'far_curve': grid,
+            }
+            g1 = next((x['tar_eval'] for x in grid if abs(x['far_target'] - 0.01) < 1e-9), float('nan'))
+            g5 = next((x['tar_eval'] for x in grid if abs(x['far_target'] - 0.05) < 1e-9), float('nan'))
+            g10 = next((x['tar_eval'] for x in grid if abs(x['far_target'] - 0.10) < 1e-9), float('nan'))
+            print(f"  {s:<10} {cohort:<9} {t_z:>12.4f} {tar_z*100:>12.2f}% "
+                  f"{(tar_z - results[s]['eval_tar'])*100:>+10.2f}% "
+                  f"{g1*100:>7.1f}% {g5*100:>7.1f}% {g10*100:>7.1f}%")
+    best_gain = max((v['gain_vs_raw'] for d in znorm.values() for v in d.values()), default=0.0)
     if best_gain > 0.05:
-        print(f"  => z-norm giup TAR tang {best_gain*100:+.2f}% o cung FAR -> KHANG DINH: van de la LUAT QUYET DINH.")
-        print(f"     Buoc tiep: hien thuc cohort co dinh (t-norm) trong infer.py thay vi dung toan bo gallery.")
+        print(f"  => z-norm GIUP TAR tang {best_gain*100:+.2f}% o cung FAR -> diem cosine KHONG tuong thich")
+        print(f"     giua cac truy van; huong dung la chuan hoa diem (cohort tham chieu co nhan).")
     else:
-        print(f"  => z-norm khong giup dang ke (tot nhat {best_gain*100:+.2f}%) -> diem cosine da tuong thich")
-        print(f"     giua cac truy van; van de nam sau hon (chat luong embedding / du lieu).")
+        print(f"  => z-norm KHONG giup dang ke (tot nhat {best_gain*100:+.2f}%) -> diem cosine da tuong")
+        print(f"     thich giua cac truy van. Nut that nam o CHO KHAC (xem khoi TAI NGUONG TRIEN KHAI).")
+
+    # === ABLATION: nhanh TEMPORAL co dong gop gi khong? ==================================
+    # Tra loi cau hoi "diem temporal thap hon visual => temporal co y nghia khong?".
+    # ⚠️ KHONG so muc diem (vo nghia giua cac khong gian) — so KHẢ NĂNG PHÂN BIỆT.
+    if 'visual' in results and 'temporal' in results:
+        print(f"\n  === ABLATION: nhanh TEMPORAL dong gop bao nhieu? (eval-split) ===")
+        print(f"  {'Space':<10} {'dim':>6} {'Rank-1 (eval)':>14} {'mAP':>8} {'TAR@FAR0.1%':>12} {'TAR@FAR1%':>10}")
+        dims = {'visual': 2560, 'temporal': 512, 'pre_bn': 3072, 'fused': 3072}
+        for s in ('visual', 'temporal', 'pre_bn', 'fused'):
+            if s not in results:
+                continue
+            r = results[s]
+            g1 = next((x['tar_eval'] for x in r.get('far_curve', [])
+                       if abs(x['far_target'] - 0.01) < 1e-9), float('nan'))
+            print(f"  {s:<10} {dims.get(s, 0):>6} {r['rank1_eval']*100:>13.2f}% "
+                  f"{r['map_eval']*100:>7.2f}% {r['eval_tar']*100:>11.2f}% {g1*100:>9.2f}%")
+        ablation = {}
+        for s in ('visual', 'temporal', 'pre_bn', 'fused'):
+            if s in results:
+                ablation[s] = {'rank1_eval': float(results[s]['rank1_eval']),
+                               'map_eval': float(results[s]['map_eval']),
+                               'tar_at_far01_eval': float(results[s]['eval_tar'])}
+        if 'visual' in results:
+            d_rank1 = results['fused']['rank1_eval'] - results['visual']['rank1_eval']
+            d_map = results['fused']['map_eval'] - results['visual']['map_eval']
+            d_tar = results['fused']['eval_tar'] - results['visual']['eval_tar']
+            print(f"\n  Δ(fused − visual) :  Rank-1 {d_rank1*100:+.2f}%   mAP {d_map*100:+.2f}%   "
+                  f"TAR@FAR0.1% {d_tar*100:+.2f}%")
+            same_temporal = (abs(d_rank1) < 0.02 and abs(d_map) < 0.02)
+            if same_temporal:
+                print(f"  => fused ≈ visual o MOI chi so -> nhanh TEMPORAL KHONG dong gop gi.")
+                print(f"     Hanh dong: thu (a) bo temporal (visual-only) de giam chi phi, hoac")
+                print(f"     (b) train lai temporal voi loss rieng (temporal consistency) / dung Mamba that.")
+            elif d_rank1 > 0.02 or d_map > 0.02:
+                print(f"  => fused TOT HON visual -> nhanh TEMPORAL CO dong gop (dù muc diem thap hon).")
+                print(f"     'Diem temporal thap hon' chi la khac biet THANG DO, khong phai chat luong.")
+            else:
+                print(f"  => fused KEM hon visual -> nhanh temporal dang gay HAI. Can chan doan lai.")
+        # So rieng temporal-only voi moc ngau nhien
+        if 'temporal' in results:
+            r1t = results['temporal']['rank1_eval']
+            chance = results['temporal'].get('rank1_chance', float('nan'))
+            print(f"  temporal-only Rank-1 = {r1t*100:.2f}% (moc ngau nhien {chance*100:.2f}%) -> "
+                  f"{'CO thong tin danh tinh' if r1t > 3*chance else 'GAN NHU KHONG co thong tin danh tinh'}")
 
     # === TAI NGUONG DANG TRIEN KHAI =====================================================
     # Cau hoi: pipeline dung reid_threshold (vd 0.75) va chi HARD LOCK ~6% cua so. Offline tai
