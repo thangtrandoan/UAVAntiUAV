@@ -98,4 +98,5 @@ infer:
   debug_sim: true
   # 🛠️ (14/9): không gian cho gate HARD LOCK: 'fused' (cũ) hoặc 'pre_bn'.
   # ⚠️ Đổi sang pre_bn thì PHẢI đổi `reid_threshold` = thresholds.pre_bn (calibrate trước).
+  # ✅ Đã kiểm chứng 15/9: pre_bn KÉM hơn fused 2.67% TAR -> GIỮ fused (md/15thg9.md §4.1).
   fine_space: fused

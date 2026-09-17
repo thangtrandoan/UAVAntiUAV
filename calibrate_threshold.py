@@ -173,6 +173,52 @@ def compute_scores(qf, gf, q_pids, g_pids):
     return np.array(genuine, dtype=np.float32), np.array(impostor, dtype=np.float32)
 
 
+def rank_metrics(qf, gf, q_pids, g_pids):
+    """
+    🛠️ (14/9): Rank-1 + mAP trên CÙNG ma trận cosine với `compute_scores` (bỏ self-match i==j).
+
+    Vì sao cần chỉ số này: TAR@FAR chỉ nói về NGƯỠNG TUYỆT ĐỐI.
+      - Rank-1 CAO mà TAR@FAR thấp  -> embedding vẫn xếp hạng tốt, vấn đề là LUẬT QUYẾT ĐỊNH
+        (ngưỡng cosine tuyệt đối), không phải đặc trưng -> không cần train lại.
+      - Rank-1 ~ mức ngẫu nhiên (= tỉ lệ genuine) -> embedding thật sự mất khả năng phân biệt
+        -> lỗi ở train / backbone / nhãn.
+    Mốc ngẫu nhiên = số cặp genuine / tổng số cặp (in ra để so).
+
+    Khác `evaluate_reid.eval_map_cmc`: hàm đó KHÔNG bỏ self-match (query/gallery là 2 list rời),
+    còn ở đây bỏ để đồng nhất với `compute_scores` và các con số TAR/FAR cùng script.
+    """
+    qf_n = F.normalize(qf, p=2, dim=1)
+    gf_n = F.normalize(gf, p=2, dim=1)
+    sim = torch.mm(qf_n, gf_n.t()).cpu().numpy()
+    n_q, n_g = sim.shape
+    square = n_q == n_g
+    if square:
+        np.fill_diagonal(sim, -np.inf)  # bỏ self-match (đẩy xuống cuối)
+
+    q_pids = np.asarray(q_pids)
+    g_pids = np.asarray(g_pids)
+    indices = np.argsort(-sim, axis=1)
+    matches = (g_pids[indices] == q_pids[:, None]).astype(np.float32)
+    if square:
+        # ...và loại HẲN khỏi tập match (nếu chỉ đẩy xuống cuối thì mAP bị thổi lên vì mỗi
+        # truy vấn luôn được tặng 1 cặp genuine ở hạng cuối). Đồng nhất với `compute_scores`.
+        matches[indices == np.arange(n_q)[:, None]] = 0.0
+
+    num_rel = matches.sum(axis=1)
+    valid = num_rel > 0
+    if not valid.any():
+        return float('nan'), float('nan'), float('nan')
+
+    m = matches[valid]
+    n_rel = num_rel[valid]
+    rank1 = float(m[:, 0].mean())
+    tmp = np.cumsum(m, axis=1) / (np.arange(m.shape[1]) + 1.0)
+    mAP = float(((tmp * m).sum(axis=1) / n_rel).mean())
+    denom = (n_q * (n_g - 1)) if square else matches.size
+    chance = float(matches.sum() / max(denom, 1))  # tỉ lệ genuine -> mức Rank-1 ngẫu nhiên
+    return rank1, mAP, chance
+
+
 # Calibration - Fixed FAR
 def calibrate_fixed_far(impostor_scores, far_target):
     """
@@ -445,12 +491,19 @@ def main():
         t_star, cal_actual_far = calibrate_fixed_far(sc['imp_cal'], far_target)
         cal_tar, _, cal_frr = eval_at_threshold(sc['gen_cal'], sc['imp_cal'], t_star)
         eval_tar, eval_actual_far, eval_frr = eval_at_threshold(sc['gen_eval'], sc['imp_eval'], t_star)
+        # 🛠️ (14/9): Rank-1/mAP để tách "ngưỡng tuyệt đối tệ" khỏi "embedding mất khả năng phân biệt"
+        qf_cal, gf_cal = feats_cal[s]
+        qf_eval, gf_eval = feats_eval[s]
+        rank1_cal, map_cal, chance_cal = rank_metrics(qf_cal, gf_cal, pids_cal, pids_cal)
+        rank1_eval, map_eval, chance_eval = rank_metrics(qf_eval, gf_eval, pids_eval, pids_eval)
         results[s] = {
             'threshold': float(t_star),
             'cal_actual_far': float(cal_actual_far), 'cal_tar': float(cal_tar), 'cal_frr': float(cal_frr),
             'eval_tar': float(eval_tar), 'eval_far': float(eval_actual_far), 'eval_frr': float(eval_frr),
             'n_genuine_cal': int(len(sc['gen_cal'])), 'n_impostor_cal': int(len(sc['imp_cal'])),
             'n_genuine_eval': int(len(sc['gen_eval'])), 'n_impostor_eval': int(len(sc['imp_eval'])),
+            'rank1_cal': rank1_cal, 'mAP_cal': map_cal,
+            'rank1_eval': rank1_eval, 'mAP_eval': map_eval, 'rank1_chance': chance_eval,
         }
 
     if not results:
@@ -460,18 +513,63 @@ def main():
 
     # 5b. Bảng so sánh không gian — đây là kết luận chính của lần chạy
     print(f"\n  === SO SANH KHONG GIAN DAC TRUNG (Fixed FAR <= {far_target*100:.2f}%) ===")
-    print(f"  {'Space':<10} {'t*':>10} {'TAR@t* (cal)':>13} {'TAR@t* (eval)':>14} {'FAR@t* (eval)':>14}")
+    print(f"  {'Space':<10} {'t*':>10} {'TAR@t* (cal)':>13} {'TAR@t* (eval)':>14} {'FAR@t* (eval)':>14} "
+          f"{'Rank-1 (eval)':>14} {'mAP':>8}")
     for s, r in results.items():
         print(f"  {s:<10} {r['threshold']:>10.6f} {r['cal_tar']*100:>12.2f}% "
-              f"{r['eval_tar']*100:>13.2f}% {r['eval_far']*100:>13.4f}%")
+              f"{r['eval_tar']*100:>13.2f}% {r['eval_far']*100:>13.4f}% "
+              f"{r['rank1_eval']*100:>13.2f}% {r['mAP_eval']*100:>7.2f}%")
+
+    # 🛠️ (14/9): tách "ngưỡng tuyệt đối tệ" khỏi "embedding mất khả năng phân biệt"
+    chance = next(iter(results.values())).get('rank1_chance', float('nan'))
+    print(f"\n  Moc ngau nhien cua Rank-1 (ti le genuine) = {chance*100:.2f}%")
+    for s, r in results.items():
+        r1 = r['rank1_eval']
+        if np.isnan(r1):
+            continue
+        if r1 <= chance * 2.5:
+            tag = "=> Rank-1 gan muc ngau nhien: EMBEDDING mat kha nang phan biet (loi train/backbone/nhan)"
+        elif r1 >= 0.50 and r['eval_tar'] < 0.30:
+            tag = "=> Rank-1 tot nhung TAR@FAR thap: XEP HANG van dung -> van de la LUAT QUYET DINH (nguong cosine tuyet doi), KHONG can train lai"
+        elif r1 >= chance * 2.5:
+            tag = "=> Rank-1 tren muc ngau nhien nhung con thap: da co tin hieu, can xem lai train + luat quyet dinh"
+        print(f"    [{s}] Rank-1={r1*100:.2f}% (mAP={r['mAP_eval']*100:.2f}%)  {tag}")
     if 'fused' in results and 'pre_bn' in results:
         d_tar = results['pre_bn']['eval_tar'] - results['fused']['eval_tar']
         verdict = ("pre_bn TOT HON ro ret -> BatchNorm1d that su lam mat kha nang phan biet"
                    if d_tar > 0.02 else
                    "pre_bn KEM HON -> BN chi nen thang diem, KHONG lam mat thong tin"
                    if d_tar < -0.02 else
-                   "pre_bn ~= fused -> BN vo hai ve mat phan biet; chi can calibrate lai threshold")
+                   "pre_bn ~= fused -> BN vo hai ve mat phan biet")
         print(f"\n  ΔTAR(eval, pre_bn - fused) = {d_tar*100:+.2f}%  -> {verdict}")
+        # ⚠️ So sánh TƯƠNG ĐỐI chỉ nói BN có phải thủ phạm hay không; còn phải xét MỨC TUYỆT ĐỐI.
+        best_tar = max(results[s]['eval_tar'] for s in ('fused', 'pre_bn'))
+        if best_tar < 0.30:
+            print(f"  ⚠️ CA HAI khong gian deu TAR rat thap (tot nhat {best_tar*100:.2f}% @FAR<={far_target*100:.2f}%)")
+            print(f"     -> Nut that KHONG phai BatchNorm1d. Xem Rank-1 o tren:")
+            print(f"        Rank-1 tot  -> doi LUAT QUYET DINH (dung xep hang/margin thay vi nguong cosine tuyet doi)")
+            print(f"        Rank-1 thap -> EMBEDDING mat kha nang phan biet (train / backbone / nhan)")
+
+    # 🛠️ (14/9): TAR tại NHIỀU mốc FAR — threshold calibrate trên CAL, đo TAR trên EVAL (out-of-sample).
+    # Vì sao cần: TAR@FAR=0.1% chỉ là MỘT điểm làm việc. Nếu TAR tăng vọt ở FAR 1–5% thì vấn đề nằm ở
+    # việc CHỌN ĐIỂM LÀM VIỆC (luật quyết định), không phải ở chất lượng embedding.
+    far_grid = [0.001, 0.01, 0.05, 0.10]
+    header = " ".join(f"{('FAR ' + str(f*100).rstrip('0').rstrip('.') + '%'):>11}" for f in far_grid)
+    print(f"\n  === TAR (eval-split) theo cac moc FAR — threshold calibrate tren cal-split ===")
+    print(f"  {'Space':<10} {header}")
+    far_curve = {}
+    for s in results:
+        row, vals = [], []
+        for f in far_grid:
+            t_f, _ = calibrate_fixed_far(scores[s]['imp_cal'], f)
+            tar_f, far_act, _ = eval_at_threshold(scores[s]['gen_eval'], scores[s]['imp_eval'], t_f)
+            row.append(f"{tar_f*100:>10.1f}%")
+            vals.append({'far_target': f, 'threshold': float(t_f),
+                         'tar_eval': float(tar_f), 'far_eval': float(far_act)})
+        print(f"  {s:<10} " + " ".join(row))
+        far_curve[s] = vals
+    print(f"  -> Doc bang nay: neu TAR tang VOT khi noi FAR thi diem lam viec 0.1% moi la van de,")
+    print(f"     khong phai embedding. Chon nguong theo nhu cau that (latency vs lock sai), khong theo FAR 0.1%.")
 
     t_star = results[primary]['threshold']
     cal_actual_far = results[primary]['cal_actual_far']
@@ -528,6 +626,8 @@ def main():
         },
         'primary_space': primary,
         'spaces': results,
+        # 🛠️ (14/9): TAR tại nhiều mốc FAR (threshold calibrate trên cal, đo trên eval)
+        'far_curve': far_curve,
         # backward compat: giữ nguyên hình dạng cũ cho không gian chính
         'calibration': {
             'threshold': float(t_star),

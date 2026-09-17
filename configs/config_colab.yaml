@@ -120,6 +120,7 @@ infer:
   #   pre_bn = cat(visual, temporal)      — đầu vào bnneck (raw cosine)
   # ⚠️ Đổi sang pre_bn thì PHẢI đổi `reid_threshold` = thresholds.pre_bn trong
   #    calibrated_threshold.json (chạy calibrate_threshold.py trước). Hai thang điểm khác nhau.
+  # ✅ Đã kiểm chứng 15/9: pre_bn KÉM hơn fused 2.67% TAR@FAR=0.1% -> GIỮ fused (xem md/15thg9.md §4.1).
   fine_space: fused
 
 # --- Inference Robustness Test ---
