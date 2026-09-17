@@ -235,6 +235,10 @@ class SeqReIDPipeline:
         # 🛠️ DEBUG (14/9): in tách cosine TRƯỚC BN (raw) vs SAU BN (fused).
         # Bật/tắt bằng `debug_sim` trong block `infer` của config.
         self.debug_sim = cfg.get('debug_sim', True)
+        # 🛠️ (14/9): không gian dùng cho gate HARD LOCK: 'fused' (mặc định, hành vi cũ)
+        # hoặc 'pre_bn' (đầu vào bnneck). Đổi sang 'pre_bn' thì PHẢI đổi `reid_threshold`
+        # theo `calibrated_threshold.json -> thresholds.pre_bn` (hai thang điểm khác nhau).
+        self.fine_space = cfg.get('fine_space', 'fused')
         
         self.memory_bank = TwoTierMemoryBank(
             max_anchor=cfg.get('max_anchor_size', 10),
@@ -254,6 +258,9 @@ class SeqReIDPipeline:
         # Tích luỹ để tổng hợp cuối sequence (trả lời câu hỏi: BN có phá cosine không?)
         self.debug_pre_bn_scores = []
         self.debug_post_bn_scores = []
+        # 🛠️ (14/9): tách theo tag — nếu gộp chung thì "tỉ lệ cửa sổ vượt ngưỡng" bị lẫn giữa
+        # cửa sổ re-acquire (T2_SEARCH) và kiểm tra anti-hijack (T3_VERIFIED), hai thứ khác bản chất.
+        self.debug_tag_counts = {'re-acquire': 0, 'anti-hijack': 0}
         
     def _log_sim_breakdown(self, frame_idx, bundle, fused_score, tag="sim"):
         """
@@ -275,6 +282,8 @@ class SeqReIDPipeline:
         raw = self.memory_bank.raw_score(bundle.raw_feat)
         self.debug_pre_bn_scores.append(raw)
         self.debug_post_bn_scores.append(fused_score)
+        if tag in self.debug_tag_counts:
+            self.debug_tag_counts[tag] += 1
         print(f"[{frame_idx}] DEBUG {tag}: visual_shot={vis:.3f} | visual_plain={vis_plain:.3f} | "
               f"temporal={temp:.3f} || PRE-BN raw={raw:.3f} -> POST-BN fused={fused_score:.3f} "
               f"(BN delta={raw - fused_score:+.3f})")
@@ -330,7 +339,10 @@ class SeqReIDPipeline:
                 if self.device.type == 'cuda': torch.cuda.synchronize()
                 self.metrics_mamba_times.append((time.time() - t0) * 1000)
                 
-                # Anti-Hijack: so sánh với bank CŨ trước khi thêm vector hiện tại vào bank
+                # Anti-Hijack: so sánh với bank CŨ trước khi thêm vector hiện tại vào bank.
+                # 🛠️ (14/9): gate này giữ NGUYÊN trên không gian `fused` + `hijack_threshold` riêng
+                # (đây là câu hỏi "còn đúng vật thể không?", khác gate HARD LOCK), nên `fine_space`
+                # KHÔNG ảnh hưởng tới nó.
                 if self.state == self.T3_VERIFIED and self._hijack_checks_remaining > 0:
                     hijack_score = self.memory_bank.fine_score(bundle.fused_feat)
                     self._hijack_checks_remaining -= 1
@@ -403,9 +415,20 @@ class SeqReIDPipeline:
                     if self.memory_bank.is_empty():
                         fine_score = 1.0
                     else:
-                        fine_score = self.memory_bank.fine_score(bundle.fused_feat)
+                        # 🛠️ (14/9): `fine_space` chọn không gian cho gate HARD LOCK.
+                        #   'fused'  (mặc định, hành vi cũ) : qua ReIDHead (BatchNorm1d)
+                        #   'pre_bn'                        : cat(visual, temporal) — ĐẦU VÀO bnneck
+                        # ĐỔI SANG 'pre_bn' THÌ PHẢI ĐỔI LUÔN `reid_threshold` = threshold calibrate
+                        # cho không gian đó (`calibrated_threshold.json` -> thresholds.pre_bn),
+                        # vì hai không gian có thang điểm khác hẳn nhau.
+                        # Lưu ý: cột debug POST-BN luôn phải là fused THẬT, nên tính riêng.
+                        fused_score = self.memory_bank.fine_score(bundle.fused_feat)
+                        if self.fine_space == 'pre_bn':
+                            fine_score = self.memory_bank.raw_score(bundle.raw_feat)
+                        else:
+                            fine_score = fused_score
                         # 🛠️ DEBUG (14/9): breakdown đầy đủ, đặc biệt là PRE-BN raw vs POST-BN fused
-                        self._log_sim_breakdown(frame_idx, bundle, fine_score, tag="re-acquire")
+                        self._log_sim_breakdown(frame_idx, bundle, fused_score, tag="re-acquire")
                     if fine_score >= self.reid_threshold:
                         latency = frame_idx - self.reappeared_frame_idx
                         self.reid_latency_frames.append(latency)
@@ -447,6 +470,62 @@ class SeqReIDPipeline:
             x, y, bw, bh = bbox
             cv2.rectangle(display_frame, (x, y), (x+bw, y+bh), color, 2)
             cv2.putText(display_frame, text, (x, max(0, y-10)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+
+
+def format_bn_debug_lines(pre_scores, post_scores, thr, tag_counts=None, n_false_alarms=None):
+    """
+    🛠️ (14/9): dựng khối báo cáo PRE-BN vs POST-BN — DÙNG CHUNG cho cả khối per-sequence
+    (`run_sequence`) lẫn khối `=== AGGREGATED METRICS ===` (`main`), để hai nơi không lệch nhau.
+
+    Trả về [] nếu chưa có dữ liệu debug.
+
+    Cách đọc: raw cao (>=0.8) mà fused thấp hơn `thr` -> bnneck là mắt xích đang chặn HARD LOCK
+              (nhưng CHƯA nói được BN có hại hay không — cần TAR@FAR).
+              raw thấp sẵn (~ temporal)        -> vấn đề nằm ở feature (temporal/dữ liệu train).
+
+    tag_counts / n_false_alarms (tuỳ chọn): tách cửa sổ re-acquire (T2_SEARCH, chính là gate
+    HARD LOCK) khỏi kiểm tra anti-hijack (T3_VERIFIED, gate khác, ngưỡng khác) — nếu không tách
+    thì "tỉ lệ vượt ngưỡng" trộn hai thứ khác bản chất.
+    """
+    if pre_scores is None or post_scores is None or len(pre_scores) == 0 or len(post_scores) == 0:
+        return []
+    pre = np.asarray(pre_scores, dtype=np.float64)
+    post = np.asarray(post_scores, dtype=np.float64)
+    pre_mean, post_mean = float(pre.mean()), float(post.mean())
+    delta = pre_mean - post_mean
+
+    if pre_mean < 0.70:
+        verdict = "raw cũng thấp sẵn -> lỗi nằm ở feature (temporal/dữ liệu train), KHÔNG phải BN"
+    elif delta < 0.05:
+        verdict = "BN gần như không ảnh hưởng cosine"
+    elif pre_mean >= thr > post_mean:
+        verdict = (f"BN nén cosine xuống dưới ngưỡng {thr:.2f} -> BN là mắt xích đang chặn HARD LOCK. "
+                   f"LƯU Ý: raw cao hơn KHÔNG chứng minh phân biệt tốt hơn (impostor cũng cao hơn); "
+                   f"cần TAR@FAR: calibrate_threshold.py rồi evaluate_reid.py --space pre_bn")
+    else:
+        side = "trên" if post_mean >= thr else "dưới"
+        verdict = (f"BN nén cosine {delta:.3f}, nhưng cả raw lẫn fused đều đang {side} ngưỡng {thr:.2f} "
+                   f"-> BN không phải nút thắt của sequence này")
+
+    pass_pre = float(np.mean(pre >= thr)) * 100.0
+    pass_post = float(np.mean(post >= thr)) * 100.0
+    lines = [
+        f"Sim PRE-BN  (raw concat)   : {pre_mean:.3f} (n={len(pre)})",
+        f"Sim POST-BN (fused/fine)   : {post_mean:.3f}",
+        f"BN degradation (pre - post) : {delta:+.3f} -> {verdict}",
+        f"Cua so vuot nguong {thr:.2f}    : raw {pass_pre:.1f}%  |  fused {pass_post:.1f}%"
+        f"   (toan bo {len(pre)} cua so; KHONG phai FAR: chua co nhan genuine/impostor)",
+    ]
+    if tag_counts:
+        n_re = int(tag_counts.get('re-acquire', 0))
+        n_ah = int(tag_counts.get('anti-hijack', 0))
+        extra = f"Phan bo theo tag           : re-acquire {n_re} | anti-hijack {n_ah}"
+        if n_false_alarms is not None and n_re > 0:
+            n_lock = max(0, n_re - int(n_false_alarms))
+            extra += (f"   -> HARD LOCK {n_lock}/{n_re} = {100.0 * n_lock / n_re:.1f}% "
+                      f"(chi tinh cua so re-acquire)")
+        lines.append(extra)
+    return lines
 
 
 def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None):
@@ -571,29 +650,11 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
         
     metrics_report.append(f"False Alarms (Fine Fails)  : {pipeline.false_alarms}")
     
-    # 🛠️ DEBUG (14/9): tổng hợp PRE-BN vs POST-BN để trả lời dứt khoát câu hỏi
-    # "BatchNorm1d trong ReIDHead có phá cosine similarity không?"
-    pre_bn_mean = float(np.mean(pipeline.debug_pre_bn_scores)) if pipeline.debug_pre_bn_scores else -1.0
-    post_bn_mean = float(np.mean(pipeline.debug_post_bn_scores)) if pipeline.debug_post_bn_scores else -1.0
-    if pre_bn_mean >= 0 and post_bn_mean >= 0:
-        n_pairs = len(pipeline.debug_pre_bn_scores)
-        bn_delta = pre_bn_mean - post_bn_mean
-        thr = pipeline.reid_threshold
-        if pre_bn_mean < 0.70:
-            verdict = ("raw cũng thấp sẵn -> lỗi nằm ở feature (temporal/dữ liệu train), KHÔNG phải BN")
-        elif bn_delta < 0.05:
-            verdict = "BN gần như không ảnh hưởng cosine"
-        elif pre_bn_mean >= thr > post_bn_mean:
-            verdict = (f"BN nén cosine xuống dưới ngưỡng {thr:.2f} -> BN là mắt xích đang chặn HARD LOCK. "
-                       f"LƯU Ý: raw cao hơn KHÔNG chứng minh phân biệt tốt hơn (impostor cũng cao hơn); "
-                       f"cần TAR@FAR: calibrate_threshold.py rồi evaluate_reid.py --space pre_bn")
-        else:
-            side = "trên" if post_bn_mean >= thr else "dưới"
-            verdict = (f"BN nén cosine {bn_delta:.3f}, nhưng cả raw lẫn fused đều đang {side} ngưỡng {thr:.2f} "
-                       f"-> BN không phải nút thắt của sequence này")
-        metrics_report.append(f"Sim PRE-BN  (raw concat)   : {pre_bn_mean:.3f} (n={n_pairs})")
-        metrics_report.append(f"Sim POST-BN (fused/fine)   : {post_bn_mean:.3f}")
-        metrics_report.append(f"BN degradation (pre - post) : {bn_delta:+.3f} -> {verdict}")
+    # 🛠️ DEBUG (14/9): tổng hợp PRE-BN vs POST-BN để trả lời câu hỏi
+    # "BatchNorm1d trong ReIDHead có phá cosine similarity không?" — dùng chung helper với main().
+    metrics_report.extend(format_bn_debug_lines(
+        pipeline.debug_pre_bn_scores, pipeline.debug_post_bn_scores, pipeline.reid_threshold,
+        tag_counts=pipeline.debug_tag_counts, n_false_alarms=pipeline.false_alarms))
     
     print("\n".join(metrics_report))
     metrics_file.close()
@@ -601,7 +662,8 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     
     mean_latency = np.mean(pipeline.reid_latency_frames) if pipeline.reid_latency_frames else -1.0
     return (avg_cnn, avg_mamba, throughput, mean_latency, pipeline.false_alarms,
-            pipeline.debug_pre_bn_scores, pipeline.debug_post_bn_scores)
+            pipeline.debug_pre_bn_scores, pipeline.debug_post_bn_scores,
+            pipeline.debug_tag_counts)
 
 def main():
     args = parse_args()
@@ -661,13 +723,14 @@ def main():
         all_false_alarms = []
         all_pre_bn = []
         all_post_bn = []
+        all_tag_counts = {'re-acquire': 0, 'anti-hijack': 0}
         
         base_out_dir = args.out_dir or inf_cfg.get('out_dir', './infer_output')
         print(f"Batch processing: Results will be saved in base directory: {base_out_dir}")
         for sdir in valid_seqs:
             res = run_sequence(sdir, model, device, transform, cfg, inf_cfg, out_base=base_out_dir)
             if res:
-                c, m, t, l, f, pre_bn, post_bn = res
+                c, m, t, l, f, pre_bn, post_bn, tag_counts = res
                 all_cnn.append(c)
                 all_mamba.append(m)
                 all_throughput.append(t)
@@ -676,6 +739,8 @@ def main():
                 all_false_alarms.append(f)
                 all_pre_bn.extend(pre_bn)
                 all_post_bn.extend(post_bn)
+                for _k, _v in (tag_counts or {}).items():
+                    all_tag_counts[_k] = all_tag_counts.get(_k, 0) + _v
                 
         # Calculate averages
         avg_cnn = np.mean(all_cnn) if all_cnn else 0.0
@@ -684,15 +749,10 @@ def main():
         avg_latency = np.mean(all_latency) if all_latency else 0.0
         sum_false_alarms = int(np.sum(all_false_alarms)) if all_false_alarms else 0
         
-        pre_bn_mean = float(np.mean(all_pre_bn)) if all_pre_bn else -1.0
-        post_bn_mean = float(np.mean(all_post_bn)) if all_post_bn else -1.0
-        bn_lines = []
-        if pre_bn_mean >= 0 and post_bn_mean >= 0:
-            bn_lines = [
-                f"Sim PRE-BN  (raw concat)   : {pre_bn_mean:.3f} (n={len(all_pre_bn)})",
-                f"Sim POST-BN (fused/fine)   : {post_bn_mean:.3f}",
-                f"BN degradation (pre - post) : {pre_bn_mean - post_bn_mean:+.3f}",
-            ]
+        # 🛠️ (14/9): dùng CHUNG helper với run_sequence -> verdict + tỉ lệ vượt ngưỡng cũng in ở đây.
+        bn_lines = format_bn_debug_lines(
+            all_pre_bn, all_post_bn, inf_cfg.get('reid_threshold', 0.75),
+            tag_counts=all_tag_counts, n_false_alarms=sum_false_alarms)
         
         print("\n=== AGGREGATED METRICS ===")
         print(f"Avg CNN Feature Extraction : {avg_cnn:.2f} ms")

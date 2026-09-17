@@ -113,7 +113,14 @@ infer:
   hijack_threshold: 0.40
   hijack_check_count: 5
   update_interval_sec: 2.0
+  # 🛠️ (14/9): in cosine TRƯỚC bnneck (raw) vs SAU bnneck (fused).
   debug_sim: true
+  # 🛠️ (14/9): không gian dùng cho gate HARD LOCK.
+  #   fused  = qua ReIDHead (BatchNorm1d) — hành vi cũ
+  #   pre_bn = cat(visual, temporal)      — đầu vào bnneck (raw cosine)
+  # ⚠️ Đổi sang pre_bn thì PHẢI đổi `reid_threshold` = thresholds.pre_bn trong
+  #    calibrated_threshold.json (chạy calibrate_threshold.py trước). Hai thang điểm khác nhau.
+  fine_space: fused
 
 # --- Inference Robustness Test ---
 infer_robustness:

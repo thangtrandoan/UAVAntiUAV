@@ -90,6 +90,9 @@ infer:
   update_interval_sec: 2.0
   # 🛠️ (14/9): in cosine TRƯỚC bnneck (raw) vs SAU bnneck (fused). Mặc định true trong code.
   debug_sim: true
+  # 🛠️ (14/9): không gian cho gate HARD LOCK: 'fused' (cũ) hoặc 'pre_bn'.
+  # ⚠️ Đổi sang pre_bn thì PHẢI đổi `reid_threshold` = thresholds.pre_bn (calibrate trước).
+  fine_space: fused
 
 # --- Inference Robustness Test ---
 infer_robustness:
