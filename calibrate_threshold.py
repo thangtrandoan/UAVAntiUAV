@@ -588,7 +588,13 @@ def main():
         if r1 <= chance * 2.5:
             tag = "=> Rank-1 gan muc ngau nhien: EMBEDDING mat kha nang phan biet (loi train/backbone/nhan)"
         elif r1 >= 0.50 and r['eval_tar'] < 0.30:
-            tag = "=> Rank-1 tot nhung TAR@FAR thap: XEP HANG van dung -> van de la LUAT QUYET DINH (nguong cosine tuyet doi), KHONG can train lai"
+            # ⚠️ KHONG ket luan ngay "luat quyet dinh": 2 gia thuyet cung giai thich duoc hien tuong:
+            #   (a) diem cosine khong so sanh duoc giua cac truy van -> SUA LUAT QUYET DINH
+            #   (b) diem cosine da tuong thich, nhung genuine/impostor CHONG LAN that su
+            #       -> van de o embedding/du lieu, phai train lai
+            # Khoi z-norm (chay SAU) moi phan biet duoc (a) vs (b).
+            tag = ("=> Rank-1 tot nhung TAR@FAR thap: HAI gia thuyet — (a) luat quyet dinh "
+                   "vs (b) embedding/du lieu. Doc khoi Z-NORM ben duoi de phan biet")
         elif r1 >= chance * 2.5:
             tag = "=> Rank-1 tren muc ngau nhien nhung con thap: da co tin hieu, can xem lai train + luat quyet dinh"
         print(f"    [{s}] Rank-1={r1*100:.2f}% (mAP={r['mAP_eval']*100:.2f}%)  {tag}")
@@ -694,35 +700,48 @@ def main():
             g1 = next((x['tar_eval'] for x in r.get('far_curve', [])
                        if abs(x['far_target'] - 0.01) < 1e-9), float('nan'))
             print(f"  {s:<10} {dims.get(s, 0):>6} {r['rank1_eval']*100:>13.2f}% "
-                  f"{r['map_eval']*100:>7.2f}% {r['eval_tar']*100:>11.2f}% {g1*100:>9.2f}%")
+                  f"{r['mAP_eval']*100:>7.2f}% {r['eval_tar']*100:>11.2f}% {g1*100:>9.2f}%")
         ablation = {}
         for s in ('visual', 'temporal', 'pre_bn', 'fused'):
             if s in results:
                 ablation[s] = {'rank1_eval': float(results[s]['rank1_eval']),
-                               'map_eval': float(results[s]['map_eval']),
+                               'mAP_eval': float(results[s]['mAP_eval']),
                                'tar_at_far01_eval': float(results[s]['eval_tar'])}
         if 'visual' in results:
             d_rank1 = results['fused']['rank1_eval'] - results['visual']['rank1_eval']
-            d_map = results['fused']['map_eval'] - results['visual']['map_eval']
+            d_map = results['fused']['mAP_eval'] - results['visual']['mAP_eval']
             d_tar = results['fused']['eval_tar'] - results['visual']['eval_tar']
             print(f"\n  Δ(fused − visual) :  Rank-1 {d_rank1*100:+.2f}%   mAP {d_map*100:+.2f}%   "
                   f"TAR@FAR0.1% {d_tar*100:+.2f}%")
-            same_temporal = (abs(d_rank1) < 0.02 and abs(d_map) < 0.02)
-            if same_temporal:
+            same_rank = (abs(d_rank1) < 0.02 and abs(d_map) < 0.02)
+            same_op = abs(d_tar) < 0.01
+            # 🛠️ (14/9): điểm quan trọng — temporal có thể giúp XẾP HẠNG mà KHÔNG giúp ĐIỂM LÀM VIỆC
+            # (hoặc ngược lại). Phải tách 2 tiêu chí, không gộp thành một kết luận.
+            if same_rank and same_op:
                 print(f"  => fused ≈ visual o MOI chi so -> nhanh TEMPORAL KHONG dong gop gi.")
-                print(f"     Hanh dong: thu (a) bo temporal (visual-only) de giam chi phi, hoac")
-                print(f"     (b) train lai temporal voi loss rieng (temporal consistency) / dung Mamba that.")
-            elif d_rank1 > 0.02 or d_map > 0.02:
+                print(f"     Hanh dong: bo temporal (visual-only) de giam chi phi.")
+            elif not same_rank and not same_op and d_map > 0 and d_tar < 0:
+                print(f"  => TACH BIET 2 TIEU CHI (ket qua quan trong nhat cua ablation nay):")
+                print(f"     • XEP HANG  : fused TOT HON visual (mAP {d_map*100:+.2f}%, Rank-1 {d_rank1*100:+.2f}%)")
+                print(f"                   -> temporal CO mang them thong tin danh tinh.")
+                print(f"     • DIEM/FAR  : fused KEM HON visual (TAR@FAR0.1% {d_tar*100:+.2f}%)")
+                print(f"                   -> fusion lam NOI RONG DUOI impostor nhieu hon genuine.")
+                print(f"     Hanh dong: dung VISUAL cho cong quyet dinh theo nguong tuyet doi, va/hoac")
+                print(f"     FUSE O MUC DIEM (2 cong doc lap / hoc trong so) thay vi concat roi BN.")
+            elif d_map > 0.02 or d_rank1 > 0.02:
                 print(f"  => fused TOT HON visual -> nhanh TEMPORAL CO dong gop (dù muc diem thap hon).")
-                print(f"     'Diem temporal thap hon' chi la khac biet THANG DO, khong phai chat luong.")
             else:
-                print(f"  => fused KEM hon visual -> nhanh temporal dang gay HAI. Can chan doan lai.")
-        # So rieng temporal-only voi moc ngau nhien
-        if 'temporal' in results:
-            r1t = results['temporal']['rank1_eval']
-            chance = results['temporal'].get('rank1_chance', float('nan'))
-            print(f"  temporal-only Rank-1 = {r1t*100:.2f}% (moc ngau nhien {chance*100:.2f}%) -> "
-                  f"{'CO thong tin danh tinh' if r1t > 3*chance else 'GAN NHU KHONG co thong tin danh tinh'}")
+                print(f"  => fused KEM hon visual o ca 2 tieu chi -> nhanh temporal dang GAY HAI.")
+            # So rieng temporal-only voi moc ngau nhien
+            if 'temporal' in results:
+                r1t = results['temporal']['rank1_eval']
+                mt = results['temporal']['mAP_eval']
+                print(f"  temporal-only: Rank-1={r1t*100:.2f}%  mAP={mt*100:.2f}%  "
+                      f"(moc ngau nhien {chance*100:.2f}%) -> "
+                      f"{'CO thong tin danh tinh' if r1t > 3*chance else 'GAN NHU KHONG co thong tin danh tinh'}")
+                print(f"  ⇒ Tra loi cau hoi 'diem temporal thap hon visual thi temporal co y nghia khong?':")
+                print(f"     CO — temporal-only dat Rank-1={r1t*100:.2f}% ≫ moc ngau nhien {chance*100:.2f}%.")
+                print(f"     'Diem thap hon' chi la khac biet THANG DO giua cac khong gian, khong phai chat luong.")
 
     # === TAI NGUONG DANG TRIEN KHAI =====================================================
     # Cau hoi: pipeline dung reid_threshold (vd 0.75) va chi HARD LOCK ~6% cua so. Offline tai
