@@ -17,6 +17,8 @@ paths:
 
 # --- Data Pipeline ---
 data_pipeline:
+  # 🛠️ (15/9) NGUỒN DUY NHẤT của frame_stride (xem md/15thg9.md §13).
+  frame_stride: 4
   num_before_frames: 16
   num_after_frames: 16
   bbox_padding: 0.2

@@ -26,6 +26,10 @@ paths:
 
 # --- Data Pipeline ---
 data_pipeline:
+  # 🛠️ (15/9) NGUỒN DUY NHẤT của frame_stride — train và infer đều đọc từ đây.
+  # Bước thời gian giữa 2 frame liên tiếp trong cửa sổ temporal PHẢI giống nhau
+  # ở data → train → infer (xem md/15thg9.md §13).
+  frame_stride: 4
   num_before_frames: 16
   num_after_frames: 16
   bbox_padding: 0.2
@@ -103,7 +107,9 @@ infer:
   model_path: /content/best_model.pth
   output_video: output_reid.mp4
   out_dir: ./infer_output/infer_pipeline_3.5
-  stride: 2
+  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride. `infer.py` tự đọc và GHI ĐÈ từ
+  # `data_pipeline.frame_stride`, nên giá trị ở đây chỉ là tài liệu tham chiếu.
+  stride: 4
   num_frames: 12
   bbox_padding: 0.2
   max_anchor_size: 5
@@ -131,6 +137,8 @@ infer_robustness:
   output_video: output_robustness.mp4
   backbone: "dinov3_convnext"
   reid_threshold: 0.7
+  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4) — đồng bộ bước thời gian temporal.
+  stride: 4
   # 🛠️ FIX (14/9): khớp `train.num_frames: 12` (trước đây = 16).
   # `evaluate_reid_robustness.py` đọc block này qua cfg.get('infer_robustness').
   num_frames: 12

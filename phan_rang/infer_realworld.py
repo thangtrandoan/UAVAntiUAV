@@ -100,16 +100,24 @@ class SlidingWindowBuffer:
     def get_sequence(self) -> torch.Tensor:
         """Trả về tensor [1, k, 2560] để đưa vào Mamba."""
         return torch.stack(self.features, dim=1)
+
+    # 🛠️ (15/9) PHÂN VAI stride: SOFT LOCK thu LIÊN TỤC (stride=1) để phản ứng nhanh;
+    # HARD LOCK mới LẤY CÁCH QUÃNG (`stride = frame_stride`) để bước thời gian khớp
+    # lúc train và khớp Memory Bank.
+    def get_strided_sequence(self, stride: int = 1) -> torch.Tensor:
+        """Trả về tensor [1, k, 2560] với bước thời gian `stride`."""
+        return torch.stack(self.features[::stride], dim=1)
     
-    def get_weighted_visual_mean(self) -> torch.Tensor:
+    def get_weighted_visual_mean(self, stride: int = 1) -> torch.Tensor:
         """Tính trung bình có trọng số theo sharpness -> vector 2560-dim."""
-        weights = torch.tensor(self.sharpness_scores, dtype=torch.float32)
+        feats = self.features[::stride]
+        weights = torch.tensor(self.sharpness_scores[::stride], dtype=torch.float32)
         if weights.sum() > 0:
             weights = weights / weights.sum()
         else:
             weights = torch.ones_like(weights) / len(weights)
         
-        stacked = torch.stack([f.squeeze(0) for f in self.features])  # [k, 2560]
+        stacked = torch.stack([f.squeeze(0) for f in feats])  # [k, 2560]
         return (stacked * weights.unsqueeze(1).to(stacked.device)).sum(dim=0, keepdim=True)  # [1, 2560]
     
     def clear(self):
@@ -117,10 +125,13 @@ class SlidingWindowBuffer:
         self.sharpness_scores.clear()
         self._frame_counter = 0
 
-def compute_fused_vector(model, sliding_window: SlidingWindowBuffer) -> tuple:
-    """Từ sliding window đầy đủ k frames, tính ra cặp (visual_2560, fused_3072)."""
-    visual_mean = sliding_window.get_weighted_visual_mean()  # [1, 2560]
-    seq = sliding_window.get_sequence()  # [1, k, 2560]
+def compute_fused_vector(model, sliding_window: SlidingWindowBuffer, stride: int = 1) -> tuple:
+    """Từ sliding window đầy đủ k frames, tính ra cặp (visual_2560, fused_3072).
+
+    🛠️ (15/9) `stride`: HARD LOCK truyền `frame_stride` (lấy cách quãng), SOFT LOCK để 1.
+    """
+    visual_mean = sliding_window.get_weighted_visual_mean(stride)  # [1, 2560]
+    seq = sliding_window.get_strided_sequence(stride)  # [1, k, 2560]
     fused_feat = compute_reid_embedding(model, seq)  # [1, 3072]
     return visual_mean, fused_feat
 
@@ -208,8 +219,10 @@ class ReIDPipeline:
         self._hijack_checks_remaining = 0
         
         self.soft_lock_id = None
+        # 🛠️ (15/9) PHÂN VAI stride: soft_lock THU LIÊN TỤC (stride=1) để phản ứng nhanh,
+        # HARD LOCK mới LẤY CÁCH QUÃNG `frame_stride` (khớp train + Memory Bank).
         self.soft_lock_buffer = SlidingWindowBuffer(
-            window_size=self.num_frames, stride=1
+            window_size=(self.num_frames - 1) * self.stride + 1, stride=1
         )
         self.candidate_scores = {}
         
@@ -269,8 +282,7 @@ class ReIDPipeline:
             self.lost_count += 1
             if self.lost_count >= self.lost_threshold:
                 if len(self.sliding_window.features) > 0:
-                    while not self.sliding_window.is_ready():
-                        self.sliding_window.add(self.sliding_window.features[-1], self.sliding_window.sharpness_scores[-1])
+                    # 🛠️ (15/9) BỎ pad NHÂN BẢN frame cuối (bước thời gian = 0) — xem infer.py
                         
                     visual_mean, fused_feat = compute_fused_vector(self.model, self.sliding_window)
                     if len(self.memory_bank.anchor_bank) < self.memory_bank.max_anchor:
@@ -341,10 +353,11 @@ class ReIDPipeline:
                     
                     # Thu thập vô điều kiện - không kiểm tra lại Coarse
                     self.soft_lock_buffer.add(feat_2560, sharpness)
-                    print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
+                    print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} collecting: {len(self.soft_lock_buffer.features)}/{self.soft_lock_buffer.window_size}")
                     
                     if self.soft_lock_buffer.is_ready():
-                        visual_mean, fused_feat = compute_fused_vector(self.model, self.soft_lock_buffer)
+                        # 🛠️ (15/9) HARD LOCK: lấy cách quãng `self.stride` từ buffer thu liên tục
+                        visual_mean, fused_feat = compute_fused_vector(self.model, self.soft_lock_buffer, stride=self.stride)
                         fine_score = self.memory_bank.fine_score(fused_feat)
                         print(f"[{frame_idx}] Fine ReID: ID:{self.soft_lock_id} score={fine_score:.3f}")
                         
@@ -358,11 +371,17 @@ class ReIDPipeline:
                             
                             self.memory_bank.add_recent(visual_mean, fused_feat)
                             
-                            self.sliding_window = self.soft_lock_buffer
-                            self.sliding_window.stride = self.stride
+                            # 🛠️ (15/9) Nạp `sliding_window` từ ĐÚNG cửa sổ đã dùng để HARD LOCK
+                            # (bản lấy cách quãng), KHÔNG phải toàn bộ buffer thu liên tục.
+                            self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
+                            for _f, _s in zip(self.soft_lock_buffer.features[::self.stride],
+                                              self.soft_lock_buffer.sharpness_scores[::self.stride]):
+                                self.sliding_window.add(_f, _s)
                             
                             self.soft_lock_id = None
-                            self.soft_lock_buffer = SlidingWindowBuffer(self.num_frames, stride=1)
+                            self.soft_lock_buffer = SlidingWindowBuffer(
+                                window_size=(self.num_frames - 1) * self.stride + 1, stride=1
+                            )
                             self.candidate_scores.clear()
                         else:
                             print(f"[{frame_idx}] Fine FAILED! ID:{self.soft_lock_id} (fine={fine_score:.3f} < {self.reid_threshold}) -> T1_LOST")

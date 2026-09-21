@@ -167,10 +167,19 @@ class UAVReIDDataset(Dataset):
     def __len__(self):
         return len(self.valid_pairs)
         
-    def _load_clip(self, folder, frames):
+    def _load_clip(self, folder, frames, take_last=False):
+        # 🛠️ (15/9) ĐỒNG BỘ frame_stride — BỎ `np.linspace`.
+        # `np.linspace` lấy mẫu TRẢI ĐỀU cả danh sách → bước thời gian hiệu dụng
+        #     = frame_stride × (len-1)/(num_frames-1)   >   frame_stride
+        # trong khi infer lấy ĐÚNG 1 frame mỗi `frame_stride` → lệch phân phối temporal.
+        # Cắt CONTIGUOUS để bước thời gian giữa 2 frame liên tiếp = ĐÚNG frame_stride
+        # ở cả train và infer:
+        #   - before (gallery): lấy `num_frames` frame CUỐI → sát t1 (lúc mất dấu)
+        #   - after  (query)  : lấy `num_frames` frame ĐẦU → sát t2 (lúc tái xuất)
+        # Kết quả Y HỆT việc sinh lại data với num_before/after_frames = num_frames,
+        # nhưng KHÔNG cần chạy lại data_pipeline.py.
         if len(frames) > self.num_frames:
-            indices = np.linspace(0, len(frames)-1, self.num_frames).astype(int)
-            frames = [frames[i] for i in indices]
+            frames = frames[-self.num_frames:] if take_last else frames[:self.num_frames]
         elif len(frames) < self.num_frames:
             if len(frames) == 0:
                 return torch.zeros((self.num_frames, 3, 224, 224))
@@ -192,8 +201,8 @@ class UAVReIDDataset(Dataset):
     def __getitem__(self, idx):
         pair = self.valid_pairs[idx]
         
-        before_clip = self._load_clip(pair['gallery_dir'], pair['gallery_frames'])
-        after_clip = self._load_clip(pair['query_dir'], pair['query_frames'])
+        before_clip = self._load_clip(pair['gallery_dir'], pair['gallery_frames'], take_last=True)
+        after_clip = self._load_clip(pair['query_dir'], pair['query_frames'], take_last=False)
         
         pid = self.id_to_idx[pair['identity_id']]
         return before_clip, after_clip, pid

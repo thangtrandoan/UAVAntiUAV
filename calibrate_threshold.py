@@ -94,10 +94,12 @@ class CalibDataset(Dataset):
     def __len__(self):
         return len(self.valid_pairs)
 
-    def _load_clip(self, folder, frames):
+    def _load_clip(self, folder, frames, take_last=False):
+        # 🛠️ (15/9) ĐỒNG BỘ frame_stride — BỎ `np.linspace` (xem train_reid.py::_load_clip).
+        # `np.linspace` làm bước thời gian hiệu dụng > frame_stride → calibration lệch
+        # với phân phối temporal lúc train và lúc infer.
         if len(frames) > self.num_frames:
-            indices = np.linspace(0, len(frames) - 1, self.num_frames).astype(int)
-            frames = [frames[i] for i in indices]
+            frames = frames[-self.num_frames:] if take_last else frames[:self.num_frames]
         elif len(frames) < self.num_frames:
             if len(frames) == 0:
                 return torch.zeros((self.num_frames, 3, 224, 224))
@@ -117,8 +119,8 @@ class CalibDataset(Dataset):
 
     def __getitem__(self, idx):
         pair = self.valid_pairs[idx]
-        before_clip = self._load_clip(pair['gallery_dir'], list(pair['gallery_frames']))
-        after_clip  = self._load_clip(pair['query_dir'],   list(pair['query_frames']))
+        before_clip = self._load_clip(pair['gallery_dir'], list(pair['gallery_frames']), take_last=True)
+        after_clip  = self._load_clip(pair['query_dir'],   list(pair['query_frames']),   take_last=False)
         pid = pair['identity_id']
         return before_clip, after_clip, pid
 

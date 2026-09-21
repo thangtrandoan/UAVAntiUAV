@@ -79,7 +79,8 @@ infer:
   model_path: ./best_model_dino_convnext.pth
   output_video: output_reid.mp4
   out_dir: ./infer_output/infer_pipeline_3
-  stride: 2
+  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4).
+  stride: 4
   # 🛠️ FIX (14/9): PHẢI khớp `train.num_frames` (đang = 16).
   # Trước đây = 8 → Mamba + mean-pooling chạy 8 token trong khi train 16
   # → phân phối temporal token lệch sẵn, rồi bnneck khuếch đại → fine score tụt.

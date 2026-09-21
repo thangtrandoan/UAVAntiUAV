@@ -64,15 +64,25 @@ class SlidingWindowBuffer:
     
     def get_sequence(self) -> torch.Tensor:
         return torch.stack(self.features, dim=1)
+
+    # 🛠️ (15/9) PHÂN VAI stride:
+    #   SOFT LOCK  → thu LIÊN TỤC (stride=1): chỉ lọc thô bằng `visual`, không cần
+    #                bước thời gian, thu liên tục để phản ứng nhanh.
+    #   HARD LOCK  → LẤY CÁCH QUÃNG (`stride = frame_stride`): bước thời gian của cửa sổ
+    #                temporal PHẢI khớp lúc train (`data_pipeline.frame_stride`) và khớp
+    #                Memory Bank (dựng từ `sliding_window`, cũng stride = frame_stride).
+    def get_strided_sequence(self, stride: int = 1) -> torch.Tensor:
+        return torch.stack(self.features[::stride], dim=1)
     
-    def get_weighted_visual_mean(self) -> torch.Tensor:
-        weights = torch.tensor(self.sharpness_scores, dtype=torch.float32)
+    def get_weighted_visual_mean(self, stride: int = 1) -> torch.Tensor:
+        feats = self.features[::stride]
+        weights = torch.tensor(self.sharpness_scores[::stride], dtype=torch.float32)
         if weights.sum() > 0:
             weights = weights / weights.sum()
         else:
             weights = torch.ones_like(weights) / len(weights)
         
-        stacked = torch.stack([f.squeeze(0) for f in self.features])
+        stacked = torch.stack([f.squeeze(0) for f in feats])
         return (stacked * weights.unsqueeze(1).to(stacked.device)).sum(dim=0, keepdim=True)
     
     def clear(self):
@@ -93,8 +103,10 @@ FusedBundle = namedtuple(
 )
 
 
-def compute_fused_vector(model, sliding_window):
-    seq_feats = sliding_window.get_sequence()
+def compute_fused_vector(model, sliding_window, stride: int = 1):
+    # 🛠️ (15/9) `stride`: HARD LOCK truyền `frame_stride` để cửa sổ temporal có bước
+    # thời gian khớp lúc train + khớp Memory Bank. SOFT LOCK để mặc định 1 (liên tục).
+    seq_feats = sliding_window.get_strided_sequence(stride)
     
     # 1. BẮT BUỘC dùng mean để đưa vào khối Fusion Head (vì lúc train model học bằng mean)
     # Nếu đưa 1 frame vào Fusion Head, phân phối (variance) bị sai lệch dẫn đến Mamba tính sai bét
@@ -103,7 +115,7 @@ def compute_fused_vector(model, sliding_window):
     # (model.py: visual_feat = feats.mean(dim=1)). Weighted mean (theo sharpness)
     # chỉ nên dùng cho COARSE score (backbone feature), KHÔNG đưa vào head,
     # vì head được train với plain mean → weighted mean làm fused feature lệch → fine score thấp.
-    visual_mean = sliding_window.get_weighted_visual_mean()   # dùng cho coarse score (không qua head)
+    visual_mean = sliding_window.get_weighted_visual_mean(stride)   # dùng cho coarse score (không qua head)
     visual_plain = seq_feats.mean(dim=1)                     # giống hệt training → cho head
     
     # Tính temporal_token + fused_feat MỘT LẦN (không gọi temporal_encoder 2 lần)
@@ -244,8 +256,17 @@ class SeqReIDPipeline:
             max_anchor=cfg.get('max_anchor_size', 10),
             max_recent=cfg.get('max_recent_size', 30)
         )
+        # 🛠️ (15/9) PHÂN VAI stride (theo yêu cầu: soft lock thu liên tục, hard lock mới stride):
+        #   - `sliding_window` (tracking + Memory Bank): lấy CÁCH QUÃNG `frame_stride`
+        #   - `soft_lock_buffer` (T2_SEARCH): thu LIÊN TỤC (stride=1) để phản ứng nhanh,
+        #     nhưng chứa đủ `(num_frames-1)*stride + 1` frame để khi HARD LOCK thì LẤY
+        #     CÁCH QUÃNG ra đúng `num_frames` mẫu với bước thời gian = frame_stride.
+        # Trước đây soft_lock thu liên tục rồi đưa NGUYÊN chuỗi liên tục vào head
+        # → bước thời gian = 1 so với bank bước = frame_stride → temporal token lệch.
+        # (xem md/15thg9.md §13)
         self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
-        self.soft_lock_buffer = SlidingWindowBuffer(self.num_frames, stride=1)
+        self.soft_lock_capacity = (self.num_frames - 1) * self.stride + 1
+        self.soft_lock_buffer = SlidingWindowBuffer(self.soft_lock_capacity, stride=1)
         
         self.last_update_time = 0.0
         self._hijack_checks_remaining = 0
@@ -301,9 +322,10 @@ class SeqReIDPipeline:
         if self.state in [self.T0_INIT, self.T3_VERIFIED]:
             if is_absent or not valid_bbox:
                 if len(self.sliding_window.features) > 0:
-                    # Pad the sliding window if it's not ready
-                    while not self.sliding_window.is_ready():
-                        self.sliding_window.add(self.sliding_window.features[-1], self.sliding_window.sharpness_scores[-1])
+                    # 🛠️ (15/9) BỎ pad bằng cách NHÂN BẢN frame cuối (bước thời gian = 0).
+                    # Cửa sổ đã thu với bước = frame_stride; nếu chưa đủ `num_frames` thì
+                    # tính trên ĐÚNG số frame đã có → MỌI bước chuyển tiếp vẫn = frame_stride.
+                    # (temporal_encoder dùng pos_embed[:, :N, :] và conv1d cắt về L nên N nhỏ OK)
                         
                     if self.device.type == 'cuda': torch.cuda.synchronize()
                     t0 = time.time()
@@ -390,7 +412,7 @@ class SeqReIDPipeline:
                 # Nếu đang trong quá trình thu thập Soft Lock, tiếp tục thu thập vô điều kiện
                 if len(self.soft_lock_buffer.features) > 0:
                     self.soft_lock_buffer.add(feat_2560, sharpness)
-                    print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
+                    print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.soft_lock_capacity}")
                 else:
                     if self.memory_bank.is_empty():
                         # Chưa có target identity (sequence bắt đầu bằng absent): bbox từ GT chính là target
@@ -399,7 +421,7 @@ class SeqReIDPipeline:
                         coarse_score = self.memory_bank.coarse_score(feat_2560)
                     if coarse_score >= self.soft_lock_threshold:
                         self.soft_lock_buffer.add(feat_2560, sharpness)
-                        print(f"[{frame_idx}] Soft Lock collecting: 1/{self.num_frames} (coarse={coarse_score:.3f})")
+                        print(f"[{frame_idx}] Soft Lock collecting: 1/{self.soft_lock_capacity} (coarse={coarse_score:.3f})")
                     else:
                         print(f"[{frame_idx}] Coarse FAILED! (coarse={coarse_score:.3f} < {self.soft_lock_threshold})")
                 
@@ -407,7 +429,9 @@ class SeqReIDPipeline:
                 if self.soft_lock_buffer.is_ready():
                     if self.device.type == 'cuda': torch.cuda.synchronize()
                     t0 = time.time()
-                    bundle = compute_fused_vector(self.model, self.soft_lock_buffer)
+                    # 🛠️ (15/9) HARD LOCK: lấy CÁCH QUÃNG `self.stride` từ buffer thu liên tục
+                    # → đúng `num_frames` mẫu, bước thời gian = frame_stride (khớp train + bank).
+                    bundle = compute_fused_vector(self.model, self.soft_lock_buffer, stride=self.stride)
                     if self.device.type == 'cuda': torch.cuda.synchronize()
                     mamba_time = (time.time() - t0) * 1000
                     self.metrics_mamba_times.append(mamba_time)
@@ -444,14 +468,22 @@ class SeqReIDPipeline:
                             self.memory_bank.add_recent(bundle.visual_mean, bundle.fused_feat, bundle.temporal_token,
                                                         bundle.visual_plain, bundle.raw_feat)
                             
-                        self.sliding_window = self.soft_lock_buffer
-                        self.sliding_window.stride = self.stride
-                        self.soft_lock_buffer = SlidingWindowBuffer(self.num_frames, stride=1)
+                        # 🛠️ (15/9) Nạp `sliding_window` từ ĐÚNG cửa sổ đã dùng để HARD LOCK
+                        # (bản lấy cách quãng), KHÔNG phải toàn bộ buffer thu liên tục.
+                        self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
+                        for _f, _s in zip(self.soft_lock_buffer.features[::self.stride],
+                                          self.soft_lock_buffer.sharpness_scores[::self.stride]):
+                            self.sliding_window.add(_f, _s)
+                        self.soft_lock_buffer = SlidingWindowBuffer(self.soft_lock_capacity, stride=1)
                     else:
                         self.false_alarms += 1
                         print(f"[{frame_idx}] Fine FAILED! (fine={fine_score:.3f} < {self.reid_threshold}) -> Rolling Window...")
-                        self.soft_lock_buffer.features.pop(0)
-                        self.soft_lock_buffer.sharpness_scores.pop(0)
+                        # 🛠️ (15/9) Trượt ĐÚNG 1 bước thời gian (`stride`) để cửa sổ HARD LOCK
+                        # kế tiếp thực sự KHÁC cửa sổ vừa kiểm tra (trước đây pop(0) → cửa sổ
+                        # gần như trùng nhau, rolling window vô hiệu).
+                        for _ in range(min(self.stride, len(self.soft_lock_buffer.features))):
+                            self.soft_lock_buffer.features.pop(0)
+                            self.soft_lock_buffer.sharpness_scores.pop(0)
 
     def draw_ui(self, display_frame, bbox, frame_idx):
         color = (0, 0, 255)
@@ -461,7 +493,7 @@ class SeqReIDPipeline:
             text = "TRACKING (HARD LOCK)"
         elif self.state == self.T2_SEARCH:
             color = (255, 255, 0)
-            text = f"SEARCHING ({len(self.soft_lock_buffer.features)}/{self.num_frames})"
+            text = f"SEARCHING ({len(self.soft_lock_buffer.features)}/{self.soft_lock_capacity})"
             
         cv2.putText(display_frame, f"State: {self.state}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
         cv2.putText(display_frame, f"Bank: {self.memory_bank.size_info()}", (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
@@ -673,6 +705,22 @@ def main():
             cfg = yaml.safe_load(f)
             
     inf_cfg = cfg.get('infer', {})
+
+    # 🛠️ (15/9) ĐỒNG BỘ frame_stride — NGUỒN DUY NHẤT là `data_pipeline.frame_stride`.
+    # Lý do: bước thời gian giữa 2 frame liên tiếp trong cửa sổ temporal phải GIỐNG NHAU
+    # ở data → train → infer. Nếu infer lấy dày hơn (stride nhỏ hơn frame_stride) thì
+    # temporal token lệch phân phối so với lúc train → fine score tụt dù `visual` vẫn khớp.
+    # (xem md/15thg9.md §13)
+    _dp_cfg = cfg.get('data_pipeline', {}) or {}
+    _frame_stride = _dp_cfg.get('frame_stride')
+    if _frame_stride is not None:
+        _old_stride = inf_cfg.get('stride')
+        if _old_stride is not None and _old_stride != _frame_stride:
+            print(f"⚠️  infer.stride={_old_stride} != data_pipeline.frame_stride={_frame_stride}"
+                  f" → DÙNG frame_stride={_frame_stride} (đồng bộ toàn pipeline).")
+        inf_cfg['stride'] = _frame_stride
+        print(f"🔗 frame_stride đồng bộ = {_frame_stride} (lấy từ data_pipeline.frame_stride)")
+
     seq_dir_arg = args.seq_dir or inf_cfg.get('seq_dir')
     if not seq_dir_arg:
         print("Error: --seq-dir must be provided.")

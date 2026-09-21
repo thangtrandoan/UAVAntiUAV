@@ -64,15 +64,22 @@ class SlidingWindowBuffer:
     
     def get_sequence(self) -> torch.Tensor:
         return torch.stack(self.features, dim=1)
+
+    # 🛠️ (15/9) PHÂN VAI stride: SOFT LOCK thu LIÊN TỤC (stride=1) để phản ứng nhanh;
+    # HARD LOCK mới LẤY CÁCH QUÃNG (`stride = frame_stride`) để bước thời gian khớp
+    # lúc train và khớp Memory Bank (dựng từ `sliding_window`, cũng stride = frame_stride).
+    def get_strided_sequence(self, stride: int = 1) -> torch.Tensor:
+        return torch.stack(self.features[::stride], dim=1)
     
-    def get_weighted_visual_mean(self) -> torch.Tensor:
-        weights = torch.tensor(self.sharpness_scores, dtype=torch.float32)
+    def get_weighted_visual_mean(self, stride: int = 1) -> torch.Tensor:
+        feats = self.features[::stride]
+        weights = torch.tensor(self.sharpness_scores[::stride], dtype=torch.float32)
         if weights.sum() > 0:
             weights = weights / weights.sum()
         else:
             weights = torch.ones_like(weights) / len(weights)
         
-        stacked = torch.stack([f.squeeze(0) for f in self.features])
+        stacked = torch.stack([f.squeeze(0) for f in feats])
         return (stacked * weights.unsqueeze(1).to(stacked.device)).sum(dim=0, keepdim=True)
     
     def clear(self):
@@ -80,9 +87,10 @@ class SlidingWindowBuffer:
         self.sharpness_scores.clear()
         self._frame_counter = 0
 
-def compute_fused_vector(model, sliding_window: SlidingWindowBuffer) -> tuple:
-    visual_mean = sliding_window.get_weighted_visual_mean()
-    seq = sliding_window.get_sequence()
+def compute_fused_vector(model, sliding_window: SlidingWindowBuffer, stride: int = 1) -> tuple:
+    # 🛠️ (15/9) `stride`: HARD LOCK truyền `frame_stride` (lấy cách quãng), SOFT LOCK để 1.
+    visual_mean = sliding_window.get_weighted_visual_mean(stride)
+    seq = sliding_window.get_strided_sequence(stride)
     fused_feat = compute_reid_embedding(model, seq)
     return visual_mean, fused_feat
 
@@ -145,8 +153,12 @@ def crop_and_pad(frame, bbox, padding):
         return None
     return frame[y1:y2, x1:x2]
 
-def sample_imposters(data_root, exclude_seq_name, num_imposters, model, transform, device, num_frames, bbox_padding):
-    """Samples random frames from OTHER videos to act as false positives"""
+def sample_imposters(data_root, exclude_seq_name, num_imposters, model, transform, device, num_frames, bbox_padding, stride=1):
+    """Samples random frames from OTHER videos to act as false positives
+
+    🛠️ (15/9) `stride`: lấy 1 frame mỗi `stride` frame để bước thời gian khớp
+    `data_pipeline.frame_stride` (giống train/infer).
+    """
     imposter_feats = []
     
     if not os.path.exists(data_root):
@@ -180,9 +192,10 @@ def sample_imposters(data_root, exclude_seq_name, num_imposters, model, transfor
                 else: bboxes.append([0, 0, 0, 0])
                 
         valid_starts = []
-        for i in range(len(bboxes) - num_frames):
+        span = num_frames * stride          # 🛠️ (15/9) cửa sổ trải `num_frames*stride` frame gốc
+        for i in range(max(0, len(bboxes) - span)):
             is_valid = True
-            for j in range(i, i + num_frames):
+            for j in range(i, i + span):
                 if j < len(absent) and absent[j] == 1:
                     is_valid = False; break
                 if j < len(bboxes) and (bboxes[j][2] <= 0 or bboxes[j][3] <= 0):
@@ -195,10 +208,11 @@ def sample_imposters(data_root, exclude_seq_name, num_imposters, model, transfor
         cap = cv2.VideoCapture(video_path)
         cap.set(cv2.CAP_PROP_POS_FRAMES, start_idx)
         
-        buffer = SlidingWindowBuffer(num_frames, stride=1)
-        for j in range(num_frames):
+        buffer = SlidingWindowBuffer(num_frames, stride=1)   # ta tự chọn frame nào đưa vào
+        for j in range(num_frames * stride):
             ret, frame = cap.read()
             if not ret: break
+            if j % stride != 0: continue    # 🛠️ (15/9) chỉ lấy 1 frame mỗi `stride`
             
             bbox = bboxes[start_idx + j]
             crop = crop_and_pad(frame, bbox, bbox_padding)
@@ -243,8 +257,11 @@ class SeqRobustnessPipeline:
             max_anchor=cfg.get('max_anchor_size', 10),
             max_recent=cfg.get('max_recent_size', 30)
         )
+        # 🛠️ (15/9) PHÂN VAI stride: soft_lock THU LIÊN TỤC (stride=1) để phản ứng nhanh,
+        # HARD LOCK mới LẤY CÁCH QUÃNG `frame_stride` (khớp train + Memory Bank).
         self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
-        self.soft_lock_buffer = SlidingWindowBuffer(self.num_frames, stride=1)
+        self.soft_lock_capacity = (self.num_frames - 1) * self.stride + 1
+        self.soft_lock_buffer = SlidingWindowBuffer(self.soft_lock_capacity, stride=1)
         
         self.last_update_time = 0.0
         self._hijack_checks_remaining = 0
@@ -272,8 +289,7 @@ class SeqRobustnessPipeline:
         if self.state in [self.T0_INIT, self.T3_VERIFIED]:
             if is_absent or not valid_bbox:
                 if len(self.sliding_window.features) > 0:
-                    while not self.sliding_window.is_ready():
-                        self.sliding_window.add(self.sliding_window.features[-1], self.sliding_window.sharpness_scores[-1])
+                    # 🛠️ (15/9) BỎ pad NHÂN BẢN frame cuối (bước thời gian = 0) — xem infer.py
                         
                     visual_mean, fused_feat = compute_fused_vector(self.model, self.sliding_window)
                     if len(self.memory_bank.anchor_bank) < self.memory_bank.max_anchor:
@@ -338,17 +354,18 @@ class SeqRobustnessPipeline:
                 
                 if coarse_score >= self.soft_lock_threshold:
                     self.soft_lock_buffer.add(feat_2560, sharpness)
-                    print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames} (coarse={coarse_score:.3f})")
+                    print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.soft_lock_capacity} (coarse={coarse_score:.3f})")
                     
                     if self.soft_lock_buffer.is_ready():
                         print(f"\n--- [Frame {frame_idx}] ROBUSTNESS TEST (MULTIPLE UAV SIMULATION) ---")
-                        visual_mean, fused_feat = compute_fused_vector(self.model, self.soft_lock_buffer)
+                        # 🛠️ (15/9) HARD LOCK: lấy cách quãng `self.stride` từ buffer thu liên tục
+                        visual_mean, fused_feat = compute_fused_vector(self.model, self.soft_lock_buffer, stride=self.stride)
                         
                         best_genuine = self.memory_bank.fine_score(fused_feat)
                         self.all_genuine_scores.append(best_genuine)
                         
                         if not hasattr(self.model, 'cached_imposters') or len(self.model.cached_imposters) == 0:
-                            self.model.cached_imposters = sample_imposters(self.data_root, self.seq_name, self.num_imposters, self.model, transform, self.device, self.num_frames, self.bbox_padding)
+                            self.model.cached_imposters = sample_imposters(self.data_root, self.seq_name, self.num_imposters, self.model, transform, self.device, self.num_frames, self.bbox_padding, self.stride)
                         
                         imposter_best_sims = []
                         for imp_fused_feat in self.model.cached_imposters:
@@ -368,8 +385,10 @@ class SeqRobustnessPipeline:
                             self.last_verification_text = f"HIJACKED! | Gen: {best_genuine:.2f} < Imp: {max_imposter:.2f}"
                             self.last_verification_color = (255, 0, 255)
                             # Rolling window to try again
-                            self.soft_lock_buffer.features.pop(0)
-                            self.soft_lock_buffer.sharpness_scores.pop(0)
+                            # 🛠️ (15/9) Trượt ĐÚNG 1 bước thời gian (`stride`)
+                            for _ in range(min(self.stride, len(self.soft_lock_buffer.features))):
+                                self.soft_lock_buffer.features.pop(0)
+                                self.soft_lock_buffer.sharpness_scores.pop(0)
                         elif best_genuine >= self.reid_threshold:
                             print(f"Result: HARD LOCK! (fine={best_genuine:.3f} >= {self.reid_threshold})")
                             self.state = self.T3_VERIFIED
@@ -384,16 +403,22 @@ class SeqRobustnessPipeline:
                             else:
                                 self.memory_bank.add_recent(visual_mean, fused_feat)
                                 
-                            self.sliding_window = self.soft_lock_buffer
-                            self.sliding_window.stride = self.stride
-                            self.soft_lock_buffer = SlidingWindowBuffer(self.num_frames, stride=1)
+                            # 🛠️ (15/9) Nạp `sliding_window` từ ĐÚNG cửa sổ đã dùng để HARD LOCK
+                            # (bản lấy cách quãng), KHÔNG phải toàn bộ buffer thu liên tục.
+                            self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
+                            for _f, _s in zip(self.soft_lock_buffer.features[::self.stride],
+                                              self.soft_lock_buffer.sharpness_scores[::self.stride]):
+                                self.sliding_window.add(_f, _s)
+                            self.soft_lock_buffer = SlidingWindowBuffer(self.soft_lock_capacity, stride=1)
                         else:
                             print(f"Result: Fine FAILED! (fine={best_genuine:.3f} < {self.reid_threshold})")
                             self.last_verification_text = f"ReID Fail | Gen: {best_genuine:.2f} | Imp: {max_imposter:.2f}"
                             self.last_verification_color = (0, 0, 255)
                             # Rolling window
-                            self.soft_lock_buffer.features.pop(0)
-                            self.soft_lock_buffer.sharpness_scores.pop(0)
+                            # 🛠️ (15/9) Trượt ĐÚNG 1 bước thời gian (`stride`)
+                            for _ in range(min(self.stride, len(self.soft_lock_buffer.features))):
+                                self.soft_lock_buffer.features.pop(0)
+                                self.soft_lock_buffer.sharpness_scores.pop(0)
                 else:
                     self.soft_lock_buffer.clear()
 
@@ -406,7 +431,7 @@ class SeqRobustnessPipeline:
             text = "TRACKING (HARD LOCK)"
         elif self.state == self.T2_SEARCH:
             color = (255, 255, 0)
-            text = f"SEARCHING ({len(self.soft_lock_buffer.features)}/{self.num_frames})"
+            text = f"SEARCHING ({len(self.soft_lock_buffer.features)}/{self.soft_lock_capacity})"
             
         cv2.putText(display_frame, f"State: {self.state}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
         cv2.putText(display_frame, f"Bank: {self.memory_bank.size_info()}", (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
