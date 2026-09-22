@@ -375,8 +375,9 @@ class ReIDPipeline:
                     
                     # Thu thập vô điều kiện - không kiểm tra lại Coarse
                     self._absent_streak = 0
-                    self.soft_lock_buffer.add(feat_2560, sharpness)
-                    print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
+                    if not self._soft_lock_announced:
+                        self.soft_lock_buffer.add(feat_2560, sharpness)
+                        print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
 
                     # (1) SOFT LOCK — đủ `num_frames` frame LIÊN TỤC -> TÍNH ĐIỂM (CỔNG CHẶN).
                     #     Soft lock KHÔNG quyết định danh tính: điểm >= ngưỡng thì mới cho phép
@@ -406,6 +407,9 @@ class ReIDPipeline:
                         _new_hard_sample = self.hard_lock_buffer.should_extract()
                         if _new_hard_sample:
                             self.hard_lock_buffer.add(feat_2560, sharpness)
+                            print(f"[{frame_idx}] HARD LOCK ID:{self.soft_lock_id} collecting: "
+                                  f"{len(self.hard_lock_buffer.features)}/{self.num_frames} "
+                                  f"(moi {self.stride} frame)")
 
                     if self._soft_lock_passed and _new_hard_sample and self.hard_lock_buffer.is_ready():
                         # Cửa sổ đã cách quãng sẵn (`should_extract`) -> stride=1.

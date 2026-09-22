@@ -393,7 +393,10 @@ class SeqRobustnessPipeline:
 
                 # Thu thập soft lock VÔ ĐIỀU KIỆN một khi đã bắt đầu (giống infer.py): cổng chặn
                 # thật là ĐIỂM TRÊN CẢ CỬA SỔ, không phải coarse từng frame.
-                if len(self.soft_lock_buffer.features) > 0 or coarse_score >= self.soft_lock_threshold:
+                # 🛠️ (22/9) DỪNG thu soft lock ngay khi đã có ĐIỂM soft lock (xem infer.py).
+                if (not self._soft_lock_announced
+                        and (len(self.soft_lock_buffer.features) > 0
+                             or coarse_score >= self.soft_lock_threshold)):
                     self.soft_lock_buffer.add(feat_2560, sharpness)
                     print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames} (coarse={coarse_score:.3f})")
 
@@ -426,6 +429,9 @@ class SeqRobustnessPipeline:
                         _new_hard_sample = self.hard_lock_buffer.should_extract()
                         if _new_hard_sample:
                             self.hard_lock_buffer.add(feat_2560, sharpness)
+                            print(f"[{frame_idx}] HARD LOCK collecting: "
+                                  f"{len(self.hard_lock_buffer.features)}/{self.num_frames} "
+                                  f"(moi {self.stride} frame)")
 
                     # Đủ `num_frames` mẫu cách quãng VÀ soft lock đã PASS -> chạy Lọc Tinh.
                     if self._soft_lock_passed and _new_hard_sample and self.hard_lock_buffer.is_ready():

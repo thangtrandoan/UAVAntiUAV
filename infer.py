@@ -457,8 +457,13 @@ class SeqReIDPipeline:
                 if self.device.type == 'cuda': torch.cuda.synchronize()
                 self.metrics_cnn_times.append((time.time() - t0) * 1000)
                 
-                # Nếu đang trong quá trình thu thập Soft Lock, tiếp tục thu thập vô điều kiện
-                if len(self.soft_lock_buffer.features) > 0:
+                # Nếu đang trong quá trình thu thập Soft Lock, tiếp tục thu thập vô điều kiện.
+                # 🛠️ (22/9) DỪNG thu soft lock ngay khi đã có ĐIỂM soft lock (`_soft_lock_announced`):
+                # cửa sổ soft đã làm xong việc, thu thêm chỉ tốn công và làm log gây hiểu nhầm
+                # ("Soft Lock collecting 12/12" lặp 44 frame trong khi thực ra đang thu HARD LOCK).
+                if self._soft_lock_announced:
+                    pass
+                elif len(self.soft_lock_buffer.features) > 0:
                     self.soft_lock_buffer.add(feat_2560, sharpness)
                     print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
                 else:
@@ -506,6 +511,9 @@ class SeqReIDPipeline:
                     _new_hard_sample = self.hard_lock_buffer.should_extract()
                     if _new_hard_sample:
                         self.hard_lock_buffer.add(feat_2560, sharpness)
+                        print(f"[{frame_idx}] HARD LOCK collecting: "
+                              f"{len(self.hard_lock_buffer.features)}/{self.num_frames} "
+                              f"(moi {self.stride} frame)")
 
                 # Đủ `num_frames` mẫu cách quãng VÀ soft lock đã pass -> chạy Lọc Tinh
                 if self._soft_lock_passed and _new_hard_sample and self.hard_lock_buffer.is_ready():
