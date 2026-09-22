@@ -69,38 +69,36 @@ eval:
 
 # --- Inference ---
 infer:
-  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  backbone: dinov3_convnext
+  seq_dir: all
   model_path: ./best_model_conv.pth
-  output_video: results_demo.mp4
-  out_dir: ./infer_output/UAV-Anti-UAV_Test_000059
-  backbone: "dinov3_convnext"
-  # === New OOP Pipeline Thresholds ===
-  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4).
+  output_video: output_reid.mp4
+  out_dir: ./infer_output/infer_3.8
+  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride. `infer.py` tự đọc và GHI ĐÈ từ
+  # `data_pipeline.frame_stride`, nên giá trị ở đây chỉ là tài liệu tham chiếu.
   stride: 4
   # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
   # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
   # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
   # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
   t2_search_gap_tolerance: 2
-  # 🛠️ FIX (14/9): PHẢI khớp `train.num_frames` (đang = 16).
-  # Trước đây = 8 → Mamba + mean-pooling chạy 8 token trong khi train 16
-  # → phân phối temporal token lệch sẵn, rồi bnneck khuếch đại → fine score tụt.
-  # Đánh đổi: cửa sổ dài hơn thì khó thu đủ trong đoạn tái xuất ngắn
-  # (xem md/15thg9.md §5 — cần resample/pad lên đủ num_frames).
   num_frames: 16
   bbox_padding: 0.2
   max_anchor_size: 5
   max_recent_size: 15
-  soft_lock_threshold: 0.6
+  soft_lock_threshold: 0.3
   reid_threshold: 0.75
   hijack_threshold: 0.40
   hijack_check_count: 5
   update_interval_sec: 2.0
-  # 🛠️ (14/9): in cosine TRƯỚC bnneck (raw) vs SAU bnneck (fused). Mặc định true trong code.
+  # 🛠️ (14/9): in cosine TRƯỚC bnneck (raw) vs SAU bnneck (fused).
   debug_sim: true
-  # 🛠️ (14/9): không gian cho gate HARD LOCK: 'fused' (cũ) hoặc 'pre_bn'.
-  # ⚠️ Đổi sang pre_bn thì PHẢI đổi `reid_threshold` = thresholds.pre_bn (calibrate trước).
-  # ✅ Đã kiểm chứng 15/9: pre_bn KÉM hơn fused 2.67% TAR -> GIỮ fused (md/15thg9.md §4.1).
+  # 🛠️ (14/9): không gian dùng cho gate HARD LOCK.
+  #   fused  = qua ReIDHead (BatchNorm1d) — hành vi cũ
+  #   pre_bn = cat(visual, temporal)      — đầu vào bnneck (raw cosine)
+  # ⚠️ Đổi sang pre_bn thì PHẢI đổi `reid_threshold` = thresholds.pre_bn trong
+  #    calibrated_threshold.json (chạy calibrate_threshold.py trước). Hai thang điểm khác nhau.
+  # ✅ Đã kiểm chứng 15/9: pre_bn KÉM hơn fused 2.67% TAR@FAR=0.1% -> GIỮ fused (xem md/15thg9.md §4.1).
   fine_space: fused
 
 # --- Inference Robustness Test ---

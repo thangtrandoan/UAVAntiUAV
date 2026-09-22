@@ -1,10 +1,14 @@
+import torch
+
+# Gỡ bỏ hậu tố alpha (a0+...) để transformers nhận diện đúng PyTorch >= 2.5
+if hasattr(torch, "__version__"):
+    torch.__version__ = torch.__version__.split("a0")[0]
 import os
 import sys
 import time
 import argparse
 import yaml
 import cv2
-import torch
 import torch.nn.functional as F
 import numpy as np
 import builtins
