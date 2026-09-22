@@ -40,9 +40,14 @@ data_pipeline:
 train:
   resume: ""
   backbone: "dinov3_convnext"  # Sử dụng kiến trúc mới DINOv3
-  batch_size: 12              # A100 có VRAM khổng lồ, thoải mái set 64 hoặc thậm chí 128
+  batch_size: 12              
   num_instances: 3            # 4 ảnh cho mỗi đối tượng -> Rất tốt cho Triplet Loss
   num_frames: 12
+  # 🛠️ (22/9) N RANDOM THEO BATCH (md/22thg9.md §16). Mỗi batch dùng MỘT N
+  # trong danh sách này — CÙNG N cho query (after) và gallery (before), vì loss
+  # so sánh chúng. Bỏ key này / để 1 phần tử = hành vi cũ (N cố định).
+  # Lưu ý: không làm epoch dài thêm (sampler rút 1 N cho mỗi batch).
+  n_frames_choices: [4, 6, 8, 10, 12, 14, 16]
   num_workers: 8              # Tăng worker để cấp đủ data cho GPU
   use_amp: true               # BẮT BUỘC BẬT: A100 tận dụng Tensor Cores train cực nhanh với AMP
   pin_memory: true
@@ -99,7 +104,6 @@ calibration:
   far_target: 0.001          # FAR mục tiêu = 0.1%
   seed: 42                   # Seed cố định để split reproducible
 
-
 # --- Inference ---
 infer:
   backbone: dinov3_convnext
@@ -133,6 +137,7 @@ infer:
   #    calibrated_threshold.json (chạy calibrate_threshold.py trước). Hai thang điểm khác nhau.
   # ✅ Đã kiểm chứng 15/9: pre_bn KÉM hơn fused 2.67% TAR@FAR=0.1% -> GIỮ fused (xem md/15thg9.md §4.1).
   fine_space: fused
+  time_source: video
 
 # --- Inference Robustness Test ---
 infer_robustness:
@@ -154,3 +159,4 @@ infer_robustness:
   num_frames: 12
   bbox_padding: 0.2
   num_imposters: 10
+  time_source: video

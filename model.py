@@ -145,8 +145,13 @@ class TemporalMambaEncoder(nn.Module):
         # Linear projection
         self.in_proj = nn.Linear(d_in, d_model)
         
-        # Positional Encoding (Learnable)
-        self.pos_embed = nn.Parameter(torch.randn(1, max_seq_len, d_model))
+        # 🛠️ (22/9) BỎ Positional Encoding HỌC ĐƯỢC (xem md/22thg9.md §16).
+        # Lý do: `mean(dim=1)` ở cuối làm PE tuyệt đối đóng góp `mean(PE[0:N])` — một đại
+        # lượng PHỤ THUỘC N về mặt toán học. Với N random, vị trí 5 vừa có nghĩa "frame 5
+        # của clip 12" vừa "frame 5 của clip 8" -> NHẬP NHẰNG, không thể học nhất quán.
+        # Mamba/SimpleS6Block đã mã hoá thứ tự bằng recurrence nên PE là thừa.
+        # (Trước đây: `self.pos_embed = nn.Parameter(torch.randn(1, max_seq_len, d_model))`)
+        self.max_seq_len = max_seq_len
         
         # Mamba Blocks
         self.layers = nn.ModuleList()
@@ -170,8 +175,7 @@ class TemporalMambaEncoder(nn.Module):
         B, N, _ = x.shape
         x = self.in_proj(x)
         
-        # Thêm positional encoding
-        x = x + self.pos_embed[:, :N, :]
+        # 🛠️ (22/9) KHÔNG cộng positional encoding nữa (xem __init__ và §16).
         
         for mamba_layer, norm in zip(self.layers, self.norm_layers):
             res = x
@@ -183,8 +187,13 @@ class TemporalMambaEncoder(nn.Module):
         # Lưu sequence features trước mean pooling (cho temporal consistency loss)
         temporal_seq = x  # [B, N, d_model]
         
-        # Mean pooling thay vì chỉ lấy frame cuối cùng
-        x = x.mean(dim=1) # [B, d_model]
+        # 🛠️ (22/9) Mean pooling + HIỆU CHỈNH SCALE THEO N.
+        # Phương sai của mean ~ 1/N -> cùng một nội dung nhưng SCALE khác nhau ở mỗi N.
+        # Nhân sqrt(N) để scale BẤT BIẾN THEO N.
+        # Lưu ý: trong TRAIN mode, `BatchNorm1d` ở `out_mlp` hấp thụ luôn scale này nên
+        # output KHÔNG đổi; giá trị thật của nó là làm `running_mean/var` của BN trở nên
+        # ĐÚNG CHO MỌI N ở EVAL (inference) — đó chính là vấn đề deployment.
+        x = x.mean(dim=1) * (N ** 0.5) # [B, d_model]
         
         # MLP Head
         x = self.out_mlp(x) # [B, d_out]
@@ -289,9 +298,16 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
         log(f"  [{tag}] ⚠️ MISSING {len(missing)} keys (giữ init hiện tại):")
         for prefix, keys in sorted(_group(missing).items(), key=lambda kv: -len(kv[1])):
             log(f"      - {prefix}.* : {len(keys)} keys (vd: {keys[0]})")
-    if unexpected:
-        log(f"  [{tag}] ⚠️ UNEXPECTED {len(unexpected)} keys trong checkpoint (bị bỏ):")
-        for prefix, keys in sorted(_group(unexpected).items(), key=lambda kv: -len(kv[1])):
+    # 🛠️ (22/9) `pos_embed` bị BỎ khỏi kiến trúc (§16) nên key này thành "unexpected".
+    # Đây là thay đổi CHỦ Ý, không phải lỗi -> báo riêng để không gây hoang mang.
+    _pe = [k for k in unexpected if 'pos_embed' in k]
+    _other_unexp = [k for k in unexpected if 'pos_embed' not in k]
+    if _pe:
+        log(f"  [{tag}] ℹ️ {len(_pe)} key `pos_embed` bị bỏ — CHỦ Ý, không phải lỗi "
+            f"(md/22thg9.md §16): {_pe}")
+    if _other_unexp:
+        log(f"  [{tag}] ⚠️ UNEXPECTED {len(_other_unexp)} keys trong checkpoint (bị bỏ):")
+        for prefix, keys in sorted(_group(_other_unexp).items(), key=lambda kv: -len(kv[1])):
             log(f"      - {prefix}.* : {len(keys)} keys (vd: {keys[0]})")
     if skipped_shape:
         log(f"  [{tag}] ⚠️ SHAPE MISMATCH {len(skipped_shape)} keys (bị bỏ):")

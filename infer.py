@@ -247,6 +247,7 @@ class SeqReIDPipeline:
         self.hijack_threshold = cfg.get('hijack_threshold', 0.40)
         self.hijack_check_count = cfg.get('hijack_check_count', 5)
         self.update_interval_sec = cfg.get('update_interval_sec', 2.0)
+        self.time_source = cfg.get('time_source', 'video')  # 'video' | 'wall'
         self.bbox_padding = cfg.get('bbox_padding', 0.2)
         # 🛠️ DEBUG (14/9): in tách cosine TRƯỚC BN (raw) vs SAU BN (fused).
         # Bật/tắt bằng `debug_sim` trong block `infer` của config.
@@ -308,6 +309,9 @@ class SeqReIDPipeline:
         
         self.metrics_cnn_times = []
         self.metrics_mamba_times = []
+        # 🛠️ (22/9) Tách RIÊNG thời gian TIỀN XỬ LÝ (cvtColor + resize + normalize + H2D).
+        # Trước đây nó nằm NGOÀI vùng đo của CNN nên chỉ hiện gián tiếp trong throughput.
+        self.metrics_prep_times = []
         self.false_alarms = 0
         self.reid_latency_frames = []
         self.reappeared_frame_idx = -1
@@ -353,9 +357,18 @@ class SeqReIDPipeline:
         self._soft_lock_announced = False
         self._soft_lock_passed = False
         
-    def process_frame(self, frame, bbox, is_absent, frame_idx, transform):
+    def process_frame(self, frame, bbox, is_absent, frame_idx, transform, video_time=None):
         valid_bbox = bbox[2] > 0 and bbox[3] > 0
-        current_time = time.time()
+                # 🛠️ (22/9) ĐỒNG HỒ: mặc định dùng **THỜI GIAN CỦA VIDEO** (`frame_idx / fps`),
+        # KHÔNG dùng `time.time()`. `update_interval_sec` nghĩa là "bao lâu (theo video) thì
+        # cập nhật Memory Bank một lần" — đó là đại lượng CỦA VIDEO, không phải của máy.
+        # Dùng đồng hồ thực làm số lần update phụ thuộc TỐC ĐỘ XỬ LÝ -> CÙNG MỘT VIDEO,
+        # máy khác nhau cho kết quả khác nhau (Colab T4 vs Jetson vs GPU nhanh).
+        # `time_source='wall'` để quay lại hành vi cũ (chỉ nên dùng cho stream thời gian thực).
+        if video_time is not None and self.time_source == 'video':
+            current_time = video_time
+        else:
+            current_time = time.time()
         
         if self.state in [self.T0_INIT, self.T3_VERIFIED]:
             if is_absent or not valid_bbox:
@@ -383,12 +396,16 @@ class SeqReIDPipeline:
             crop = crop_and_pad(frame, bbox, self.bbox_padding)
             if crop is not None and self.sliding_window.should_extract():
                 sharpness = compute_sharpness(crop)
-                tensor_frame = transform(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)).unsqueeze(0).to(self.device)
                 if self.device.type == 'cuda': torch.cuda.synchronize()
                 t0 = time.time()
+                tensor_frame = transform(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)).unsqueeze(0).to(self.device)
+                if self.device.type == 'cuda': torch.cuda.synchronize()
+                t1 = time.time()
                 feat_2560 = extract_cnn_feature(self.model, tensor_frame)
                 if self.device.type == 'cuda': torch.cuda.synchronize()
-                self.metrics_cnn_times.append((time.time() - t0) * 1000)
+                t2 = time.time()
+                self.metrics_prep_times.append((t1 - t0) * 1000)
+                self.metrics_cnn_times.append((t2 - t1) * 1000)
                 self.sliding_window.add(feat_2560, sharpness)
                 
             time_elapsed = current_time - self.last_update_time
@@ -454,12 +471,16 @@ class SeqReIDPipeline:
             crop = crop_and_pad(frame, bbox, self.bbox_padding)
             if crop is not None:
                 sharpness = compute_sharpness(crop)
-                tensor_frame = transform(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)).unsqueeze(0).to(self.device)
                 if self.device.type == 'cuda': torch.cuda.synchronize()
                 t0 = time.time()
+                tensor_frame = transform(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)).unsqueeze(0).to(self.device)
+                if self.device.type == 'cuda': torch.cuda.synchronize()
+                t1 = time.time()
                 feat_2560 = extract_cnn_feature(self.model, tensor_frame)
                 if self.device.type == 'cuda': torch.cuda.synchronize()
-                self.metrics_cnn_times.append((time.time() - t0) * 1000)
+                t2 = time.time()
+                self.metrics_prep_times.append((t1 - t0) * 1000)
+                self.metrics_cnn_times.append((t2 - t1) * 1000)
                 
                 # Nếu đang trong quá trình thu thập Soft Lock, tiếp tục thu thập vô điều kiện.
                 # 🛠️ (22/9) DỪNG thu soft lock ngay khi đã có ĐIỂM soft lock (`_soft_lock_announced`):
@@ -552,7 +573,7 @@ class SeqReIDPipeline:
                         print(f"[{frame_idx}] HARD LOCK! (fine={fine_score:.3f} >= {self.reid_threshold}) Latency: {latency} frames")
                         self.state = self.T3_VERIFIED
                         self._hijack_checks_remaining = self.hijack_check_count
-                        self.last_update_time = time.time()
+                        self.last_update_time = current_time
                         
                         if len(self.memory_bank.anchor_bank) < self.memory_bank.max_anchor:
                             self.memory_bank.add_anchor(bundle.visual_mean, bundle.fused_feat, bundle.temporal_token,
@@ -721,6 +742,7 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     print(f"Starting OOP Sequence Inference Stream for {seq_name}...")
     
     total_processing_time = 0.0
+    total_write_time = 0.0
     
     # Cảnh báo nếu absent.txt bị cắt ngắn — trước đây mặc định True (coi là "mất") 
     # làm pipeline KHÔNG BAO GIỜ re-acquire → latency N/A âm thầm.
@@ -740,12 +762,20 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
         t_start = time.time()
         display_frame = frame.copy()
         
-        pipeline.process_frame(frame, bbox, is_absent, frame_idx, transform)
+        # 🛠️ (22/9) THỜI GIAN THẬT CỦA VIDEO = frame_idx / fps. Không phụ thuộc tốc độ máy.
+        video_time = frame_idx / fps_video if (fps_video and fps_video > 0) else frame_idx / 30.0
+        pipeline.process_frame(frame, bbox, is_absent, frame_idx, transform, video_time=video_time)
         pipeline.draw_ui(display_frame, bbox, frame_idx)
         
-        out_vid.write(display_frame)
+        # 🛠️ (22/9) ĐỒNG BỘ GPU TRƯỚC KHI ĐO, rồi mới ghi video.
+        # Trước đây `out_vid.write` nằm TRONG vùng đo của throughput -> con số FPS bị
+        # trộn với thời gian MÃ HOÁ VIDEO (không phải throughput của model).
         if device.type == 'cuda': torch.cuda.synchronize()
-        total_processing_time += time.time() - t_start
+        total_processing_time += time.time() - t_start   # model + UI (KHÔNG gồm ghi video)
+        
+        t_write = time.time()
+        out_vid.write(display_frame)
+        total_write_time += time.time() - t_write
         
         frame_idx += 1
 
@@ -757,18 +787,32 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     metrics_report = ["\n--- PERFORMANCE METRICS ---"]
     avg_cnn = 0.0
     avg_mamba = 0.0
-    throughput = 0.0
     
+    # 🛠️ (22/9) Ghi rõ `n=` cho MỌI số trung bình: đây là trung bình TRÊN MỖI LẦN GỌI,
+    # không phải trên mỗi frame. Mỗi frame gọi CNN **0 hoặc 1** lần và Mamba **0 hoặc 1**
+    # lần (3 nhánh if/elif loại trừ nhau), NHƯNG hai cổng khác nhau:
+    #   - CNN (tracking): `should_extract()` = đếm FRAME, mỗi `frame_stride` frame
+    #   - Mamba (tracking): `is_ready()` + `time_elapsed >= update_interval_sec` = ĐỒNG HỒ THỰC
+    # -> `n` của hai bên lệch nhau rất nhiều, nên `avg_cnn + avg_mamba` KHÔNG bằng 1 frame.
+    if pipeline.metrics_prep_times:
+        metrics_report.append(f"Avg Preprocess (cvt+resize+H2D): {np.mean(pipeline.metrics_prep_times):.2f} ms"
+                              f"  (n={len(pipeline.metrics_prep_times)})")
     if pipeline.metrics_cnn_times:
         avg_cnn = np.mean(pipeline.metrics_cnn_times)
-        metrics_report.append(f"Avg CNN Feature Extraction : {avg_cnn:.2f} ms")
-        
-    throughput = frame_idx / total_processing_time if total_processing_time > 0 else 0.0
-    metrics_report.append(f"Avg System Throughput      : {throughput:.2f} FPS")
-        
+        metrics_report.append(f"Avg CNN Feature Extraction : {avg_cnn:.2f} ms"
+                              f"  (n={len(pipeline.metrics_cnn_times)})")
+
+    model_fps = frame_idx / total_processing_time if total_processing_time > 0 else 0.0
+    pipe_fps = frame_idx / (total_processing_time + total_write_time) if (total_processing_time + total_write_time) > 0 else 0.0
+    metrics_report.append(f"Avg Throughput (model+UI)  : {model_fps:.2f} FPS"
+                          f"   <- số nên dùng để so sánh model")
+    metrics_report.append(f"Avg Throughput (+ghi video): {pipe_fps:.2f} FPS"
+                          f"   (ghi video {total_write_time / max(frame_idx,1) * 1000:.2f} ms/frame)")
+
     if pipeline.metrics_mamba_times:
         avg_mamba = np.mean(pipeline.metrics_mamba_times)
-        metrics_report.append(f"Avg Mamba + Head Time      : {avg_mamba:.2f} ms")
+        metrics_report.append(f"Avg Mamba + Head Time      : {avg_mamba:.2f} ms"
+                              f"  (n={len(pipeline.metrics_mamba_times)}, mỗi lần gọi 1 cửa sổ)")
         
     if pipeline.reid_latency_frames:
         avg_lat = np.mean(pipeline.reid_latency_frames)
@@ -789,7 +833,9 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     builtins.print = _orig_print
     
     mean_latency = np.mean(pipeline.reid_latency_frames) if pipeline.reid_latency_frames else -1.0
-    return (avg_cnn, avg_mamba, throughput, mean_latency, pipeline.false_alarms,
+    # 🛠️ (22/9) Trả `model_fps` (model+UI, KHÔNG gồm ghi video) — đây mới là con số
+    # dùng để so sánh model. Trước đây trả `throughput` trộn cả thời gian mã hoá video.
+    return (avg_cnn, avg_mamba, model_fps, mean_latency, pipeline.false_alarms,
             pipeline.debug_pre_bn_scores, pipeline.debug_post_bn_scores,
             pipeline.debug_tag_counts)
 
@@ -900,7 +946,7 @@ def main():
         
         print("\n=== AGGREGATED METRICS ===")
         print(f"Avg CNN Feature Extraction : {avg_cnn:.2f} ms")
-        print(f"Avg System Throughput      : {avg_throughput:.2f} FPS")
+        print(f"Avg Throughput (model+UI)  : {avg_throughput:.2f} FPS")
         print(f"Avg Mamba + Head Time      : {avg_mamba:.2f} ms")
         print(f"Avg Re-acquisition Latency : {avg_latency:.2f} frames")
         print(f"Total False Alarms         : {sum_false_alarms}")
@@ -912,7 +958,7 @@ def main():
         with open(os.path.join(base_out_dir, "summary_metrics.txt"), "w") as sf:
             sf.write("=== AGGREGATED METRICS ===\n")
             sf.write(f"Avg CNN Feature Extraction : {avg_cnn:.2f} ms\n")
-            sf.write(f"Avg System Throughput      : {avg_throughput:.2f} FPS\n")
+            sf.write(f"Avg Throughput (model+UI)  : {avg_throughput:.2f} FPS\n")
             sf.write(f"Avg Mamba + Head Time      : {avg_mamba:.2f} ms\n")
             sf.write(f"Avg Re-acquisition Latency : {avg_latency:.2f} frames\n")
             sf.write(f"Total False Alarms         : {sum_false_alarms}\n")

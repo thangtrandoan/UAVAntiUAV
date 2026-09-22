@@ -135,7 +135,8 @@ class TemporalConsistencyLoss(nn.Module):
 # ==========================================
 
 class UAVReIDDataset(Dataset):
-    def __init__(self, data_dir, query_json, gallery_json, transform=None, num_frames=16):
+    def __init__(self, data_dir, query_json, gallery_json, transform=None, num_frames=16,
+                 n_values=None):
         self.data_dir = data_dir
         with open(query_json, 'r') as f:
             queries = json.load(f)
@@ -144,6 +145,12 @@ class UAVReIDDataset(Dataset):
             
         self.transform = transform
         self.num_frames = num_frames
+        # 🛠️ (22/9) N RANDOM THEO BATCH (md/22thg9.md §16). `num_frames` giữ vai trò
+        # "N mặc định / N dùng cho validation". `n_values` là danh sách N sẽ random.
+        # CHỈ SỐ ĐƯỢC MÃ HOÁ N:  idx = k * L + g   (k = chỉ số sample, g = chỉ số N, L = len(n_values))
+        # Nhờ vậy `__getitem__` suy ra N TỪ CHÍNH INDEX -> stateless, an toàn với num_workers>0
+        # (không phải set attribute trên dataset từ sampler, thứ không truyền được qua fork).
+        self.n_values = list(n_values) if n_values else [num_frames]
         
         g_dict = {(g['sequence_id'], g['event_index']): g for g in galleries}
         self.valid_pairs = []
@@ -165,9 +172,14 @@ class UAVReIDDataset(Dataset):
         self.num_identities = len(self.identities)
 
     def __len__(self):
-        return len(self.valid_pairs)
+        return len(self.valid_pairs) * len(self.n_values)
         
-    def _load_clip(self, folder, frames, take_last=False):
+    def _load_clip(self, folder, frames, take_last=False, n=None):
+        n = n or self.num_frames
+        # 🛠️ (22/9) COPY list: code cũ `frames.append(...)` khi clip ngắn làm list TRONG
+        # `valid_pairs` phình ra vĩnh viễn. Với N cố định thì chỉ là rác; với N RANDOM thì
+        # thành LỖI (pad tới n=4 rồi lần sau đọc n=16 -> toàn frame lặp).
+        frames = list(frames)
         # 🛠️ (15/9) ĐỒNG BỘ frame_stride — BỎ `np.linspace`.
         # `np.linspace` lấy mẫu TRẢI ĐỀU cả danh sách → bước thời gian hiệu dụng
         #     = frame_stride × (len-1)/(num_frames-1)   >   frame_stride
@@ -178,12 +190,12 @@ class UAVReIDDataset(Dataset):
         #   - after  (query)  : lấy `num_frames` frame ĐẦU → sát t2 (lúc tái xuất)
         # Kết quả Y HỆT việc sinh lại data với num_before/after_frames = num_frames,
         # nhưng KHÔNG cần chạy lại data_pipeline.py.
-        if len(frames) > self.num_frames:
-            frames = frames[-self.num_frames:] if take_last else frames[:self.num_frames]
-        elif len(frames) < self.num_frames:
+        if len(frames) > n:
+            frames = frames[-n:] if take_last else frames[:n]
+        elif len(frames) < n:
             if len(frames) == 0:
-                return torch.zeros((self.num_frames, 3, 224, 224))
-            while len(frames) < self.num_frames:
+                return torch.zeros((n, 3, 224, 224))
+            while len(frames) < n:
                 frames.append(frames[-1])
                 
         clip = []
@@ -199,10 +211,16 @@ class UAVReIDDataset(Dataset):
         return torch.stack(clip, dim=0)
 
     def __getitem__(self, idx):
-        pair = self.valid_pairs[idx]
-        
-        before_clip = self._load_clip(pair['gallery_dir'], pair['gallery_frames'], take_last=True)
-        after_clip = self._load_clip(pair['query_dir'], pair['query_frames'], take_last=False)
+        L = len(self.n_values)
+        g, k = idx % L, idx // L          # g = chỉ số N, k = chỉ số sample
+        n = self.n_values[g]
+        pair = self.valid_pairs[k]
+
+        # CÙNG một N cho gallery (before) và query (after) — bắt buộc, vì loss so sánh chúng.
+        before_clip = self._load_clip(pair['gallery_dir'], pair['gallery_frames'],
+                                      take_last=True, n=n)
+        after_clip = self._load_clip(pair['query_dir'], pair['query_frames'],
+                                     take_last=False, n=n)
         
         pid = self.id_to_idx[pair['identity_id']]
         return before_clip, after_clip, pid
@@ -212,11 +230,14 @@ class ReIDBatchSampler(Sampler):
     PK Sampler đảm bảo mỗi batch có P identities, mỗi identity có K instances
     để hỗ trợ Hard Triplet Loss.
     """
-    def __init__(self, dataset, batch_size, num_instances=4):
+    def __init__(self, dataset, batch_size, num_instances=4, n_values=None):
         self.dataset = dataset
         self.batch_size = batch_size
         self.num_instances = num_instances
         self.num_pids_per_batch = self.batch_size // self.num_instances
+        # 🛠️ (22/9) N random theo BATCH (không theo sample — không collate được (B,N,C)).
+        self.n_values = list(n_values) if n_values else list(getattr(dataset, 'n_values', [dataset.num_frames]))
+        self.L = len(self.n_values)
         
         self.index_dic = defaultdict(list)
         for index, pair in enumerate(self.dataset.valid_pairs):
@@ -231,7 +252,8 @@ class ReIDBatchSampler(Sampler):
                 num = self.num_instances
             self.length += num - num % self.num_instances
             
-    def __iter__(self):
+    def _pk_batches(self):
+        """Sinh batch PK trên chỉ số SAMPLE (k), CHƯA gắn N. Y hệt logic cũ."""
         batch_idxs_dict = defaultdict(list)
         for pid in self.pids:
             idxs = self.index_dic[pid].copy()
@@ -262,8 +284,16 @@ class ReIDBatchSampler(Sampler):
             batch = final_idxs[i:i + self.batch_size]
             if len(batch) == self.batch_size:
                 batches.append(batch)
-                
-        return iter(batches)
+        return batches
+
+    def __iter__(self):
+        base = self._pk_batches()
+        # Mỗi batch rút MỘT N. Dùng pool xoay vòng để MỘT epoch trải đều mọi N
+        # (thay vì rút ngẫu nhiên thuần, có thể lệch), nhưng KHÔNG làm epoch dài thêm.
+        gs = (list(range(self.L)) * (len(base) // self.L + 1))[:len(base)]
+        random.shuffle(gs)
+        # idx = k * L + g  -> mọi index trong batch cùng g -> cùng N -> collate được.
+        return iter([[k * self.L + g for k in b] for b, g in zip(base, gs)])
 
     def __len__(self):
         return self.length // self.batch_size
@@ -354,12 +384,16 @@ def main():
         transforms.RandomErasing(p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3))
     ])
 
-    dataset = UAVReIDDataset(train_dir, args.query_json, args.gallery_json, transform=transform_train, num_frames=args.num_frames)
+    # 🛠️ (22/9) N random theo batch (md/22thg9.md §16). Bỏ key / 1 phần tử = hành vi cũ.
+    n_values = tc.get('n_frames_choices') or [args.num_frames]
+    if len(n_values) > 1:
+        print(f" 🔀 N RANDOM theo batch: {n_values} (cùng N cho query+gallery trong 1 batch)")
+    dataset = UAVReIDDataset(train_dir, args.query_json, args.gallery_json, transform=transform_train, num_frames=args.num_frames, n_values=n_values)
     num_identities = dataset.num_identities
     
     batch_size = args.batch_size
     num_instances = args.num_instances
-    sampler = ReIDBatchSampler(dataset, batch_size=batch_size, num_instances=num_instances)
+    sampler = ReIDBatchSampler(dataset, batch_size=batch_size, num_instances=num_instances, n_values=n_values)
     dataloader = DataLoader(dataset, batch_sampler=sampler, num_workers=args.num_workers, pin_memory=args.pin_memory)
 
     # --- Setup Validation ---

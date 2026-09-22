@@ -250,6 +250,7 @@ class SeqRobustnessPipeline:
         self.hijack_threshold = cfg.get('hijack_threshold', 0.40)
         self.hijack_check_count = cfg.get('hijack_check_count', 5)
         self.update_interval_sec = cfg.get('update_interval_sec', 2.0)
+        self.time_source = cfg.get('time_source', 'video')  # 'video' | 'wall'
         self.bbox_padding = cfg.get('bbox_padding', 0.2)
         self.num_imposters = cfg.get('num_imposters', 5)
         
@@ -307,9 +308,18 @@ class SeqRobustnessPipeline:
         if hasattr(self.model, 'cached_imposters'):
             self.model.cached_imposters = []
         
-    def process_frame(self, frame, bbox, is_absent, frame_idx, transform):
+    def process_frame(self, frame, bbox, is_absent, frame_idx, transform, video_time=None):
         valid_bbox = bbox[2] > 0 and bbox[3] > 0
-        current_time = time.time()
+                # 🛠️ (22/9) ĐỒNG HỒ: mặc định dùng **THỜI GIAN CỦA VIDEO** (`frame_idx / fps`),
+        # KHÔNG dùng `time.time()`. `update_interval_sec` nghĩa là "bao lâu (theo video) thì
+        # cập nhật Memory Bank một lần" — đó là đại lượng CỦA VIDEO, không phải của máy.
+        # Dùng đồng hồ thực làm số lần update phụ thuộc TỐC ĐỘ XỬ LÝ -> CÙNG MỘT VIDEO,
+        # máy khác nhau cho kết quả khác nhau (Colab T4 vs Jetson vs GPU nhanh).
+        # `time_source='wall'` để quay lại hành vi cũ (chỉ nên dùng cho stream thời gian thực).
+        if video_time is not None and self.time_source == 'video':
+            current_time = video_time
+        else:
+            current_time = time.time()
         
         if self.state in [self.T0_INIT, self.T3_VERIFIED]:
             if is_absent or not valid_bbox:
@@ -469,7 +479,7 @@ class SeqRobustnessPipeline:
                             print(f"Result: HARD LOCK! (fine={best_genuine:.3f} >= {self.reid_threshold})")
                             self.state = self.T3_VERIFIED
                             self._hijack_checks_remaining = self.hijack_check_count
-                            self.last_update_time = time.time()
+                            self.last_update_time = current_time
                             
                             self.last_verification_text = f"ReID Pass | Gen: {best_genuine:.2f} | Imp: {max_imposter:.2f}"
                             self.last_verification_color = (0, 255, 0)
@@ -639,7 +649,9 @@ def main():
         
         display_frame = frame.copy()
         
-        pipeline.process_frame(frame, bbox, is_absent, frame_idx, transform)
+        # 🛠️ (22/9) THỜI GIAN THẬT CỦA VIDEO = frame_idx / fps (không phụ thuộc tốc độ máy).
+        video_time = frame_idx / fps_video if (fps_video and fps_video > 0) else frame_idx / 30.0
+        pipeline.process_frame(frame, bbox, is_absent, frame_idx, transform, video_time=video_time)
         pipeline.draw_ui(display_frame, bbox, frame_idx)
         
         out_vid.write(display_frame)
