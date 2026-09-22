@@ -265,8 +265,39 @@ class SeqReIDPipeline:
         # → bước thời gian = 1 so với bank bước = frame_stride → temporal token lệch.
         # (xem md/15thg9.md §13)
         self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
-        self.soft_lock_capacity = (self.num_frames - 1) * self.stride + 1
-        self.soft_lock_buffer = SlidingWindowBuffer(self.soft_lock_capacity, stride=1)
+        # 🛠️ (22/9) HAI CỬA SỔ SONG SONG (theo yêu cầu):
+        #   (1) SOFT LOCK  — `num_frames` frame LIÊN TỤC (bước 1). NHANH, chỉ để CHỌN ỨNG VIÊN
+        #       / xem điểm. Khi tái xuất có nhiều mục tiêu, mục tiêu có điểm coarse cao nhất
+        #       được chọn để đem đi HARD LOCK. KHÔNG dùng để chốt.
+        #   (2) HARD LOCK  — `num_frames` MẪU, mỗi mẫu cách nhau `frame_stride`. CHÍNH XÁC,
+        #       mới là cửa sổ đem so với Memory Bank (bank cũng bước `frame_stride`).
+        #   (3) Memory Bank / tracking (`sliding_window`) — bước `frame_stride`.
+        # Hệ quả số học: HARD LOCK cần `(num_frames-1)*stride+1` frame video (12/4 -> 45),
+        # còn SOFT LOCK chỉ cần `num_frames` frame (-> 12). Soft lock KHÔNG phải chờ 45.
+        self.soft_lock_capacity = self.num_frames
+        self.soft_lock_buffer = SlidingWindowBuffer(self.num_frames, stride=1)
+        self.hard_lock_capacity = (self.num_frames - 1) * self.stride + 1
+        self.hard_lock_buffer = SlidingWindowBuffer(self.num_frames, self.stride)
+        self._soft_lock_announced = False
+        self._soft_lock_passed = False
+        # ⚠️ RÀNG BUỘC ỨNG VIÊN (22/9): cửa sổ HARD LOCK phải thuộc ĐÚNG ứng viên mà soft lock
+        # đã chọn — nếu không, nó trộn frame của hai vật khác nhau và điểm hard lock vô nghĩa.
+        # Ở pipeline NÀY bbox là GT nên chỉ có MỘT ứng viên (chính target), và ứng viên đó tồn
+        # tại ngay từ frame tái xuất -> thu từ frame tái xuất là đúng, không cần reset.
+        # NẾU mở rộng sang nhiều mục tiêu: phải `hard_lock_buffer.clear()` mỗi khi ứng viên đổi
+        # (xem `phan_rang/infer_realworld.py`, chỗ `soft_lock_id != best_tid`).
+
+        # 🛠️ (22/9) NỚI RESET khi target vắng mặt trong T2_SEARCH (md/22thg9.md §4, §8.3).
+        # `soft_lock_buffer` cần `(num_frames-1)*stride+1` frame LIÊN TỤC (12/4 -> 45), mà
+        # GT trong video này có lần tái xuất chỉ ~10 frame -> reset ở 1 frame vắng làm event
+        # đó VĨNH VIỄN không thể lock. Vắng ngắn (detection dropout) chỉ SKIP frame và GIỮ
+        # feature đã thu; chỉ vắng LIÊN TIẾP quá `gap_tolerance` mới reset thật.
+        # Khoảng vắng làm cửa sổ có "lỗ" thời gian. Điều này KHÔNG hoàn toàn xa lạ với
+        # train: `data_pipeline.py` bỏ qua frame có bbox không hợp lệ, nên danh sách frame
+        # trong JSON cũng có thể có các mốc cách xa hơn `frame_stride` (xem §4.2).
+        # Khác biệt còn lại: bên train là THIẾU mẫu, còn đây là mẫu bắc QUA một khoảng vắng.
+        self.gap_tolerance = cfg.get('t2_search_gap_tolerance', 2)
+        self._absent_streak = 0
         
         self.last_update_time = 0.0
         self._hijack_checks_remaining = 0
@@ -314,6 +345,9 @@ class SeqReIDPipeline:
         self.state = self.T1_LOST
         self.sliding_window.clear()
         self.soft_lock_buffer.clear()
+        self.hard_lock_buffer.clear()
+        self._soft_lock_announced = False
+        self._soft_lock_passed = False
         
     def process_frame(self, frame, bbox, is_absent, frame_idx, transform):
         valid_bbox = bbox[2] > 0 and bbox[3] > 0
@@ -392,12 +426,26 @@ class SeqReIDPipeline:
                 self.state = self.T2_SEARCH
                 self.reappeared_frame_idx = frame_idx
                 self.soft_lock_buffer.clear()
+                self.hard_lock_buffer.clear()
+                self._soft_lock_announced = False
+                self._soft_lock_passed = False
+                self._absent_streak = 0
                 
         elif self.state == self.T2_SEARCH:
             if is_absent or not valid_bbox:
-                print(f"[{frame_idx}] UAV lost during T2_SEARCH. -> T1_LOST")
+                # 🛠️ (22/9) NỚI RESET (md/22thg9.md §4, §8.3): vắng NGẮN thì bỏ qua frame,
+                # GIỮ nguyên feature đã thu; chỉ vắng LIÊN TIẾP > `gap_tolerance` mới reset.
+                self._absent_streak += 1
+                if self._absent_streak <= self.gap_tolerance:
+                    print(f"[{frame_idx}] T2_SEARCH: vang {self._absent_streak}/{self.gap_tolerance} frame"
+                          f" -> BO QUA, giu {len(self.soft_lock_buffer.features)}/{self.soft_lock_capacity} feature")
+                    return
+                print(f"[{frame_idx}] UAV lost during T2_SEARCH "
+                      f"(vang {self._absent_streak} > {self.gap_tolerance}). -> T1_LOST")
                 self._transition_to_lost(frame_idx)
                 return
+
+            self._absent_streak = 0
                 
             crop = crop_and_pad(frame, bbox, self.bbox_padding)
             if crop is not None:
@@ -412,7 +460,7 @@ class SeqReIDPipeline:
                 # Nếu đang trong quá trình thu thập Soft Lock, tiếp tục thu thập vô điều kiện
                 if len(self.soft_lock_buffer.features) > 0:
                     self.soft_lock_buffer.add(feat_2560, sharpness)
-                    print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.soft_lock_capacity}")
+                    print(f"[{frame_idx}] Soft Lock collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
                 else:
                     if self.memory_bank.is_empty():
                         # Chưa có target identity (sequence bắt đầu bằng absent): bbox từ GT chính là target
@@ -421,17 +469,50 @@ class SeqReIDPipeline:
                         coarse_score = self.memory_bank.coarse_score(feat_2560)
                     if coarse_score >= self.soft_lock_threshold:
                         self.soft_lock_buffer.add(feat_2560, sharpness)
-                        print(f"[{frame_idx}] Soft Lock collecting: 1/{self.soft_lock_capacity} (coarse={coarse_score:.3f})")
+                        print(f"[{frame_idx}] Soft Lock collecting: 1/{self.num_frames} (coarse={coarse_score:.3f})")
                     else:
                         print(f"[{frame_idx}] Coarse FAILED! (coarse={coarse_score:.3f} < {self.soft_lock_threshold})")
                 
-                # Đủ k frame -> chạy Lọc Tinh
-                if self.soft_lock_buffer.is_ready():
+                # (1) SOFT LOCK — đủ `num_frames` frame LIÊN TỤC -> TÍNH ĐIỂM.
+                #     Soft lock KHÔNG quyết định danh tính. Nó chỉ là CỔNG CHẶN: điểm cao
+                #     quá ngưỡng thì mới cho phép tính HARD LOCK; không cao thì quay lại
+                #     T1_LOST và tính soft lock lại từ đầu.
+                #     Điểm = cosine COARSE (visual-only, `coarse_score`) giữa TRUNG BÌNH
+                #     `num_frames` frame liên tục và Memory Bank. Chọn coarse vì (a) nó chỉ
+                #     dùng `feat_2560` nên KHÔNG dính lỗi temporal theo N (đã đo: visual_plain
+                #     0.986–0.994 ở MỌI N), (b) lấy trung bình N frame nên chống nhiễu per-frame.
+                if self.soft_lock_buffer.is_ready() and not self._soft_lock_announced:
+                    self._soft_lock_announced = True
+                    mean_visual = torch.stack(list(self.soft_lock_buffer.features)).mean(dim=0)
+                    soft_score = self.memory_bank.coarse_score(mean_visual)
+                    if soft_score >= self.soft_lock_threshold:
+                        self._soft_lock_passed = True
+                        print(f"[{frame_idx}] SOFT LOCK PASS (soft={soft_score:.3f} >= "
+                              f"{self.soft_lock_threshold}) -> MOI duoc tinh HARD LOCK")
+                    else:
+                        print(f"[{frame_idx}] SOFT LOCK FAIL (soft={soft_score:.3f} < "
+                              f"{self.soft_lock_threshold}) -> quay lai T1_LOST, tinh lai soft lock")
+                        self._transition_to_lost(frame_idx)
+                        return
+
+                # (2) HARD LOCK — cửa sổ `num_frames` MẪU cách nhau `frame_stride`.
+                #     ⚠️ CHỈ BẮT ĐẦU THU sau khi soft lock đã PASS. KHÔNG thu song song trước đó:
+                #     khi chưa có điểm soft lock thì CHƯA BIẾT phải thu frame của MỤC TIÊU NÀO.
+                #     Data hiện tại chỉ có 1 mục tiêu nên thu sớm cũng "đúng", nhưng pipeline sẽ
+                #     SAI khi có nhiều mục tiêu -> thu TUẦN TỰ cho đúng pipeline.
+                #     Hệ quả thời gian: t_hard_lock = N + (N−1)×stride ≈ 12 + 44 = 56 frame.
+                _new_hard_sample = False
+                if self._soft_lock_passed:
+                    _new_hard_sample = self.hard_lock_buffer.should_extract()
+                    if _new_hard_sample:
+                        self.hard_lock_buffer.add(feat_2560, sharpness)
+
+                # Đủ `num_frames` mẫu cách quãng VÀ soft lock đã pass -> chạy Lọc Tinh
+                if self._soft_lock_passed and _new_hard_sample and self.hard_lock_buffer.is_ready():
                     if self.device.type == 'cuda': torch.cuda.synchronize()
                     t0 = time.time()
-                    # 🛠️ (15/9) HARD LOCK: lấy CÁCH QUÃNG `self.stride` từ buffer thu liên tục
-                    # → đúng `num_frames` mẫu, bước thời gian = frame_stride (khớp train + bank).
-                    bundle = compute_fused_vector(self.model, self.soft_lock_buffer, stride=self.stride)
+                    # Cửa sổ đã cách quãng sẵn (`should_extract`) -> đưa vào head với stride=1.
+                    bundle = compute_fused_vector(self.model, self.hard_lock_buffer)
                     if self.device.type == 'cuda': torch.cuda.synchronize()
                     mamba_time = (time.time() - t0) * 1000
                     self.metrics_mamba_times.append(mamba_time)
@@ -468,22 +549,24 @@ class SeqReIDPipeline:
                             self.memory_bank.add_recent(bundle.visual_mean, bundle.fused_feat, bundle.temporal_token,
                                                         bundle.visual_plain, bundle.raw_feat)
                             
-                        # 🛠️ (15/9) Nạp `sliding_window` từ ĐÚNG cửa sổ đã dùng để HARD LOCK
-                        # (bản lấy cách quãng), KHÔNG phải toàn bộ buffer thu liên tục.
+                        # 🛠️ (22/9) Nạp `sliding_window` từ ĐÚNG cửa sổ HARD LOCK vừa dùng
+                        # (`hard_lock_buffer` đã cách quãng sẵn, không cần `[::stride]`).
                         self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
-                        for _f, _s in zip(self.soft_lock_buffer.features[::self.stride],
-                                          self.soft_lock_buffer.sharpness_scores[::self.stride]):
+                        for _f, _s in zip(self.hard_lock_buffer.features,
+                                          self.hard_lock_buffer.sharpness_scores):
                             self.sliding_window.add(_f, _s)
-                        self.soft_lock_buffer = SlidingWindowBuffer(self.soft_lock_capacity, stride=1)
+                        self.soft_lock_buffer = SlidingWindowBuffer(self.num_frames, stride=1)
+                        self.hard_lock_buffer = SlidingWindowBuffer(self.num_frames, self.stride)
+                        self._soft_lock_announced = False
+                        self._soft_lock_passed = False
                     else:
                         self.false_alarms += 1
                         print(f"[{frame_idx}] Fine FAILED! (fine={fine_score:.3f} < {self.reid_threshold}) -> Rolling Window...")
-                        # 🛠️ (15/9) Trượt ĐÚNG 1 bước thời gian (`stride`) để cửa sổ HARD LOCK
-                        # kế tiếp thực sự KHÁC cửa sổ vừa kiểm tra (trước đây pop(0) → cửa sổ
-                        # gần như trùng nhau, rolling window vô hiệu).
-                        for _ in range(min(self.stride, len(self.soft_lock_buffer.features))):
-                            self.soft_lock_buffer.features.pop(0)
-                            self.soft_lock_buffer.sharpness_scores.pop(0)
+                        # 🛠️ (22/9) Rolling window TỰ ĐỘNG: `hard_lock_buffer` được nuôi bằng
+                        # `should_extract()` nên cứ mỗi `frame_stride` frame nó nhận 1 mẫu mới và
+                        # đẩy mẫu CŨ NHẤT ra → cửa sổ kế tiếp lệch đúng 1 mẫu (= frame_stride frame).
+                        # Không cần pop tay (pop tay là cách của buffer thu liên tục trước đây).
+                        pass
 
     def draw_ui(self, display_frame, bbox, frame_idx):
         color = (0, 0, 255)
@@ -493,7 +576,8 @@ class SeqReIDPipeline:
             text = "TRACKING (HARD LOCK)"
         elif self.state == self.T2_SEARCH:
             color = (255, 255, 0)
-            text = f"SEARCHING ({len(self.soft_lock_buffer.features)}/{self.soft_lock_capacity})"
+            text = (f"SEARCHING (soft {len(self.soft_lock_buffer.features)}/{self.num_frames}"
+                    f" | hard {len(self.hard_lock_buffer.features)}/{self.num_frames})")
             
         cv2.putText(display_frame, f"State: {self.state}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
         cv2.putText(display_frame, f"Bank: {self.memory_bank.size_info()}", (20, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)

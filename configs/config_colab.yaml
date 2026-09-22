@@ -110,6 +110,11 @@ infer:
   # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride. `infer.py` tự đọc và GHI ĐÈ từ
   # `data_pipeline.frame_stride`, nên giá trị ở đây chỉ là tài liệu tham chiếu.
   stride: 4
+  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
+  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
+  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
+  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
+  t2_search_gap_tolerance: 2
   num_frames: 12
   bbox_padding: 0.2
   max_anchor_size: 5
@@ -139,6 +144,11 @@ infer_robustness:
   reid_threshold: 0.7
   # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4) — đồng bộ bước thời gian temporal.
   stride: 4
+  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
+  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
+  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
+  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
+  t2_search_gap_tolerance: 2
   # 🛠️ FIX (14/9): khớp `train.num_frames: 12` (trước đây = 16).
   # `evaluate_reid_robustness.py` đọc block này qua cfg.get('infer_robustness').
   num_frames: 12

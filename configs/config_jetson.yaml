@@ -77,6 +77,11 @@ infer:
   # === New OOP Pipeline Thresholds ===
   # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4).
   stride: 4
+  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
+  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
+  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
+  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
+  t2_search_gap_tolerance: 2
   # 🛠️ FIX (14/9): PHẢI khớp `train.num_frames` (đang = 16).
   # Trước đây = 8 → Mamba + mean-pooling chạy 8 token trong khi train 16
   # → phân phối temporal token lệch sẵn, rồi bnneck khuếch đại → fine score tụt.
@@ -109,6 +114,11 @@ infer_robustness:
   # === New OOP Pipeline Thresholds ===
   # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4).
   stride: 4
+  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
+  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
+  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
+  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
+  t2_search_gap_tolerance: 2
   # 🛠️ FIX (14/9): khớp `train.num_frames: 16` (trước đây = 8).
   # `evaluate_reid_robustness.py` đọc block này qua cfg.get('infer_robustness').
   num_frames: 16
@@ -138,6 +148,11 @@ infer_realworld:
   # === New Pipeline Thresholds ===
   # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4) để khớp bước thời gian lúc train.
   stride: 4                    # Cửa sổ trượt lấy đặc trưng cách quãng
+  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
+  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
+  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
+  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
+  t2_search_gap_tolerance: 2
   num_frames: 16               # Số frame cần thu thập trước khi chạy Mamba
   bbox_padding: 0.2            # Mở rộng bounding box
   max_anchor_size: 10          # Số lượng ảnh tối đa trong Anchor Bank

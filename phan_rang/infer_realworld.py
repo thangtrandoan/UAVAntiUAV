@@ -221,10 +221,21 @@ class ReIDPipeline:
         self.soft_lock_id = None
         # 🛠️ (15/9) PHÂN VAI stride: soft_lock THU LIÊN TỤC (stride=1) để phản ứng nhanh,
         # HARD LOCK mới LẤY CÁCH QUÃNG `frame_stride` (khớp train + Memory Bank).
-        self.soft_lock_buffer = SlidingWindowBuffer(
-            window_size=(self.num_frames - 1) * self.stride + 1, stride=1
-        )
+        # 🛠️ (22/9) HAI CỬA SỔ SONG SONG: soft lock = `num_frames` frame LIÊN TỤC (nhanh,
+        # chỉ để chọn ứng viên / xem điểm), hard lock = `num_frames` MẪU cách nhau `frame_stride`
+        # (chính xác, mới đem so Memory Bank). Xem infer.py để biết chi tiết.
+        self.soft_lock_buffer = SlidingWindowBuffer(window_size=self.num_frames, stride=1)
+        self.hard_lock_buffer = SlidingWindowBuffer(self.num_frames, self.stride)
+        self._soft_lock_announced = False
+        self._soft_lock_passed = False
         self.candidate_scores = {}
+
+        # 🛠️ (22/9) NỚI RESET khi track soft-lock vắng mặt (md/22thg9.md §4, §8.3).
+        # Cần `(num_frames-1)*stride+1` frame LIÊN TỤC; mất track 1 frame mà reset ngay thì
+        # hầu hết event không bao giờ đủ frame. Vắng ngắn -> GIỮ id + buffer, chỉ vắng
+        # LIÊN TIẾP > `gap_tolerance` mới reset thật.
+        self.gap_tolerance = cfg.get('t2_search_gap_tolerance', 2)
+        self._absent_streak = 0
         
     def _transition_to_lost(self):
         print(f"Target {self.target_track_id} LOST! -> T1_LOST")
@@ -234,6 +245,9 @@ class ReIDPipeline:
         self.sliding_window.clear()
         self.soft_lock_id = None
         self.soft_lock_buffer.clear()
+        self.hard_lock_buffer.clear()
+        self._soft_lock_announced = False
+        self._soft_lock_passed = False
         self.candidate_scores.clear()
         
     def process_tracking(self, frame, filtered_boxes, frame_idx, transform):
@@ -340,7 +354,15 @@ class ReIDPipeline:
             if self.soft_lock_id != best_tid:
                 self.soft_lock_id = best_tid
                 self.soft_lock_buffer.clear()
-                print(f"[{frame_idx}] SOFT LOCK -> ID:{best_tid} (coarse={valid_candidates[best_tid]:.3f})")
+                # 🛠️ (22/9) BẮT BUỘC: cửa sổ HARD LOCK phải thuộc ĐÚNG ứng viên đang được
+                # soft lock chọn. Đổi ứng viên mà không xoá -> cửa sổ temporal trộn frame của
+                # HAI vật khác nhau -> điểm hard lock vô nghĩa (nó không còn là "điểm của thằng
+                # có soft lock cao nhất" nữa).
+                self.hard_lock_buffer.clear()
+                self._soft_lock_announced = False
+                self._soft_lock_passed = False
+                print(f"[{frame_idx}] SOFT LOCK -> ID:{best_tid} (coarse={valid_candidates[best_tid]:.3f})"
+                      f" [reset cua so HARD LOCK]")
         
         if self.soft_lock_id is not None:
             soft_lock_box = find_target_box(filtered_boxes, self.soft_lock_id)
@@ -352,12 +374,42 @@ class ReIDPipeline:
                     feat_2560 = extract_cnn_feature(self.model, tensor_frame)
                     
                     # Thu thập vô điều kiện - không kiểm tra lại Coarse
+                    self._absent_streak = 0
                     self.soft_lock_buffer.add(feat_2560, sharpness)
-                    print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} collecting: {len(self.soft_lock_buffer.features)}/{self.soft_lock_buffer.window_size}")
-                    
-                    if self.soft_lock_buffer.is_ready():
-                        # 🛠️ (15/9) HARD LOCK: lấy cách quãng `self.stride` từ buffer thu liên tục
-                        visual_mean, fused_feat = compute_fused_vector(self.model, self.soft_lock_buffer, stride=self.stride)
+                    print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
+
+                    # (1) SOFT LOCK — đủ `num_frames` frame LIÊN TỤC -> TÍNH ĐIỂM (CỔNG CHẶN).
+                    #     Soft lock KHÔNG quyết định danh tính: điểm >= ngưỡng thì mới cho phép
+                    #     tính HARD LOCK; < ngưỡng thì quay lại T1_LOST và tính soft lock lại.
+                    #     Điểm = cosine COARSE (visual-only) giữa TRUNG BÌNH `num_frames` frame
+                    #     liên tục và Memory Bank (coarse chỉ dùng `feat_2560` nên KHÔNG dính lỗi
+                    #     temporal theo N; lấy trung bình N frame nên chống nhiễu per-frame).
+                    if self.soft_lock_buffer.is_ready() and not self._soft_lock_announced:
+                        self._soft_lock_announced = True
+                        mean_visual = torch.stack(list(self.soft_lock_buffer.features)).mean(dim=0)
+                        soft_score = self.memory_bank.coarse_score(mean_visual)
+                        if soft_score >= self.soft_lock_threshold:
+                            self._soft_lock_passed = True
+                            print(f"[{frame_idx}] SOFT LOCK PASS ID:{self.soft_lock_id} (soft={soft_score:.3f} >= "
+                                  f"{self.soft_lock_threshold}) -> MOI duoc tinh HARD LOCK")
+                        else:
+                            print(f"[{frame_idx}] SOFT LOCK FAIL ID:{self.soft_lock_id} (soft={soft_score:.3f} < "
+                                  f"{self.soft_lock_threshold}) -> quay lai T1_LOST")
+                            self._transition_to_lost()
+                            return
+
+                    # (2) HARD LOCK — ⚠️ CHỈ BẮT ĐẦU THU sau khi soft lock đã PASS. Không thu
+                    # song song trước đó: chưa có điểm soft lock thì CHƯA BIẾT thu frame của
+                    # MỤC TIÊU NÀO. Hệ quả: t_hard_lock ≈ N + (N−1)×stride = 56 frame.
+                    _new_hard_sample = False
+                    if self._soft_lock_passed:
+                        _new_hard_sample = self.hard_lock_buffer.should_extract()
+                        if _new_hard_sample:
+                            self.hard_lock_buffer.add(feat_2560, sharpness)
+
+                    if self._soft_lock_passed and _new_hard_sample and self.hard_lock_buffer.is_ready():
+                        # Cửa sổ đã cách quãng sẵn (`should_extract`) -> stride=1.
+                        visual_mean, fused_feat = compute_fused_vector(self.model, self.hard_lock_buffer)
                         fine_score = self.memory_bank.fine_score(fused_feat)
                         print(f"[{frame_idx}] Fine ReID: ID:{self.soft_lock_id} score={fine_score:.3f}")
                         
@@ -373,23 +425,38 @@ class ReIDPipeline:
                             
                             # 🛠️ (15/9) Nạp `sliding_window` từ ĐÚNG cửa sổ đã dùng để HARD LOCK
                             # (bản lấy cách quãng), KHÔNG phải toàn bộ buffer thu liên tục.
+                            # 🛠️ (22/9) Nạp từ ĐÚNG cửa sổ HARD LOCK (đã cách quãng sẵn).
                             self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
-                            for _f, _s in zip(self.soft_lock_buffer.features[::self.stride],
-                                              self.soft_lock_buffer.sharpness_scores[::self.stride]):
+                            for _f, _s in zip(self.hard_lock_buffer.features,
+                                              self.hard_lock_buffer.sharpness_scores):
                                 self.sliding_window.add(_f, _s)
                             
                             self.soft_lock_id = None
-                            self.soft_lock_buffer = SlidingWindowBuffer(
-                                window_size=(self.num_frames - 1) * self.stride + 1, stride=1
-                            )
+                            self.soft_lock_buffer = SlidingWindowBuffer(window_size=self.num_frames, stride=1)
+                            self.hard_lock_buffer = SlidingWindowBuffer(self.num_frames, self.stride)
+                            self._soft_lock_announced = False
+                            self._soft_lock_passed = False
                             self.candidate_scores.clear()
                         else:
                             print(f"[{frame_idx}] Fine FAILED! ID:{self.soft_lock_id} (fine={fine_score:.3f} < {self.reid_threshold}) -> T1_LOST")
                             self._transition_to_lost()
             else:
-                print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} lost from frame. Resetting.")
-                self.soft_lock_id = None
-                self.soft_lock_buffer.clear()
+                # 🛠️ (22/9) NỚI RESET (md/22thg9.md §4, §8.3): giữ id + feature đã thu.
+                self._absent_streak += 1
+                if self._absent_streak <= self.gap_tolerance:
+                    print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} vang "
+                          f"{self._absent_streak}/{self.gap_tolerance} frame -> BO QUA, "
+                          f"giu soft {len(self.soft_lock_buffer.features)}/{self.num_frames}"
+                          f" | hard {len(self.hard_lock_buffer.features)}/{self.num_frames} feature")
+                else:
+                    print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} lost from frame "
+                          f"(vang {self._absent_streak} > {self.gap_tolerance}). Resetting.")
+                    self.soft_lock_id = None
+                    self.soft_lock_buffer.clear()
+                    self.hard_lock_buffer.clear()
+                    self._soft_lock_announced = False
+                    self._soft_lock_passed = False
+                    self._absent_streak = 0
         
         if not valid_candidates and self.soft_lock_id is None:
             if len(filtered_boxes) == 0:
@@ -400,9 +467,9 @@ class ReIDPipeline:
         lost_tids = [tid for tid in self.candidate_scores.keys() if tid not in active_ids]
         for ltid in lost_tids:
             del self.candidate_scores[ltid]
-            if self.soft_lock_id == ltid:
-                self.soft_lock_id = None
-                self.soft_lock_buffer.clear()
+            # 🛠️ (22/9) KHÔNG clear soft-lock ở đây: việc reset do nhánh `else` phía trên
+            # quyết định (có nới `gap_tolerance`). Xoá khỏi `candidate_scores` vẫn cần, để
+            # khi track quay lại nó được CHẤM LẠI coarse score.
                 
     def draw_ui(self, display_frame, filtered_boxes):
         status_color = (0, 0, 255) if self.state == self.T1_LOST else (0, 255, 0)
