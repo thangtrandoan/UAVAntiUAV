@@ -40,22 +40,40 @@ data_pipeline:
 train:
   resume: ""
   backbone: "dinov3_convnext"  # Sử dụng kiến trúc mới DINOv3
-  batch_size: 9              # Tối ưu cho A100 40GB/80GB VRAM (9*3*16=432 frames/batch)
+  batch_size: 9              # Giảm 12->9 (md/22thg9.md §22.3): RAM ∝ B*N. VRAM thật =
+                             # 2*B*N ảnh (before+after) = 2*9*16 = 288 @N=16 (trước: 384)
   num_instances: 3           
   num_frames: 12
   # 🛠️ (22/9) N RANDOM THEO BATCH (md/22thg9.md §16). Mỗi batch dùng MỘT N
   # trong danh sách này — CÙNG N cho query (after) và gallery (before), vì loss
   # so sánh chúng. Bỏ key này / để 1 phần tử = hành vi cũ (N cố định).
   # Lưu ý: không làm epoch dài thêm (sampler rút 1 N cho mỗi batch).
-  n_frames_choices: [4, 6, 8, 10, 12, 14, 16]
+  # 🛠️ (22/9) THU 7 -> 3 giá trị (md/22thg9.md §25.3). `n_frames_choices` chia đều ngân
+  # sách batch, nên L=3 cho 2.33x tín hiệu MỖI N ở CÙNG chi phí.
+  # [8,12,16] khớp ĐÚNG dải deploy và khớp `val_n_list` (tiêu chí kiểm chứng).
+  # Đã bỏ N=4: conv1d(kernel_size=4, padding=3) với L=4 -> vùng đệm (3) gần bằng cả
+  # chuỗi (4) -> hiệu ứng biên lấn át, tín hiệu temporal vô nghĩa.
+  n_frames_choices: [8, 12, 16]
   num_workers: 8              # Tăng worker để cấp đủ data cho GPU
   use_amp: true               # BẮT BUỘC BẬT: A100 tận dụng Tensor Cores train cực nhanh với AMP
   pin_memory: true
-  use_compile: true          # Tắt compile mặc định cho an toàn (tránh lỗi với custom CUDA kernels/Mamba)
-  val_freq: 5                # Số epoch giữa các lần chạy validation (để là 1 nếu muốn test mỗi epoch)
+  use_compile: true
+  # 🛠️ (22/9) N RANDOM -> mỗi N là một SHAPE khác -> dynamic=True để torch.compile
+  # KHÔNG biên dịch lại cho từng N (xem md/22thg9.md §27.3).
+  compile_dynamic: true          # Tắt compile mặc định cho an toàn (tránh lỗi với custom CUDA kernels/Mamba)
+  val_freq: 5
+  # 🛠️ (22/9) ĐO NHIỀU N + EARLY STOPPING (md/22thg9.md §25, §27).
+  # Tiêu chí đạt là "fused >= target_rank1 ở CẢ các N và lệch <= target_spread".
+  # ĐIỂM dùng cho early stop = MIN qua các N (tối ưu ca xấu nhất), KHÔNG phải trung bình.
+  val_n_list: [8, 12, 16]
+  target_rank1: 0.85          # mọi N phải >= mức này
+  target_spread: 0.05         # độ lệch max-min giữa các N
+  stop_on_target: true        # đạt tiêu chí -> dừng ngay
+  early_stop_patience: 4      # số LẦN VALIDATION liên tiếp không cải thiện (0 = tắt)
+  early_stop_min_delta: 1.0e-4                # Số epoch giữa các lần chạy validation (để là 1 nếu muốn test mỗi epoch)
 
   stage1:
-    epochs: 30
+    epochs: 60
     lr: 3.5e-4
     weight_decay: 5e-4
 

@@ -344,6 +344,21 @@ def main():
     args.pin_memory     = tc.get('pin_memory', False)
     args.use_compile    = tc.get('use_compile', False) # Thêm cờ bật/tắt compile
     args.val_freq       = tc.get('val_freq', 5) # Đọc số epoch đánh giá từ config (mặc định 5)
+    # 🛠️ (22/9) ĐO NHIỀU N (md/22thg9.md §25). Tiêu chí đạt là "fused >= 0.85 ở CẢ 3 N và
+    # lệch < 0.05", nhưng validation cũ chỉ đo MỘT N (args.num_frames) -> không thấy được
+    # độ lệch theo N -> train mù. `val_n_list` là danh sách N sẽ đo mỗi lần validation.
+    args.val_n_list     = tc.get('val_n_list') or [args.num_frames]
+    # 🛠️ Early stopping. patience = số LẦN VALIDATION liên tiếp không cải thiện (0 = tắt).
+    args.early_stop_patience = int(tc.get('early_stop_patience', 0))
+    args.early_stop_min_delta = float(tc.get('early_stop_min_delta', 1e-4))
+    args.stop_on_target = bool(tc.get('stop_on_target', True))
+    args.target_rank1   = float(tc.get('target_rank1', 0.85))
+    args.target_spread  = float(tc.get('target_spread', 0.05))
+    # 🛠️ (22/9) torch.compile + N RANDOM: mỗi giá trị N cho một SHAPE khác nhau
+    # (`extract_features` reshape thành [B*N, C, H, W]) -> compile mặc định (dynamic=False)
+    # sẽ BIÊN DỊCH LẠI cho từng N. Với 7 giá trị N đó là 7 lần biên dịch (mỗi lần hàng
+    # chục giây tới vài phút). `dynamic=True` xử lý shape thay đổi mà không biên dịch lại.
+    args.compile_dynamic = bool(tc.get('compile_dynamic', True))
     args.backbone       = tc.get('backbone', 'resnet50_ibn')
 
     
@@ -414,15 +429,23 @@ def main():
             )
         val_query_json = args.query_json.replace('query_train', 'query_test')
         val_gallery_json = args.gallery_json.replace('gallery_train', 'gallery_test')
-        val_dataset = EvalDataset(test_dir, val_query_json, val_gallery_json, transform=transform_test, num_frames=args.num_frames)
-        val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=2)
+        # 🛠️ (22/9) Một EvalDataset cho MỖI N trong `val_n_list`.
+        val_loaders = {}
+        for _n in args.val_n_list:
+            _ds = EvalDataset(test_dir, val_query_json, val_gallery_json,
+                              transform=transform_test, num_frames=_n)
+            val_loaders[_n] = DataLoader(_ds, batch_size=args.batch_size, shuffle=False, num_workers=2)
         has_val = True
+        print(f" ✅ Validation đo {len(args.val_n_list)} N: {args.val_n_list}")
     except Exception as e:
         print(f"Cảnh báo: Không thể setup validation, sẽ bỏ qua bước này. Lỗi: {e}")
         has_val = False
+        val_loaders = {}
+    if not has_val:
+        print(" ⚠️ KHÔNG có validation -> KHÔNG kiểm chứng được tiêu chí 3 N và KHÔNG early-stop được.")
 
-    def validate(model, loader):
-        print(" --- Đang chạy Validation trên tập Test ---")
+    def validate(model, loader, tag=""):
+        print(f" --- Validation trên tập Test {tag} ---")
         model.eval()
         qf, gf, q_pids, g_pids = [], [], [], []
         start_t = time.time()
@@ -443,6 +466,23 @@ def main():
         model.train()
         return float(cmc[0]) # Trả về Rank-1
 
+    def validate_multi_n(model, loaders, n_list, stage_name=""):
+        """🛠️ (22/9) Đo Rank-1 (`fused`) ở NHIỀU N và trả về ĐIỂM = MIN qua các N.
+
+        Vì sao MIN mà không phải TRUNG BÌNH: tiêu chí đạt là "mọi N >= 0.85". Trung bình
+        CHE MẤT đúng cái đang hỏng — một N sụp xuống 0.15 vẫn cho trung bình cao nếu các N
+        khác tốt (đúng tình trạng hiện tại: N=8 là 0.157 nhưng N=16 là 0.849). Tối đa hoá
+        MIN = tối ưu hoá ca XẤU NHẤT = đúng mục tiêu.
+        """
+        per_n = {}
+        for _n in n_list:
+            per_n[_n] = validate(model, loaders[_n], tag=f"(N={_n})")
+        spread = max(per_n.values()) - min(per_n.values())
+        worst = min(per_n.values())
+        line = " | ".join(f"N={_n}:{per_n[_n]*100:6.2f}%" for _n in n_list)
+        print(f" ==> [{stage_name}] {line} | LỆCH={spread*100:5.2f}% | MIN={worst*100:6.2f}%")
+        return worst, per_n, spread
+
 
     # --- Setup GASNet Path ---
     gasnet_dir = cfg.get('paths', {}).get('gasnet_dir', '')
@@ -460,9 +500,9 @@ def main():
     
     # --- torch.compile cho tốc độ tối đa trên A100/H100 ---
     if not args.gpu_jetson and args.use_compile and hasattr(torch, 'compile'):
-        print("Bật torch.compile() để tối ưu model...")
+        print(f"Bật torch.compile() để tối ưu model (dynamic={args.compile_dynamic})...")
         try:
-            model = torch.compile(model)
+            model = torch.compile(model, dynamic=args.compile_dynamic)
         except Exception as e:
             print(f"Cảnh báo: torch.compile() thất bại: {e}. Sẽ chạy mode bình thường.")
 
@@ -566,7 +606,11 @@ def main():
 
     start_epoch_stage1 = 1
     start_epoch_stage2 = 1
-    best_val_rank1 = 0.0 # Theo dõi bằng Rank-1 thay vì Loss
+    best_val_rank1 = 0.0 # Best TOÀN CỤC (MIN qua các N) — dùng để lưu best_model.pth
+    # 🛠️ (22/9) Early stopping theo TỪNG STAGE: `best` riêng để Stage 2 không bị chặn bởi
+    # thành tích của Stage 1 (nếu so với best toàn cục thì Stage 2 gần như luôn "không cải
+    # thiện" ngay từ lần validation đầu -> early stop sai).
+    _es = {1: {'best': -1.0, 'bad': 0}, 2: {'best': -1.0, 'bad': 0}}
 
     scheduler1 = get_warmup_cosine_scheduler(optimizer, warmup_epochs=5, total_epochs=epochs_stage1)
 
@@ -610,11 +654,30 @@ def main():
             
             # Validation sau mỗi args.val_freq epoch hoặc epoch cuối cùng
             if has_val and (epoch % args.val_freq == 0 or epoch == epochs_stage1):
-                val_rank1 = validate(model, val_loader)
-                if val_rank1 > best_val_rank1:
-                    best_val_rank1 = val_rank1
-                    torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
-                    print(f"[*] New best model saved at Stage 1, epoch {epoch} with Rank-1: {best_val_rank1*100:.2f}%")
+                score, per_n, spread = validate_multi_n(model, val_loaders, args.val_n_list, "Stage 1")
+                met = (min(per_n.values()) >= args.target_rank1) and (spread <= args.target_spread)
+                if met:
+                    print(f"[✓] ĐẠT TIÊU CHÍ (epoch {epoch}): mọi N >= {args.target_rank1:.2f} "
+                          f"và lệch {spread*100:.2f}% <= {args.target_spread*100:.0f}%")
+                # Cải thiện theo TỪNG STAGE -> điều khiển early stop
+                if score > _es[1]['best'] + args.early_stop_min_delta:
+                    _es[1]['best'] = score
+                    _es[1]['bad'] = 0
+                    # Nhưng chỉ LƯU khi tốt hơn best TOÀN CỤC
+                    if score > best_val_rank1:
+                        best_val_rank1 = score
+                        torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
+                        print(f"[*] Best mới (MIN qua N) ở Stage 1, epoch {epoch}: {best_val_rank1*100:.2f}%")
+                else:
+                    _es[1]['bad'] += 1
+                    if args.early_stop_patience > 0:
+                        print(f"[i] Không cải thiện: {_es[1]['bad']}/{args.early_stop_patience}")
+                if met and args.stop_on_target:
+                    print(f"→ DỪNG Stage 1 vì đã ĐẠT TIÊU CHÍ.")
+                    break
+                if args.early_stop_patience > 0 and _es[1]['bad'] >= args.early_stop_patience:
+                    print(f"→ EARLY STOP Stage 1: {args.early_stop_patience} lần validation liên tiếp không cải thiện.")
+                    break
         
     if start_epoch_stage2 <= epochs_stage2:
         print("=== START STAGE 2: End-to-End Fine-tuning ===")
@@ -687,11 +750,30 @@ def main():
             
             # Validation sau mỗi args.val_freq epoch hoặc epoch cuối cùng
             if has_val and (epoch % args.val_freq == 0 or epoch == epochs_stage2):
-                val_rank1 = validate(model, val_loader)
-                if val_rank1 > best_val_rank1:
-                    best_val_rank1 = val_rank1
-                    torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
-                    print(f"[*] New best model saved at Stage 2, epoch {epoch} with Rank-1: {best_val_rank1*100:.2f}%")
+                score, per_n, spread = validate_multi_n(model, val_loaders, args.val_n_list, "Stage 2")
+                met = (min(per_n.values()) >= args.target_rank1) and (spread <= args.target_spread)
+                if met:
+                    print(f"[✓] ĐẠT TIÊU CHÍ (epoch {epoch}): mọi N >= {args.target_rank1:.2f} "
+                          f"và lệch {spread*100:.2f}% <= {args.target_spread*100:.0f}%")
+                # Cải thiện theo TỪNG STAGE -> điều khiển early stop
+                if score > _es[2]['best'] + args.early_stop_min_delta:
+                    _es[2]['best'] = score
+                    _es[2]['bad'] = 0
+                    # Nhưng chỉ LƯU khi tốt hơn best TOÀN CỤC
+                    if score > best_val_rank1:
+                        best_val_rank1 = score
+                        torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
+                        print(f"[*] Best mới (MIN qua N) ở Stage 2, epoch {epoch}: {best_val_rank1*100:.2f}%")
+                else:
+                    _es[2]['bad'] += 1
+                    if args.early_stop_patience > 0:
+                        print(f"[i] Không cải thiện: {_es[2]['bad']}/{args.early_stop_patience}")
+                if met and args.stop_on_target:
+                    print(f"→ DỪNG Stage 2 vì đã ĐẠT TIÊU CHÍ.")
+                    break
+                if args.early_stop_patience > 0 and _es[2]['bad'] >= args.early_stop_patience:
+                    print(f"→ EARLY STOP Stage 2: {args.early_stop_patience} lần validation liên tiếp không cải thiện.")
+                    break
         
     print("Training Complete!")
 
