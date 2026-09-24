@@ -43,6 +43,15 @@ train:
   batch_size: 9              # Giảm 12->9 (md/22thg9.md §22.3): RAM ∝ B*N. VRAM thật =
                              # 2*B*N ảnh (before+after) = 2*9*16 = 288 @N=16 (trước: 384)
   num_instances: 3           
+  # ⚠️ (22/9) `num_frames` KHÔNG còn điều khiển N lúc TRAIN — `n_frames_choices` mới là
+  # thứ đó. Key này giờ chỉ là FALLBACK (khi thiếu n_frames_choices/val_n_list) và là N
+  # mặc định cho `infer`/`infer_robustness`. Đừng sửa key này để mong đổi N lúc train.
+  # 🛠️ (22/9) TEMPORAL POOLING + PE (md/22thg9.md §31).
+  # 'attn' = attention pooling: tổ hợp lồi -> scale bất biến theo N, HỌC được trọng số
+  #   (giảm trọng số frame bị pad/mờ) và CHỌN được vị trí nên PE có ích.
+  # 'mean' = hành vi cũ (mean(dim=1) * sqrt(N)) — để ablation.
+  temporal_pool: attn
+  temporal_pe: true
   num_frames: 12
   # 🛠️ (22/9) N RANDOM THEO BATCH (md/22thg9.md §16). Mỗi batch dùng MỘT N
   # trong danh sách này — CÙNG N cho query (after) và gallery (before), vì loss

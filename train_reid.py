@@ -490,12 +490,18 @@ def main():
         os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
         
     from model import UAVReIDNet
+    # 🛠️ (22/9) Pooling + PE của temporal encoder (md/22thg9.md §31).
+    # Mặc định 'attn' + PE: attention CHỌN được vị trí nên PE trở nên có ích (§30.5).
+    # `infer.py`/`evaluate_reid_robustness.py` tạo model bằng DEFAULT nên PHẢI khớp.
     model = UAVReIDNet(
         gasnet_weights_path=args.gasnet_weights or None,
         num_identities=num_identities,
         freeze_backbone=True,
-        backbone=args.backbone
+        backbone=args.backbone,
+        temporal_pool=tc.get('temporal_pool', 'attn'),
+        temporal_pe=bool(tc.get('temporal_pe', True))
     )
+    print(f" Temporal encoder: pool={tc.get('temporal_pool', 'attn')}, pe={bool(tc.get('temporal_pe', True))}")
     model.cuda()
     
     # --- torch.compile cho tốc độ tối đa trên A100/H100 ---
@@ -506,8 +512,10 @@ def main():
         except Exception as e:
             print(f"Cảnh báo: torch.compile() thất bại: {e}. Sẽ chạy mode bình thường.")
 
-    criterion_id = LabelSmoothCrossEntropy()
-    criterion_triplet = HardTripletLoss(margin=0.3)
+    # 🛠️ (22/9) Đọc từ config — trước đây 2 key `label_smooth`/`triplet_margin` CÓ trong
+    # yaml nhưng code HARDCODE, sửa yaml không có tác dụng (bẫy âm thầm).
+    criterion_id = LabelSmoothCrossEntropy(epsilon=float(lc.get('label_smooth', 0.1)))
+    criterion_triplet = HardTripletLoss(margin=float(lc.get('triplet_margin', 0.3)))
     feat_dim = 1472 if args.backbone == "dinov3_convnext" else 3072
     criterion_center = CenterLoss(num_classes=num_identities, feat_dim=feat_dim).cuda()
     criterion_temporal = TemporalConsistencyLoss()
@@ -723,7 +731,9 @@ def main():
             {'params': model.temporal_encoder.parameters(), 'lr': args.lr_stage2_temporal}, # 1e-4
             {'params': model.head.parameters(), 'lr': args.lr_stage2_head}             # 1e-4
         ]
-        optimizer2 = torch.optim.AdamW(param_groups, weight_decay=5e-4)
+        # 🛠️ (22/9) Trước đây hardcode 5e-4 -> key `stage2.weight_decay` trong yaml VÔ HIỆU.
+        _wd2 = float(tc.get('stage2', {}).get('weight_decay', 5e-4))
+        optimizer2 = torch.optim.AdamW(param_groups, weight_decay=_wd2)
         scheduler2 = get_warmup_cosine_scheduler(optimizer2, warmup_epochs=5, total_epochs=epochs_stage2)
         
         if args.resume and os.path.isfile(args.resume) and checkpoint.get('stage', 2) == 2:

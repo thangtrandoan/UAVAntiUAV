@@ -64,6 +64,12 @@ class EvalDataset(Dataset):
         # 🛠️ (15/9) ĐỒNG BỘ frame_stride — BỎ `np.linspace` (xem train_reid.py::_load_clip).
         # `np.linspace` làm bước thời gian hiệu dụng > frame_stride → offline eval lệch
         # với phân phối temporal lúc train và lúc infer.
+        # 🛠️ (22/9) COPY list — cùng bug như `UAVReIDDataset._load_clip`: dòng
+        # `frames.append(...)` bên dưới làm list TRONG `valid_pairs` phình VĨNH VIỄN.
+        # Hiện chưa gây hại vì mỗi N dùng một `EvalDataset` riêng (đọc lại JSON), nhưng
+        # nếu dùng lại MỘT dataset cho nhiều N thì đây là lỗi thật (pad tới N nhỏ rồi đọc
+        # N lớn -> toàn frame lặp). Xem md/22thg9.md §29.
+        frames = list(frames)
         if len(frames) > self.num_frames:
             frames = frames[-self.num_frames:] if take_last else frames[:self.num_frames]
         elif len(frames) < self.num_frames:

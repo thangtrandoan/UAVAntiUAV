@@ -134,24 +134,70 @@ class SimpleS6Block(nn.Module):
         return out
 
 
+class AttentionPooling(nn.Module):
+    """🛠️ (22/9) Attention pooling theo THỜI GIAN — thay `mean(dim=1)`.
+
+    Vì sao tốt hơn `mean` cho bài toán này (md/22thg9.md §31):
+      1. Trọng số softmax TỔNG = 1 theo N ⇒ đầu ra là **TỔ HỢP LỒI** của các frame ⇒
+         **scale BẤT BIẾN THEO N**. `mean` có phương sai ~1/N nên phải bù bằng `sqrt(N)`;
+         tổ hợp lồi thì KHÔNG cần — và nhân `sqrt(N)` vào tổ hợp lồi sẽ TÁI TẠO phụ thuộc N.
+      2. **HỌC được trọng số** ⇒ có thể GIẢM trọng số frame bị PAD. `_load_clip` pad clip
+         ngắn bằng cách LẶP frame cuối; `mean` cho các frame lặp đó trọng số ĐẦY ĐỦ ⇒
+         feature bị kéo lệch về frame cuối. Attention có thể học để bỏ qua chúng.
+      3. **Kết hợp được với PE**: attention có thể CHỌN vị trí (vd frame CUỐI của clip
+         gallery = sát `t1`; frame ĐẦU của clip query = sát `t2`). Với `mean` thì PE vô
+         dụng vì bị trung bình hoá (md/22thg9.md §30.5).
+    """
+    def __init__(self, d_model, hidden=None):
+        super().__init__()
+        hidden = hidden if hidden is not None else max(d_model // 2, 8)
+        self.score = nn.Sequential(
+            nn.Linear(d_model, hidden),
+            nn.Tanh(),
+            nn.Linear(hidden, 1),
+        )
+        # 🛠️ (22/9) ZERO-INIT lớp CUỐI -> điểm attention = 0 -> softmax ĐỀU -> lúc khởi
+        # tạo pooling ĐÚNG BẰNG `mean`. Model học LỆCH DẦN từ đó.
+        # Vì sao cần: init mặc định của `nn.Linear(256,1)` cho std(score) ~ 0.4 -> attention
+        # hơi lệch NGAY từ đầu (max(a) ~ 0.14-0.25 so với đều 0.06-0.12). Không phải lỗi,
+        # nhưng zero-init làm thay đổi này KHÔNG PHÁ gì ở bước 0 rồi mới cải thiện.
+        # (An toàn: `weights_init_kaiming` KHÔNG áp lên `temporal_encoder` — chỉ `bnneck`
+        #  và `classifier` ở `ReIDHead` — nên zero-init này KHÔNG bị ghi đè.)
+        nn.init.zeros_(self.score[-1].weight)
+        nn.init.zeros_(self.score[-1].bias)
+
+    def forward(self, x):
+        # x: [B, N, D] -> [B, D]
+        w = self.score(x).squeeze(-1)             # [B, N]
+        a = torch.softmax(w, dim=1)               # [B, N], tổng = 1 theo N
+        return (a.unsqueeze(-1) * x).sum(dim=1)   # [B, D] tổ hợp lồi
+
+
 class TemporalMambaEncoder(nn.Module):
     """
     Temporal Memory Engine: Xử lý chuỗi frame N chiều thời gian
     """
-    def __init__(self, d_in=2560, d_model=512, d_out=512, max_seq_len=64, num_layers=2):
+    def __init__(self, d_in=2560, d_model=512, d_out=512, max_seq_len=64, num_layers=2,
+                 pool='attn', use_pe=True):
         super().__init__()
         self.d_model = d_model
+        self.pool = pool
+        self.use_pe = use_pe
         
         # Linear projection
         self.in_proj = nn.Linear(d_in, d_model)
         
-        # 🛠️ (22/9) BỎ Positional Encoding HỌC ĐƯỢC (xem md/22thg9.md §16).
-        # Lý do: `mean(dim=1)` ở cuối làm PE tuyệt đối đóng góp `mean(PE[0:N])` — một đại
-        # lượng PHỤ THUỘC N về mặt toán học. Với N random, vị trí 5 vừa có nghĩa "frame 5
-        # của clip 12" vừa "frame 5 của clip 8" -> NHẬP NHẰNG, không thể học nhất quán.
-        # Mamba/SimpleS6Block đã mã hoá thứ tự bằng recurrence nên PE là thừa.
-        # (Trước đây: `self.pos_embed = nn.Parameter(torch.randn(1, max_seq_len, d_model))`)
+        # 🛠️ (22/9) PE TRỞ LẠI (md/22thg9.md §31). Trước đó tôi bỏ PE vì với
+        # `mean(dim=1)` nó chỉ đóng góp `mean(PE[0:N])` — offset CHỈ phụ thuộc N, không
+        # mang thông tin (§30.3: lệch 5.55 giữa N=8 và N=16 ≈ 25% độ lớn vector đặc trưng).
+        # NHƯNG với **attention pooling** thì PE trở nên CÓ ÍCH: attention CHỌN được vị trí
+        # (frame cuối của gallery ≈ sát t1; frame đầu của query ≈ sát t2), thay vì bị trung
+        # bình hoá như `mean`. Đây đúng là công thức chuẩn của Transformer (PE + attention).
         self.max_seq_len = max_seq_len
+        self.pos_embed = nn.Parameter(torch.randn(1, max_seq_len, d_model)) if use_pe else None
+
+        # Pooling: 'attn' (mặc định) hoặc 'mean' (hành vi cũ)
+        self.attn_pool = AttentionPooling(d_model) if pool == 'attn' else None
         
         # Mamba Blocks
         self.layers = nn.ModuleList()
@@ -175,7 +221,9 @@ class TemporalMambaEncoder(nn.Module):
         B, N, _ = x.shape
         x = self.in_proj(x)
         
-        # 🛠️ (22/9) KHÔNG cộng positional encoding nữa (xem __init__ và §16).
+        # 🛠️ (22/9) PE — có ích khi pooling là ATTENTION (xem __init__).
+        if self.pos_embed is not None:
+            x = x + self.pos_embed[:, :N, :]
         
         for mamba_layer, norm in zip(self.layers, self.norm_layers):
             res = x
@@ -187,13 +235,16 @@ class TemporalMambaEncoder(nn.Module):
         # Lưu sequence features trước mean pooling (cho temporal consistency loss)
         temporal_seq = x  # [B, N, d_model]
         
-        # 🛠️ (22/9) Mean pooling + HIỆU CHỈNH SCALE THEO N.
-        # Phương sai của mean ~ 1/N -> cùng một nội dung nhưng SCALE khác nhau ở mỗi N.
-        # Nhân sqrt(N) để scale BẤT BIẾN THEO N.
-        # Lưu ý: trong TRAIN mode, `BatchNorm1d` ở `out_mlp` hấp thụ luôn scale này nên
-        # output KHÔNG đổi; giá trị thật của nó là làm `running_mean/var` của BN trở nên
-        # ĐÚNG CHO MỌI N ở EVAL (inference) — đó chính là vấn đề deployment.
-        x = x.mean(dim=1) * (N ** 0.5) # [B, d_model]
+        # 🛠️ (22/9) POOLING (md/22thg9.md §31).
+        if self.attn_pool is not None:
+            # TỔ HỢP LỒI (trọng số softmax tổng = 1) -> scale BẤT BIẾN THEO N.
+            # ⚠️ KHÔNG nhân sqrt(N) ở đây: nhân vào tổ hợp lồi sẽ TÁI TẠO phụ thuộc N.
+            x = self.attn_pool(x)                          # [B, d_model]
+        else:
+            # `mean` có phương sai ~1/N -> bù bằng sqrt(N) để scale bất biến theo N (§16.2).
+            # Trong TRAIN mode BN ở `out_mlp` hấp thụ luôn scale này; giá trị thật là làm
+            # `running_mean/var` ĐÚNG CHO MỌI N ở EVAL.
+            x = x.mean(dim=1) * (N ** 0.5)                 # [B, d_model]
         
         # MLP Head
         x = self.out_mlp(x) # [B, d_out]
@@ -436,7 +487,8 @@ class ReIDHead(nn.Module):
 
 
 class UAVReIDNet(nn.Module):
-    def __init__(self, gasnet_weights_path=None, num_identities=1000, freeze_backbone=True, backbone='resnet50_ibn'):
+    def __init__(self, gasnet_weights_path=None, num_identities=1000, freeze_backbone=True,
+                 backbone='resnet50_ibn', temporal_pool='attn', temporal_pe=True):
         super().__init__()
         
         # Tự động trỏ path mặc định nếu không truyền
@@ -506,7 +558,8 @@ class UAVReIDNet(nn.Module):
             visual_dim = 2560 # 2048 (Global) + 512 (FS)
             
         self.temporal_encoder = TemporalMambaEncoder(
-            d_in=visual_dim, d_model=512, d_out=512, max_seq_len=64, num_layers=2
+            d_in=visual_dim, d_model=512, d_out=512, max_seq_len=64, num_layers=2,
+            pool=temporal_pool, use_pe=temporal_pe
         )
         
         # 3. ReID Head
