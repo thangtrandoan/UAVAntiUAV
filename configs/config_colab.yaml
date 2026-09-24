@@ -47,6 +47,10 @@ train:
   num_instances: 3           
   temporal_pool: attn
   temporal_pe: true
+  # 🛠️ (24/9) BẮT BUỘC khai báo: `train_reid.py` đọc key này, mặc định 'mamba'.
+  # Thiếu key => Colab chạy MAMBA dù `model.py` đã có TemporalAttentionEncoder.
+  # 'mamba' (SimpleS6 fallback) hoặc 'attention' (Transformer 2 layer, 8 head, Pre-LN).
+  temporal_type: "attention"
   num_frames: 12
   n_frames_choices: [8, 12, 16]
   num_workers: 8              # Tăng worker để cấp đủ data cho GPU

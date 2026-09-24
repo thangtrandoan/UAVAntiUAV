@@ -609,7 +609,8 @@ def main():
         os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
 
     from model import UAVReIDNet, load_checkpoint_verbose
-    model = UAVReIDNet(freeze_backbone=False, backbone=backbone)
+    temporal_type = cfg.get('train', {}).get('temporal_type', 'mamba')
+    model = UAVReIDNet(freeze_backbone=False, backbone=backbone, temporal_type=temporal_type)
     if not backbone_only and os.path.exists(model_path):
         # 🛠️ (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch (xem model.load_checkpoint_verbose)
         load_checkpoint_verbose(model, model_path, tag="calibrate")

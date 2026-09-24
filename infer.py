@@ -293,7 +293,11 @@ class SeqReIDPipeline:
         # (xem `phan_rang/infer_realworld.py`, chỗ `soft_lock_id != best_tid`).
 
         # 🛠️ (22/9) NỚI RESET khi target vắng mặt trong T2_SEARCH (md/22thg9.md §4, §8.3).
-        # `soft_lock_buffer` cần `(num_frames-1)*stride+1` frame LIÊN TỤC (12/4 -> 45), mà
+        # 🐛 SỬA (24/9): comment cũ ghi `soft_lock_buffer` — SAI (stale từ trước khi tách 2
+        # cửa sổ 22/9). Cửa sổ cần `(num_frames-1)*stride+1` frame là `hard_lock_buffer`
+        # (xem `self.hard_lock_capacity`); `soft_lock_buffer` chỉ cần `num_frames` frame
+        # LIÊN TỤC. Chính comment sai này gây kết luận nhầm ở md/24thg9.md §7.3.
+        # `hard_lock_buffer` cần `(num_frames-1)*stride+1` frame LIÊN TỤC (12/4 -> 45), mà
         # GT trong video này có lần tái xuất chỉ ~10 frame -> reset ở 1 frame vắng làm event
         # đó VĨNH VIỄN không thể lock. Vắng ngắn (detection dropout) chỉ SKIP frame và GIỮ
         # feature đã thu; chỉ vắng LIÊN TIẾP quá `gap_tolerance` mới reset thật.
@@ -868,9 +872,10 @@ def main():
         print("Error: --seq-dir must be provided.")
         return
 
-    print(f"Initializing Mamba ReID Model...")
+    print(f"Initializing ReID Model...")
     backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
-    model = UAVReIDNet(backbone=backbone_type)
+    temporal_type = inf_cfg.get('temporal_type', 'mamba')
+    model = UAVReIDNet(backbone=backbone_type, temporal_type=temporal_type)
     model_path = args.checkpoint or inf_cfg.get('model_path', './best_model.pth')
     if os.path.exists(model_path):
         # 🛠️ (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch thay vì "Loaded" mù quáng.

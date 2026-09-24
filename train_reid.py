@@ -335,6 +335,38 @@ def get_warmup_cosine_scheduler(optimizer, warmup_epochs, total_epochs):
             return 0.5 * (1.0 + math.cos(math.pi * progress))
     return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
 
+def save_ckpt_atomic(obj, path, quiet=False):
+    """🛠️ (24/9) Ghi checkpoint KIỂU ATOMIC + KIỂM CHỨNG.
+
+    VÌ SAO CẦN — sự cố run 24/9:
+      Log ghi `[*] Best mới (MIN qua N) ở Stage 1, epoch 35: 61.56%` (code CÓ gọi
+      `torch.save`), nhưng file `best_model.pth` trên Drive lại là bản **epoch 15**
+      (`loss=6.7210` khớp chính xác dòng `Epoch 15: Tổng Loss = 6.7210`).
+      ⇒ Lệnh ghi KHÔNG tồn tại trên Drive. Code đúng (đã đối chiếu bản đã chạy
+      `96f6341`), nên đây là lỗi tầng I/O — nghi Google Drive FUSE: process chết vì
+      `InductorError` (uncaught) nên buffer chưa flush.
+
+    CÁCH CHỐNG:
+      1. Ghi ra `path + ".tmp"` CÙNG THƯ MỤC, rồi `os.replace()` -> atomic, không bao
+         giờ để lại file cụt.
+      2. `fsync` trước khi replace (ép flush xuống tầng dưới).
+      3. KIỂM CHỨNG file tồn tại + kích thước > 0, và IN RA kèm epoch/stage để log
+         tự chứng minh đã ghi đúng bản nào.
+    """
+    tmp = path + ".tmp"
+    with open(tmp, "wb") as f:
+        torch.save(obj, f)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)          # atomic trong cùng thư mục
+    size_mb = os.path.getsize(path) / 1e6
+    if size_mb <= 0:
+        raise RuntimeError(f"Ghi checkpoint thất bại (0 byte): {path}")
+    if not quiet:
+        print(f"    💾 {os.path.basename(path)}: {size_mb:.1f} MB | "
+              f"stage={obj.get('stage')} epoch={obj.get('epoch')} | {path}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config.json", type=str, help="Path to config file")
@@ -527,14 +559,33 @@ def main():
         freeze_backbone=True,
         backbone=args.backbone,
         temporal_pool=tc.get('temporal_pool', 'attn'),
-        temporal_pe=bool(tc.get('temporal_pe', True))
+        temporal_pe=bool(tc.get('temporal_pe', True)),
+        temporal_type=tc.get('temporal_type', 'mamba')
     )
-    print(f" Temporal encoder: pool={tc.get('temporal_pool', 'attn')}, pe={bool(tc.get('temporal_pe', True))}")
+    print(f" Temporal encoder: type={tc.get('temporal_type', 'mamba')}, pool={tc.get('temporal_pool', 'attn')}, pe={bool(tc.get('temporal_pe', True))}")
     model.cuda()
     
     # --- torch.compile cho tốc độ tối đa trên A100/H100 ---
     if not args.gpu_jetson and args.use_compile and hasattr(torch, 'compile'):
         print(f"Bật torch.compile() để tối ưu model (dynamic={args.compile_dynamic})...")
+        # 🛠️ (24/9) NÂNG GIỚI HẠN RECOMPILE.
+        # Run 24/9 gặp: `torch._dynamo hit config.recompile_limit (8)` với lý do
+        # `before_clips size mismatch at index 0. expected 9, actual 2`.
+        # Nguyên nhân: `dynamic=False` ⇒ mỗi SHAPE là một graph riêng. Ta có
+        #   3 giá trị N × (train fwd + train bwd + eval) ≈ 9-12 shape > 8 (mặc định)
+        # + batch CUỐI của validation nhỏ hơn (len(dataset) % 9) ⇒ thêm shape nữa.
+        # Khi vượt giới hạn, dynamo gọi `unimplemented()` ⇒ **FALLBACK VỀ EAGER**
+        # cho shape mới (torch/_dynamo/convert_frame.py: `exceeds_cache_size_limit`
+        # -> `unimplemented(f"{limit_type} reached")`).
+        # ⚠️ KHÔNG sai kết quả (eager == compiled), nhưng CHẬM: validation run 24/9
+        #   63/86/111s -> 252/287/267s (đắt ở lần compile đầu mỗi shape + eager).
+        # Nâng lên 64 để MỌI shape đều được compile.
+        for _attr in ('cache_size_limit', 'recompile_limit'):
+            if hasattr(torch._dynamo.config, _attr):
+                setattr(torch._dynamo.config, _attr, 64)
+        for _attr in ('accumulated_cache_size_limit', 'accumulated_recompile_limit'):
+            if hasattr(torch._dynamo.config, _attr):
+                setattr(torch._dynamo.config, _attr, 256)
         try:
             model = torch.compile(model, dynamic=args.compile_dynamic)
         except Exception as e:
@@ -675,8 +726,19 @@ def main():
                     for k, v in state.items():
                         if isinstance(v, torch.Tensor):
                             state[k] = v.cuda()
-            for _ in range(start_epoch_stage1 - 1):
-                scheduler1.step()
+            if 'scheduler_state_dict' in checkpoint:
+                scheduler1.load_state_dict(checkpoint['scheduler_state_dict'])
+                print("  (LR schedule khôi phục từ checkpoint — không cần đuổi bằng step())")
+            else:
+                # Checkpoint CŨ không có scheduler_state_dict -> phải đuổi bằng step().
+                # Việc này CỐ Ý gọi trước optimizer.step() nên PyTorch cảnh báo; chỉ lệch
+                # 1 epoch LR (không đáng kể) -> ẩn warning cho gọn log.
+                import warnings as _w
+                with _w.catch_warnings():
+                    _w.filterwarnings("ignore",
+                                      message=r"Detected call of `lr_scheduler.step\(\)`")
+                    for _ in range(start_epoch_stage1 - 1):
+                        scheduler1.step()
             print(f"=> Loaded checkpoint '{args.resume}' (Stage 1, epoch {checkpoint['epoch']})")
         else:
             start_epoch_stage1 = epochs_stage1 + 1 # skip stage 1
@@ -693,13 +755,17 @@ def main():
                 'stage': 1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
+                # 🛠️ (24/9) Lưu scheduler: nếu không, resume phải "đuổi" LR bằng cách gọi
+                # `scheduler.step()` N lần TRƯỚC `optimizer.step()` -> PyTorch cảnh báo
+                # "skipping the first value of the learning rate schedule" (lệch 1 epoch LR).
+                'scheduler_state_dict': scheduler1.state_dict(),
                 'loss': avg_loss,
                 # 🛠️ (24/9) PHẢI lưu: nếu không, resume xong `best_val_rank1` reset về 0.0
                 # -> validation ĐẦU TIÊN sau resume sẽ ghi đè `best_model.pth` bằng model
                 # CÓ THỂ TỆ HƠN (run 24/9: epoch 55 = 40.91% sẽ đè epoch 35 = 61.56%).
                 'best_val_rank1': best_val_rank1
             }
-            torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"))
+            save_ckpt_atomic(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"), quiet=True)
             
             # Validation sau mỗi args.val_freq epoch hoặc epoch cuối cùng
             if has_val and (epoch % args.val_freq == 0 or epoch == epochs_stage1):
@@ -722,7 +788,7 @@ def main():
                     if score > best_val_rank1:
                         best_val_rank1 = score
                         checkpoint_data['best_val_rank1'] = best_val_rank1  # best_model tự ghi điểm của nó
-                        torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
+                        save_ckpt_atomic(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
                         print(f"[*] Best mới (MIN qua N) ở Stage 1, epoch {epoch}: {best_val_rank1*100:.2f}%")
                 else:
                     _es[1]['bad'] += 1
@@ -758,6 +824,28 @@ def main():
             except Exception as e:
                 print(f"  Cảnh báo: không reset được dynamo: {e}")
         
+        # 🛠️ (24/9) NẠP LẠI `best_model.pth` LÀM ĐIỂM XUẤT PHÁT CHO STAGE 2.
+        # VÌ SAO — lỗi thật của run 24/9:
+        #   Vòng Stage 1 kết thúc bằng EARLY STOP, nên `model` lúc này là epoch CUỐI
+        #   (tệ nhất trong đợt), KHÔNG phải epoch TỐT NHẤT. Số liệu run 24/9:
+        #       Stage 1 best : epoch 25 -> MIN = 63.46%   (đã lưu best_model.pth)
+        #       Stage 1 cuối : epoch 45 -> MIN = 31.52%   (early stop)
+        #   Stage 2 vì thế xuất phát từ 31.52% -> mất NGAY 31.94 điểm, và dù leo lên
+        #   54.11% (epoch 5) vẫn KHÔNG BAO GIỜ vượt 63.46% => kết luận "Stage 2 vô dụng"
+        #   là SAI, nó chỉ bị xuất phát từ điểm hỏng.
+        # LƯU Ý: `model` đang là bản ĐÃ COMPILE, và checkpoint cũng lưu từ bản compile
+        #   (key có tiền tố `_orig_mod.`) -> khớp trực tiếp, KHÔNG cần bóc tiền tố.
+        _best_path = os.path.join(args.checkpoint_dir, "best_model.pth")
+        if os.path.isfile(_best_path):
+            _bst = torch.load(_best_path, map_location='cpu')
+            model.load_state_dict(_bst['model_state_dict'])
+            print(f"  ↩️  Nạp lại best_model.pth làm điểm xuất phát Stage 2: "
+                  f"stage={_bst.get('stage')} epoch={_bst.get('epoch')} "
+                  f"best_val_rank1={_bst.get('best_val_rank1')}")
+        else:
+            print(f"  ⚠️ Không thấy {_best_path} -> Stage 2 tiếp tục từ trọng số CUỐI Stage 1 "
+                  f"(có thể TỆ HƠN best).")
+        
         model.unfreeze_backbone()
         
         # Phân tách trọng số có sẵn (pretrained) và trọng số random (GA, FS, Head...)
@@ -791,8 +879,15 @@ def main():
                     for k, v in state.items():
                         if isinstance(v, torch.Tensor):
                             state[k] = v.cuda()
-            for _ in range(start_epoch_stage2 - 1):
-                scheduler2.step()
+            if 'scheduler_state_dict' in checkpoint:
+                scheduler2.load_state_dict(checkpoint['scheduler_state_dict'])
+            else:
+                import warnings as _w
+                with _w.catch_warnings():
+                    _w.filterwarnings("ignore",
+                                      message=r"Detected call of `lr_scheduler.step\(\)`")
+                    for _ in range(start_epoch_stage2 - 1):
+                        scheduler2.step()
         
         for epoch in range(start_epoch_stage2, epochs_stage2 + 1):
             avg_loss = train_epoch(epoch, "Stage 2", optimizer2, scheduler2, lam1=args.lam1, lam2=args.lam2, lam3=args.lam3)
@@ -802,13 +897,14 @@ def main():
                 'stage': 2,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer2.state_dict(),
+                'scheduler_state_dict': scheduler2.state_dict(),
                 'loss': avg_loss,
                 # 🛠️ (24/9) PHẢI lưu: nếu không, resume xong `best_val_rank1` reset về 0.0
                 # -> validation ĐẦU TIÊN sau resume sẽ ghi đè `best_model.pth` bằng model
                 # CÓ THỂ TỆ HƠN (run 24/9: epoch 55 = 40.91% sẽ đè epoch 35 = 61.56%).
                 'best_val_rank1': best_val_rank1
             }
-            torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"))
+            save_ckpt_atomic(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"), quiet=True)
             
             # Validation sau mỗi args.val_freq epoch hoặc epoch cuối cùng
             if has_val and (epoch % args.val_freq == 0 or epoch == epochs_stage2):
@@ -831,7 +927,7 @@ def main():
                     if score > best_val_rank1:
                         best_val_rank1 = score
                         checkpoint_data['best_val_rank1'] = best_val_rank1  # best_model tự ghi điểm của nó
-                        torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
+                        save_ckpt_atomic(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
                         print(f"[*] Best mới (MIN qua N) ở Stage 2, epoch {epoch}: {best_val_rank1*100:.2f}%")
                 else:
                     _es[2]['bad'] += 1

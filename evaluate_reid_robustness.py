@@ -597,7 +597,8 @@ def main():
 
     print(f"Initializing Model...")
     backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
-    model = UAVReIDNet(freeze_backbone=False, backbone=backbone_type)
+    temporal_type = inf_cfg.get('temporal_type', 'mamba')
+    model = UAVReIDNet(freeze_backbone=False, backbone=backbone_type, temporal_type=temporal_type)
     model_path = inf_cfg.get('model_path', args.checkpoint)
     if os.path.exists(model_path):
         checkpoint = torch.load(model_path, map_location='cpu')

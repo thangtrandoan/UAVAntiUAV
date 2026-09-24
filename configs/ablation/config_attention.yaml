@@ -1,0 +1,168 @@
+# ============================================================
+# ABLATION CÓ KIỂM SOÁT: ATTENTION
+# ============================================================
+# So sánh Mamba vs Attention với MỌI THỨ KHÁC GIỐNG HỆT.
+#   config_mamba.yaml <-> config_attention.yaml
+#   KHÁC NHAU ĐÚNG 1 KEY: `train.temporal_type`
+#   Kiểm chứng: diff configs/ablation/config_mamba.yaml configs/ablation/config_attention.yaml
+#
+# Nền tảng: pipeline của mô hình tham chiếu 78.15%
+#   (`git show 4b2a4fe:configs/config_colab.yaml`):
+#   batch_size 12 | num_frames 12 | KHÔNG n_frames_choices (N CỐ ĐỊNH) |
+#   stage1 30 + stage2 30 | lam2 0.5 | temporal_pool mean (không attention pooling)
+#
+# ⚠️ KHÁC BIỆT KHÔNG THỂ TRÁNH so với bản 15/9 (phải nhớ khi đọc kết quả):
+#   `TemporalConsistencyLoss` đã VIẾT LẠI (dạng xếp hạng, hết nghiệm tầm thường).
+#   => 78.15% là DẢI THAM CHIẾU, không phải mục tiêu tái lập chính xác.
+#
+# ⚠️ EARLY STOP ĐÃ TẮT (`early_stop_patience: 0`, `stop_on_target: false`).
+#   LÝ DO PHƯƠNG PHÁP: nếu bật, hai nhánh có thể dừng ở epoch KHÁC NHAU
+#   -> so sánh ở hai ngân sách train khác nhau -> nhiễu. Tắt để cả hai chạy ĐÚNG 30+30.
+#
+# Chạy: python train_reid.py --config configs/ablation/config_attention.yaml
+# ============================================================
+
+# ============================================================
+# UAVAntiUAV — Google Colab Config (A100 GPU)
+# Mục đích: Huấn luyện với tốc độ và hiệu suất tối đa trên A100 (40GB/80GB VRAM)
+# ============================================================
+
+device:
+  platform: colab
+  gpu_jetson: false
+
+# --- Paths (Lưu ý: Thay đổi đường dẫn Google Drive cho phù hợp) ---
+paths:
+  # Nơi chứa thư mục UAV-Anti-UAV gốc trên Google Drive
+  raw_data_dir: /content/UAV-Anti-UAV
+  # Trọng số pre-train của mạng GASNet trên Google Drive (sau khi train VRU)
+  gasnet_weights: /content/drive/MyDrive/output/gasnet_convnext_v0.best.pth
+  
+  # Đường dẫn thư mục chứa mã nguồn GASNet (4 file python bạn vừa copy vào)
+  gasnet_dir: /content/UAVAntiUAV/gasnet
+  
+  # Lưu kết quả data_pipeline ngay trên Colab (để đọc nhanh)
+  data_dir: /content/processed
+  
+  # QUAN TRỌNG: Lưu checkpoint trực tiếp lên Google Drive để tránh mất khi Colab ngắt
+  checkpoint_dir: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/ablation_attention
+  log_dir: /content/drive/MyDrive/UAV_Anti_UAV/logs/ablation_attention
+
+# --- Data Pipeline ---
+data_pipeline:
+  num_before_frames: 16
+  num_after_frames: 16
+  bbox_padding: 0.2
+  crop_size: 256
+  num_workers: 8              # CPU trên Colab khá mạnh, tăng lên 8 để load data nhanh
+
+# --- Training (Tối ưu cho A100) ---
+train:
+  resume: ""                       # BẮT BUỘC từ đầu: attention KHÔNG tương thích trọng số mamba
+  resume_best_rank1: -1.0
+  backbone: "dinov3_convnext"
+  batch_size: 12                   # = bản tham chiếu 15/9
+  num_instances: 3
+  num_frames: 12
+  # KHÔNG khai báo `n_frames_choices` => N CỐ ĐỊNH = num_frames = 12 (như bản tham chiếu).
+  # Random N là biến ablation RIÊNG, không trộn vào phép so kiến trúc.
+  num_workers: 8
+  use_amp: true
+  pin_memory: true
+  use_compile: true
+  compile_dynamic: false           # tránh crash Inductor CantSplit ở backward Stage 2
+  val_freq: 5
+  val_n_list: [8, 12, 16]          # ĐO cả 3 N dù train N cố định (để thấy độ bền theo N)
+
+  temporal_type: "attention"   # <-- BIẾN DUY NHẤT KHÁC NHAU GIỮA HAI CONFIG
+  temporal_pool: mean              # = `x.mean(dim=1)` của bản tham chiếu (không attention pooling)
+  temporal_pe: true                # bản tham chiếu CÓ pos_embed (model.py:152,177 @4b2a4fe)
+
+  # TẮT early stop: cả hai nhánh chạy cùng ngân sách epoch
+  early_stop_patience: 0
+  stop_on_target: false
+  target_rank1: 0.85
+  target_spread: 0.05
+  early_stop_min_delta: 1.0e-4
+
+  stage1:
+    epochs: 30
+    lr: 3.5e-4
+    weight_decay: 5e-4
+
+  stage2:
+    epochs: 30
+    lr_backbone: 1.0e-5
+    lr_temporal: 1.0e-4
+    lr_head: 1.0e-4
+    weight_decay: 5e-4
+
+  loss:
+    lam1: 1.0
+    lam2: 0.5
+    lam3: 0.001
+    lr_center: 0.5
+    triplet_margin: 0.3
+    label_smooth: 0.1
+
+eval:
+  model_path: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/ablation_attention/best_model.pth
+  query_json: /content/processed/query_test.json
+  gallery_json: /content/processed/gallery_test.json
+  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results/v3.8.3
+  batch_size: 32             # Khi test không cần tính gradient nên để batch size rất lớn
+  num_workers: 8
+  backbone: "dinov3_convnext"
+  backbone_only: false
+  reid_threshold: 0.7
+  intra_sequence: false
+  # 🛠️ (14/9): không gian feature dùng làm CHÍNH khi evaluate (áp calibrated threshold + visualization).
+  #   fused  = qua ReIDHead (BatchNorm1d)  — hành vi cũ (fine score của infer.py)
+  #   pre_bn = cat(visual, temporal)       — ĐẦU VÀO bnneck (raw)
+  # Cả hai KHÔNG gian luôn được đánh giá song song trong cùng 1 lượt chạy để so sánh.
+  space: fused
+  max_correct_vis: 0         # Tắt lưu ảnh để chạy nhanh và tiết kiệm dung lượng
+  # Dùng threshold đã calibrate từ calibrate_threshold.py (Fixed FAR strategy)
+  # Chạy calibrate_threshold.py trước để tạo file này
+  threshold_file: /content/drive/MyDrive/UAV_Anti_UAV/calib_results/calibrated_threshold.json
+
+# --- Threshold Calibration ---
+calibration:
+  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/calib_results/v3.8
+  cal_ratio: 0.4             # 40% sequences dùng để tìm threshold, 60% còn lại là holdout eval
+  far_target: 0.001          # FAR mục tiêu = 0.1%
+  seed: 42                   # Seed cố định để split reproducible
+
+
+# --- Inference ---
+infer:
+  backbone: dinov3_convnext
+  seq_dir: all
+  model_path: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/ablation_attention/best_model.pth
+  output_video: output_reid.mp4
+  out_dir: ./infer_output/infer_pipeline_3.5
+  stride: 2
+  num_frames: 12
+  bbox_padding: 0.2
+  max_anchor_size: 5
+  max_recent_size: 15
+  soft_lock_threshold: 0.3
+  reid_threshold: 0.75
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  update_interval_sec: 2.0
+  debug_sim: true
+
+# --- Inference Robustness Test ---
+infer_robustness:
+  seq_dir: /content/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  data_root: /content/UAV-Anti-UAV/Test
+  model_path: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/ablation_attention/best_model.pth
+  output_video: output_robustness.mp4
+  backbone: "dinov3_convnext"
+  reid_threshold: 0.7
+  # 🛠️ FIX (14/9): khớp `train.num_frames: 12` (trước đây = 16).
+  # `evaluate_reid_robustness.py` đọc block này qua cfg.get('infer_robustness').
+  num_frames: 12
+  bbox_padding: 0.2
+  num_imposters: 10

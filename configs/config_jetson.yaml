@@ -29,6 +29,8 @@ data_pipeline:
 train:
   resume: ""
   backbone: "dinov3_convnext"
+  # temporal_type: 'mamba' (SSM/S6) hoặc 'attention' (Self-Attention Transformer)
+  temporal_type: "attention"
   batch_size: 8
   num_instances: 2
   num_frames: 16
@@ -70,6 +72,7 @@ eval:
 # --- Inference ---
 infer:
   backbone: dinov3_convnext
+  temporal_type: attention
   seq_dir: all
   model_path: ./best_model_conv.pth
   output_video: output_reid.mp4
@@ -109,6 +112,7 @@ infer_robustness:
   output_video: ./output_robustness.mp4
   out_dir: ./infer_robustness_new/UAV-Anti-UAV_Test_000212_2
   backbone: "dinov3_convnext"
+  temporal_type: "attention"
   # === New OOP Pipeline Thresholds ===
   # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4).
   stride: 4
