@@ -21,8 +21,8 @@ paths:
   data_dir: /content/processed
   
   # QUAN TRỌNG: Lưu checkpoint trực tiếp lên Google Drive để tránh mất khi Colab ngắt
-  checkpoint_dir: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints
-  log_dir: /content/drive/MyDrive/UAV_Anti_UAV/logs
+  checkpoint_dir: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/v3.9
+  log_dir: /content/drive/MyDrive/UAV_Anti_UAV/logs/v3.9
 
 # --- Data Pipeline ---
 data_pipeline:
@@ -34,14 +34,14 @@ data_pipeline:
   num_after_frames: 16
   bbox_padding: 0.2
   crop_size: 256
-  num_workers: 8              # CPU trên Colab khá mạnh, tăng lên 8 để load data nhanh
+  num_workers: 8            
 
 # --- Training (Tối ưu cho A100) ---
 train:
   resume: ""
   backbone: "dinov3_convnext"  # Sử dụng kiến trúc mới DINOv3
-  batch_size: 12              
-  num_instances: 3            # 4 ảnh cho mỗi đối tượng -> Rất tốt cho Triplet Loss
+  batch_size: 9              # Tối ưu cho A100 40GB/80GB VRAM (9*3*16=432 frames/batch)
+  num_instances: 3           
   num_frames: 12
   # 🛠️ (22/9) N RANDOM THEO BATCH (md/22thg9.md §16). Mỗi batch dùng MỘT N
   # trong danh sách này — CÙNG N cho query (after) và gallery (before), vì loss
@@ -80,7 +80,7 @@ eval:
   model_path: /content/best_model.pth
   query_json: /content/processed/query_test.json
   gallery_json: /content/processed/gallery_test.json
-  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results/v3.8.3
+  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results/v3.9
   batch_size: 32             # Khi test không cần tính gradient nên để batch size rất lớn
   num_workers: 8
   backbone: "dinov3_convnext"
