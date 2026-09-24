@@ -38,42 +38,23 @@ data_pipeline:
 
 # --- Training (Tối ưu cho A100) ---
 train:
-  resume: ""
-  backbone: "dinov3_convnext"  # Sử dụng kiến trúc mới DINOv3
-  batch_size: 9              # Giảm 12->9 (md/22thg9.md §22.3): RAM ∝ B*N. VRAM thật =
-                             # 2*B*N ảnh (before+after) = 2*9*16 = 288 @N=16 (trước: 384)
+  resume: "/content/drive/MyDrive/UAV_Anti_UAV/checkpoints/v3.9/best_model.pth" 
+  # 🛠️ (24/9) Chỉ dùng khi resume từ checkpoint CŨ (chưa lưu `best_val_rank1`).
+  # = -1: dùng giá trị trong checkpoint. >=0: ép giá trị này (vd 0.6156 cho best epoch 35).
+  resume_best_rank1: 0.6156
+  backbone: "dinov3_convnext"  
+  batch_size: 9           
   num_instances: 3           
-  # ⚠️ (22/9) `num_frames` KHÔNG còn điều khiển N lúc TRAIN — `n_frames_choices` mới là
-  # thứ đó. Key này giờ chỉ là FALLBACK (khi thiếu n_frames_choices/val_n_list) và là N
-  # mặc định cho `infer`/`infer_robustness`. Đừng sửa key này để mong đổi N lúc train.
-  # 🛠️ (22/9) TEMPORAL POOLING + PE (md/22thg9.md §31).
-  # 'attn' = attention pooling: tổ hợp lồi -> scale bất biến theo N, HỌC được trọng số
-  #   (giảm trọng số frame bị pad/mờ) và CHỌN được vị trí nên PE có ích.
-  # 'mean' = hành vi cũ (mean(dim=1) * sqrt(N)) — để ablation.
   temporal_pool: attn
   temporal_pe: true
   num_frames: 12
-  # 🛠️ (22/9) N RANDOM THEO BATCH (md/22thg9.md §16). Mỗi batch dùng MỘT N
-  # trong danh sách này — CÙNG N cho query (after) và gallery (before), vì loss
-  # so sánh chúng. Bỏ key này / để 1 phần tử = hành vi cũ (N cố định).
-  # Lưu ý: không làm epoch dài thêm (sampler rút 1 N cho mỗi batch).
-  # 🛠️ (22/9) THU 7 -> 3 giá trị (md/22thg9.md §25.3). `n_frames_choices` chia đều ngân
-  # sách batch, nên L=3 cho 2.33x tín hiệu MỖI N ở CÙNG chi phí.
-  # [8,12,16] khớp ĐÚNG dải deploy và khớp `val_n_list` (tiêu chí kiểm chứng).
-  # Đã bỏ N=4: conv1d(kernel_size=4, padding=3) với L=4 -> vùng đệm (3) gần bằng cả
-  # chuỗi (4) -> hiệu ứng biên lấn át, tín hiệu temporal vô nghĩa.
   n_frames_choices: [8, 12, 16]
   num_workers: 8              # Tăng worker để cấp đủ data cho GPU
   use_amp: true               # BẮT BUỘC BẬT: A100 tận dụng Tensor Cores train cực nhanh với AMP
   pin_memory: true
   use_compile: true
-  # 🛠️ (22/9) N RANDOM -> mỗi N là một SHAPE khác -> dynamic=True để torch.compile
-  # KHÔNG biên dịch lại cho từng N (xem md/22thg9.md §27.3).
-  compile_dynamic: true          # Tắt compile mặc định cho an toàn (tránh lỗi với custom CUDA kernels/Mamba)
+  compile_dynamic: false
   val_freq: 5
-  # 🛠️ (22/9) ĐO NHIỀU N + EARLY STOPPING (md/22thg9.md §25, §27).
-  # Tiêu chí đạt là "fused >= target_rank1 ở CẢ các N và lệch <= target_spread".
-  # ĐIỂM dùng cho early stop = MIN qua các N (tối ưu ca xấu nhất), KHÔNG phải trung bình.
   val_n_list: [8, 12, 16]
   target_rank1: 0.85          # mọi N phải >= mức này
   target_spread: 0.05         # độ lệch max-min giữa các N
@@ -95,7 +76,7 @@ train:
 
   loss:
     lam1: 1.0
-    lam2: 0.5
+    lam2: 0.0
     # lam3 nhỏ (0.001) vì center loss tính trên feature THÔ (1472-d) — lam3=0.05 sẽ dominate gradient
     lam3: 0.001
     lr_center: 0.5
@@ -114,10 +95,6 @@ eval:
   backbone_only: false
   reid_threshold: 0.7
   intra_sequence: false
-  # 🛠️ (14/9): không gian feature dùng làm CHÍNH khi evaluate (áp calibrated threshold + visualization).
-  #   fused  = qua ReIDHead (BatchNorm1d)  — hành vi cũ (fine score của infer.py)
-  #   pre_bn = cat(visual, temporal)       — ĐẦU VÀO bnneck (raw)
-  # Cả hai KHÔNG gian luôn được đánh giá song song trong cùng 1 lượt chạy để so sánh.
   space: fused
   max_correct_vis: 0         # Tắt lưu ảnh để chạy nhanh và tiết kiệm dung lượng
   # Dùng threshold đã calibrate từ calibrate_threshold.py (Fixed FAR strategy)
@@ -138,13 +115,7 @@ infer:
   model_path: /content/best_model.pth
   output_video: output_reid.mp4
   out_dir: ./infer_output/infer_pipeline_3.5
-  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride. `infer.py` tự đọc và GHI ĐÈ từ
-  # `data_pipeline.frame_stride`, nên giá trị ở đây chỉ là tài liệu tham chiếu.
   stride: 4
-  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
-  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
-  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
-  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
   t2_search_gap_tolerance: 2
   num_frames: 12
   bbox_padding: 0.2
@@ -155,14 +126,7 @@ infer:
   hijack_threshold: 0.40
   hijack_check_count: 5
   update_interval_sec: 2.0
-  # 🛠️ (14/9): in cosine TRƯỚC bnneck (raw) vs SAU bnneck (fused).
   debug_sim: true
-  # 🛠️ (14/9): không gian dùng cho gate HARD LOCK.
-  #   fused  = qua ReIDHead (BatchNorm1d) — hành vi cũ
-  #   pre_bn = cat(visual, temporal)      — đầu vào bnneck (raw cosine)
-  # ⚠️ Đổi sang pre_bn thì PHẢI đổi `reid_threshold` = thresholds.pre_bn trong
-  #    calibrated_threshold.json (chạy calibrate_threshold.py trước). Hai thang điểm khác nhau.
-  # ✅ Đã kiểm chứng 15/9: pre_bn KÉM hơn fused 2.67% TAR@FAR=0.1% -> GIỮ fused (xem md/15thg9.md §4.1).
   fine_space: fused
   time_source: video
 
@@ -174,15 +138,8 @@ infer_robustness:
   output_video: output_robustness.mp4
   backbone: "dinov3_convnext"
   reid_threshold: 0.7
-  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4) — đồng bộ bước thời gian temporal.
   stride: 4
-  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
-  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
-  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
-  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
   t2_search_gap_tolerance: 2
-  # 🛠️ FIX (14/9): khớp `train.num_frames: 12` (trước đây = 16).
-  # `evaluate_reid_robustness.py` đọc block này qua cfg.get('infer_robustness').
   num_frames: 12
   bbox_padding: 0.2
   num_imposters: 10

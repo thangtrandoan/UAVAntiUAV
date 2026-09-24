@@ -120,15 +120,39 @@ class CenterLoss(nn.Module):
         return loss
 
 class TemporalConsistencyLoss(nn.Module):
-    def __init__(self):
+    """🛠️ (24/9) SỬA LỖI NGHIỆM TẦM THƯỜNG — nguyên nhân thảm hoạ epoch 20-30 (run 24/9).
+
+    BẢN CŨ: `loss = 1 - cos(x_t, x_{t+1}).mean()`.
+    ❌ LỖI: `cos` KHÔNG quan tâm độ lớn. Nghiệm tầm thường để `cos -> 1` là làm MỌI
+       `x_t` GIỐNG HỆT NHAU (hằng số theo thời gian). Khi đó loss -> 0 nhưng nhánh
+       temporal MẤT HẾT thông tin chuyển động. Chuẩn hoá phương sai KHÔNG cứu được
+       (hằng số chia eps vẫn là hằng số -> cos vẫn = 1).
+
+    BẰNG CHỨNG từ log run 24/9:
+       epoch 20-30: Temporal loss = 0.0001  ĐÚNG LÚC Rank-1 sập về 0.04%
+                    (chance = 2.90% -> thấp hơn chance 70 lần)
+       epoch 33-35: Temporal loss TĂNG LẠI 0.0043-0.0050 ĐÚNG LÚC hồi phục 61.6%
+       => tương quan hoàn hảo giữa "loss temporal = 0" và "feature sụp".
+
+    BẢN MỚI: RANKING LOSS theo KHOẢNG CÁCH THỜI GIAN.
+       Yêu cầu: cặp LIỀN KỀ giống nhau HƠN cặp XA NHẤT ít nhất `margin`.
+       ✅ Chuỗi HẰNG SỐ cho `sim_near = sim_far = 1` -> loss = margin > 0
+          => NGHIỆM TẦM THƯỜNG BỊ LOẠI BỎ về mặt toán học.
+       ✅ Đúng inductive bias: encoder thời gian phải tạo chuỗi có CẤU TRÚC
+          (similarity GIẢM theo khoảng cách), tức giữ thông tin chuyển động.
+    """
+    def __init__(self, margin=0.2):
         super().__init__()
+        self.margin = margin
+
     def forward(self, temporal_features):
-        if len(temporal_features.shape) == 2 or temporal_features.size(1) < 2:
-            return torch.tensor(0.0).to(temporal_features.device)
-            
-        sim = F.cosine_similarity(temporal_features[:, :-1, :], temporal_features[:, 1:, :], dim=-1)
-        loss = 1.0 - sim.mean()
-        return loss
+        if len(temporal_features.shape) == 2 or temporal_features.size(1) < 3:
+            return torch.tensor(0.0, device=temporal_features.device,
+                                dtype=temporal_features.dtype)
+        x = temporal_features.float()                      # ổn định dưới autocast
+        sim_near = F.cosine_similarity(x[:, :-1, :], x[:, 1:, :], dim=-1).mean()
+        sim_far = F.cosine_similarity(x[:, 0, :], x[:, -1, :], dim=-1).mean()
+        return F.relu(sim_far - sim_near + self.margin)
 
 # ==========================================
 # 2. DATASET & DATALOADER
@@ -336,6 +360,10 @@ def main():
             
     tc = cfg.get('train', {})
     args.resume         = tc.get('resume', '')
+    # 🛠️ (24/9) ÉP best toàn cục khi resume. Checkpoint CŨ (trước 24/9) KHÔNG có trường
+    # `best_val_rank1` -> restore 0.0 -> validation đầu tiên sẽ ghi đè `best_model.pth`
+    # dù tệ hơn. Đặt = -1 để tắt (dùng giá trị trong checkpoint).
+    args.resume_best_rank1 = float(tc.get('resume_best_rank1', -1.0))
     args.batch_size     = tc.get('batch_size', 32)
     args.num_instances  = tc.get('num_instances', 4)
     args.num_frames     = tc.get('num_frames', 16)
@@ -629,6 +657,15 @@ def main():
         stage = checkpoint.get('stage', 2)
         if 'loss' in checkpoint:
             best_loss = checkpoint['loss']
+        # 🛠️ (24/9) Khôi phục best TOÀN CỤC — xem giải thích ở `checkpoint_data`.
+        best_val_rank1 = float(checkpoint.get('best_val_rank1', 0.0))
+        if args.resume_best_rank1 >= 0:
+            print(f"=> ÉP best_val_rank1 = {args.resume_best_rank1*100:.2f}% "
+                  f"(config `resume_best_rank1`; checkpoint ghi {best_val_rank1*100:.2f}%)")
+            best_val_rank1 = args.resume_best_rank1
+        else:
+            print(f"=> best_val_rank1 khôi phục = {best_val_rank1*100:.2f}% "
+                  f"(0.00% = checkpoint cũ chưa lưu trường này — nên đặt `resume_best_rank1`)")
             
         if stage == 1:
             start_epoch_stage1 = checkpoint['epoch'] + 1
@@ -656,7 +693,11 @@ def main():
                 'stage': 1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'loss': avg_loss
+                'loss': avg_loss,
+                # 🛠️ (24/9) PHẢI lưu: nếu không, resume xong `best_val_rank1` reset về 0.0
+                # -> validation ĐẦU TIÊN sau resume sẽ ghi đè `best_model.pth` bằng model
+                # CÓ THỂ TỆ HƠN (run 24/9: epoch 55 = 40.91% sẽ đè epoch 35 = 61.56%).
+                'best_val_rank1': best_val_rank1
             }
             torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"))
             
@@ -667,6 +708,12 @@ def main():
                 if met:
                     print(f"[✓] ĐẠT TIÊU CHÍ (epoch {epoch}): mọi N >= {args.target_rank1:.2f} "
                           f"và lệch {spread*100:.2f}% <= {args.target_spread*100:.0f}%")
+                # 🛠️ (24/9) CẢNH BÁO SỤP: run 24/9 sập về 0.04% (chance=2.90%) mà log chỉ
+                # hiện "[i] Không cải thiện" bình thường -> rất dễ bỏ qua.
+                if best_val_rank1 > 0 and score < 0.3 * best_val_rank1:
+                    print(f"🚨 [CẢNH BÁO SỤP] MIN={score*100:.2f}% < 30% của best "
+                          f"({best_val_rank1*100:.2f}%). Feature có thể đã hỏng — "
+                          f"kiểm tra Temporal loss và cân nhắc resume từ best_model.pth.")
                 # Cải thiện theo TỪNG STAGE -> điều khiển early stop
                 if score > _es[1]['best'] + args.early_stop_min_delta:
                     _es[1]['best'] = score
@@ -674,6 +721,7 @@ def main():
                     # Nhưng chỉ LƯU khi tốt hơn best TOÀN CỤC
                     if score > best_val_rank1:
                         best_val_rank1 = score
+                        checkpoint_data['best_val_rank1'] = best_val_rank1  # best_model tự ghi điểm của nó
                         torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
                         print(f"[*] Best mới (MIN qua N) ở Stage 1, epoch {epoch}: {best_val_rank1*100:.2f}%")
                 else:
@@ -754,7 +802,11 @@ def main():
                 'stage': 2,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer2.state_dict(),
-                'loss': avg_loss
+                'loss': avg_loss,
+                # 🛠️ (24/9) PHẢI lưu: nếu không, resume xong `best_val_rank1` reset về 0.0
+                # -> validation ĐẦU TIÊN sau resume sẽ ghi đè `best_model.pth` bằng model
+                # CÓ THỂ TỆ HƠN (run 24/9: epoch 55 = 40.91% sẽ đè epoch 35 = 61.56%).
+                'best_val_rank1': best_val_rank1
             }
             torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "last_model.pth"))
             
@@ -765,6 +817,12 @@ def main():
                 if met:
                     print(f"[✓] ĐẠT TIÊU CHÍ (epoch {epoch}): mọi N >= {args.target_rank1:.2f} "
                           f"và lệch {spread*100:.2f}% <= {args.target_spread*100:.0f}%")
+                # 🛠️ (24/9) CẢNH BÁO SỤP: run 24/9 sập về 0.04% (chance=2.90%) mà log chỉ
+                # hiện "[i] Không cải thiện" bình thường -> rất dễ bỏ qua.
+                if best_val_rank1 > 0 and score < 0.3 * best_val_rank1:
+                    print(f"🚨 [CẢNH BÁO SỤP] MIN={score*100:.2f}% < 30% của best "
+                          f"({best_val_rank1*100:.2f}%). Feature có thể đã hỏng — "
+                          f"kiểm tra Temporal loss và cân nhắc resume từ best_model.pth.")
                 # Cải thiện theo TỪNG STAGE -> điều khiển early stop
                 if score > _es[2]['best'] + args.early_stop_min_delta:
                     _es[2]['best'] = score
@@ -772,6 +830,7 @@ def main():
                     # Nhưng chỉ LƯU khi tốt hơn best TOÀN CỤC
                     if score > best_val_rank1:
                         best_val_rank1 = score
+                        checkpoint_data['best_val_rank1'] = best_val_rank1  # best_model tự ghi điểm của nó
                         torch.save(checkpoint_data, os.path.join(args.checkpoint_dir, "best_model.pth"))
                         print(f"[*] Best mới (MIN qua N) ở Stage 2, epoch {epoch}: {best_val_rank1*100:.2f}%")
                 else:
