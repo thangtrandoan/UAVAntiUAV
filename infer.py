@@ -882,7 +882,15 @@ def main():
     # vì `load_checkpoint_verbose` chỉ kiểm `backbone.*` và `head.*`).
     temporal_type = inf_cfg.get(
         'temporal_type', cfg.get('train', {}).get('temporal_type', 'mamba'))
-    model = UAVReIDNet(backbone=backbone_type, temporal_type=temporal_type)
+    # 🛠️ (24/9) `temporal_pool`/`temporal_pe` phải khớp lúc TRAIN, nếu không `attn_pool`
+    # giữ zero-init -> mất hệ số `sqrt(N)` (chi tiết: calibrate_threshold.py).
+    temporal_pool = inf_cfg.get(
+        'temporal_pool', cfg.get('train', {}).get('temporal_pool', 'attn'))
+    temporal_pe = bool(inf_cfg.get(
+        'temporal_pe', cfg.get('train', {}).get('temporal_pe', True)))
+    print(f"Temporal encoder: type={temporal_type}, pool={temporal_pool}, pe={temporal_pe}")
+    model = UAVReIDNet(backbone=backbone_type, temporal_type=temporal_type,
+                       temporal_pool=temporal_pool, temporal_pe=temporal_pe)
     model_path = args.checkpoint or inf_cfg.get('model_path', './best_model.pth')
     if os.path.exists(model_path):
         # 🛠️ (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch thay vì "Loaded" mù quáng.

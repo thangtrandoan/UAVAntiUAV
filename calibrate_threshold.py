@@ -609,8 +609,18 @@ def main():
         os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
 
     from model import UAVReIDNet, load_checkpoint_verbose
+    # 🛠️ (24/9) `temporal_pool` / `temporal_pe` CŨNG phải khớp lúc TRAIN, không chỉ `temporal_type`.
+    # Trước đây 2 key này không được truyền -> rơi về default của `UAVReIDNet` (`pool='attn'`).
+    # Với checkpoint train bằng `pool='mean'`, `attn_pool` KHÔNG có trong file nên giữ zero-init
+    # -> `attn_pool(x) = mean(x)` **KHÔNG nhân `sqrt(N)`**, trong khi lúc train là `mean(x)*sqrt(N)`
+    # => token temporal ở eval LỆCH so với train (N=12: lệch hệ số 3.464, và vì `out_mlp` có bias
+    #    nên BatchNorm1d KHÔNG bù được). Biểu hiện: space `temporal` tụt mạnh nhất.
     temporal_type = cfg.get('train', {}).get('temporal_type', 'mamba')
-    model = UAVReIDNet(freeze_backbone=False, backbone=backbone, temporal_type=temporal_type)
+    temporal_pool = cfg.get('train', {}).get('temporal_pool', 'attn')
+    temporal_pe = bool(cfg.get('train', {}).get('temporal_pe', True))
+    print(f"  Temporal encoder: type={temporal_type}, pool={temporal_pool}, pe={temporal_pe}")
+    model = UAVReIDNet(freeze_backbone=False, backbone=backbone, temporal_type=temporal_type,
+                       temporal_pool=temporal_pool, temporal_pe=temporal_pe)
     if not backbone_only and os.path.exists(model_path):
         # 🛠️ (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch (xem model.load_checkpoint_verbose)
         load_checkpoint_verbose(model, model_path, tag="calibrate")
@@ -837,7 +847,12 @@ def main():
     if 'visual' in results and 'temporal' in results:
         print(f"\n  === ABLATION: nhanh TEMPORAL dong gop bao nhieu? (eval-split) ===")
         print(f"  {'Space':<10} {'dim':>6} {'Rank-1 (eval)':>14} {'mAP':>8} {'TAR@FAR0.1%':>12} {'TAR@FAR1%':>10}")
-        dims = {'visual': 2560, 'temporal': 512, 'pre_bn': 3072, 'fused': 3072}
+        # 🛠️ (24/9) TRƯỚC ĐÂY là hằng số 2560/3072 — SAI với `dinov3_convnext` (thật ra
+        # visual=960, temporal=512, fused=pre_bn=1472). Nay suy trực tiếp từ model.
+        _in_dim = int(model.head.bnneck.num_features)
+        _vis_dim = 960 if backbone == "dinov3_convnext" else 2560
+        dims = {'visual': _vis_dim, 'temporal': _in_dim - _vis_dim,
+                'pre_bn': _in_dim, 'fused': _in_dim}
         for s in ('visual', 'temporal', 'pre_bn', 'fused'):
             if s not in results:
                 continue

@@ -603,7 +603,15 @@ def main():
     # -> temporal encoder chạy random, kết quả vô nghĩa mà không có cảnh báo nghiêm trọng.
     temporal_type = inf_cfg.get(
         'temporal_type', cfg.get('train', {}).get('temporal_type', 'mamba'))
-    model = UAVReIDNet(freeze_backbone=False, backbone=backbone_type, temporal_type=temporal_type)
+    # 🛠️ (24/9) `temporal_pool`/`temporal_pe` phải khớp lúc TRAIN, nếu không `attn_pool`
+    # giữ zero-init -> mất hệ số `sqrt(N)` (chi tiết: calibrate_threshold.py).
+    temporal_pool = inf_cfg.get(
+        'temporal_pool', cfg.get('train', {}).get('temporal_pool', 'attn'))
+    temporal_pe = bool(inf_cfg.get(
+        'temporal_pe', cfg.get('train', {}).get('temporal_pe', True)))
+    print(f"Temporal encoder: type={temporal_type}, pool={temporal_pool}, pe={temporal_pe}")
+    model = UAVReIDNet(freeze_backbone=False, backbone=backbone_type, temporal_type=temporal_type,
+                       temporal_pool=temporal_pool, temporal_pe=temporal_pe)
     model_path = inf_cfg.get('model_path', args.checkpoint)
     if os.path.exists(model_path):
         checkpoint = torch.load(model_path, map_location='cpu')

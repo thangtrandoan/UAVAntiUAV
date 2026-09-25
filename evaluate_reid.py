@@ -286,8 +286,13 @@ def main():
         os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
         
     from model import UAVReIDNet, load_checkpoint_verbose
+    # 🛠️ (24/9) `temporal_pool`/`temporal_pe` phải khớp lúc TRAIN (chi tiết: calibrate_threshold.py).
     temporal_type = cfg.get('eval', {}).get('temporal_type', cfg.get('train', {}).get('temporal_type', 'mamba'))
-    model = UAVReIDNet(freeze_backbone=False, backbone=args.backbone, temporal_type=temporal_type)
+    temporal_pool = cfg.get('eval', {}).get('temporal_pool', cfg.get('train', {}).get('temporal_pool', 'attn'))
+    temporal_pe = bool(cfg.get('eval', {}).get('temporal_pe', cfg.get('train', {}).get('temporal_pe', True)))
+    print(f"Temporal encoder: type={temporal_type}, pool={temporal_pool}, pe={temporal_pe}")
+    model = UAVReIDNet(freeze_backbone=False, backbone=args.backbone, temporal_type=temporal_type,
+                       temporal_pool=temporal_pool, temporal_pe=temporal_pe)
     if not args.backbone_only:
         if os.path.exists(args.model_path):
             # 🛠️ (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch thay vì "Loaded" mù quáng.
