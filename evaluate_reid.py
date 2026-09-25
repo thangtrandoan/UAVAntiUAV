@@ -227,6 +227,10 @@ def main():
                         help="Không gian feature dùng làm CHÍNH (áp calibrated threshold + visualization). "
                              "fused = qua ReIDHead (BatchNorm1d) — mặc định; pre_bn = cat(visual, temporal), "
                              "ĐẦU VÀO bnneck. Cả hai không gian luôn được đánh giá để so sánh (xem md/15thg9.md).")
+    # 🛠️ (25/9) Cho phép đặt threshold THỦ CÔNG ngay trên dòng lệnh.
+    parser.add_argument("--threshold", default=None, type=float,
+                        help="Đặt threshold THỦ CÔNG (ưu tiên cao nhất, ghi đè --threshold-file "
+                             "và config). Dùng để thử nhanh một ngưỡng cụ thể, vd: --threshold 0.85")
     args = parser.parse_args()
 
     with open(args.config, 'r', encoding='utf-8') as f:
@@ -363,7 +367,14 @@ def main():
     threshold_source = "in-sample (thiên lệch)"
     calibrated_threshold = None
 
-    if args.threshold_file and os.path.exists(args.threshold_file):
+    if args.threshold is not None:
+        # 🛠️ (25/9) Ưu tiên CAO NHẤT: cho phép thử một ngưỡng cụ thể mà KHÔNG cần tạo file JSON
+        # và KHÔNG cần chạy calibrate_threshold.py. Một giá trị áp cho không gian đang chọn.
+        calibrated_threshold = float(args.threshold)
+        threshold_source = f"THỦ CÔNG (--threshold={calibrated_threshold:.6f}, KHÔNG calibrate)"
+        print(f"  Dùng threshold THỦ CÔNG ({threshold_space}): {calibrated_threshold:.6f}  "
+              f"[{threshold_source}]")
+    elif args.threshold_file and os.path.exists(args.threshold_file):
         with open(args.threshold_file, 'r') as f:
             calib_data = json.load(f)
         thresholds_by_space = calib_data.get('thresholds', {}) or {}
