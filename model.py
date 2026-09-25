@@ -412,6 +412,11 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
     # Loại `pos_embed` ra vì nó là thành phần TÙY CHỌN đã có khối ℹ️ riêng giải thích bên dưới.
     temporal_missing = [k for k in missing
                         if k.startswith('temporal_encoder.') and 'pos_embed' not in k]
+    # 🛠️ (24/9) Lỗ hổng ĐỐI XỨNG với `temporal_missing`: nếu config nói `pool='mean'` nhưng
+    # checkpoint train bằng `pool='attn'` thì `attn_pool.*` là UNEXPECTED (KHÔNG phải MISSING)
+    # -> trọng số attention pooling bị VỨT ĐI âm thầm và pooling rơi về `mean*sqrt(N)`.
+    temporal_unexpected = [k for k in unexpected
+                           if k.startswith('temporal_encoder.') and 'pos_embed' not in k]
     classifier_missing = [k for k in missing if _is_classifier_key(k)]
     classifier_mismatch = [s for s in skipped_shape if _is_classifier_key(s[0])]
 
@@ -425,14 +430,22 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
             groups.setdefault(k.split('.')[0], []).append(k)
         return groups
 
-    if missing:
-        log(f"  [{tag}] ⚠️ MISSING {len(missing)} keys (giữ init hiện tại):")
-        for prefix, keys in sorted(_group(missing).items(), key=lambda kv: -len(kv[1])):
+    # 🛠️ (24/9) TÁCH key CLASSIFIER ra khỏi khối ⚠️. `_is_classifier_key` đã có sẵn và khối ℹ️
+    # bên dưới giải thích chúng là BÌNH THƯỜNG, NHƯNG trước đây chúng vẫn bị liệt kê dưới ⚠️ và
+    # in RA TRƯỚC khối ℹ️ đó -> người đọc thấy "⚠️ MISSING 3 keys" rồi tưởng hỏng, dù 3 key đó
+    # chỉ là đầu classifier (lệch `num_identities`), KHÔNG nằm trên đường trích feature.
+    missing_feature = [k for k in missing if not _is_classifier_key(k)]
+    skipped_shape_feature = [s for s in skipped_shape if not _is_classifier_key(s[0])]
+
+    if missing_feature:
+        log(f"  [{tag}] ⚠️ MISSING {len(missing_feature)} keys (giữ init hiện tại):")
+        for prefix, keys in sorted(_group(missing_feature).items(), key=lambda kv: -len(kv[1])):
             log(f"      - {prefix}.* : {len(keys)} keys (vd: {keys[0]})")
     # 🛠️ (22/9) `pos_embed` bị BỎ khỏi kiến trúc (§16) nên key này thành "unexpected".
     # Đây là thay đổi CHỦ Ý, không phải lỗi -> báo riêng để không gây hoang mang.
     _pe = [k for k in unexpected if 'pos_embed' in k]
-    _other_unexp = [k for k in unexpected if 'pos_embed' not in k]
+    _te_set = set(temporal_unexpected)
+    _other_unexp = [k for k in unexpected if 'pos_embed' not in k and k not in _te_set]
     if _pe:
         log(f"  [{tag}] ℹ️ {len(_pe)} key `pos_embed` bị bỏ — CHỦ Ý, không phải lỗi "
             f"(md/22thg9.md §16): {_pe}")
@@ -440,9 +453,9 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
         log(f"  [{tag}] ⚠️ UNEXPECTED {len(_other_unexp)} keys trong checkpoint (bị bỏ):")
         for prefix, keys in sorted(_group(_other_unexp).items(), key=lambda kv: -len(kv[1])):
             log(f"      - {prefix}.* : {len(keys)} keys (vd: {keys[0]})")
-    if skipped_shape:
-        log(f"  [{tag}] ⚠️ SHAPE MISMATCH {len(skipped_shape)} keys (bị bỏ):")
-        for name, ck_shape, md_shape in skipped_shape[:10]:
+    if skipped_shape_feature:
+        log(f"  [{tag}] ⚠️ SHAPE MISMATCH {len(skipped_shape_feature)} keys (bị bỏ):")
+        for name, ck_shape, md_shape in skipped_shape_feature[:10]:
             log(f"      - {name}: checkpoint{ck_shape} vs model{md_shape}")
 
     # --- Chẩn đoán implementation của TEMPORAL ENCODER (Mamba thật vs SimpleS6Block fallback) ---
@@ -468,9 +481,34 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
     active_impl = 'mamba_ssm.Mamba (thật)' if HAS_MAMBA else 'SimpleS6Block (fallback)'
     temporal_arch_ok = True
 
-    if ck_x is None:
-        log(f"  [{tag}] ℹ️ Checkpoint KHÔNG có `{_xk}` → không xác định được implementation "
-            f"temporal (checkpoint có thể thiếu cả nhánh temporal).")
+    # 🛠️ (24/9) `x_proj`/`dt_proj` là key RIÊNG CỦA MAMBA. Với encoder ATTENTION thì việc thiếu
+    # chúng là BÌNH THƯỜNG — trước đây khối này báo ℹ️ kèm câu "checkpoint có thể thiếu cả nhánh
+    # temporal" (gây hoang mang SAI) và đặt `temporal_arch_ok = False`.
+    # Với ATTENTION, tiêu chí đúng là: `temporal_encoder.*` có được nạp ĐỦ hay không.
+    _attn_enc = type(getattr(model, 'temporal_encoder', None)).__name__ == 'TemporalAttentionEncoder'
+
+    if _attn_enc:
+        temporal_arch_ok = (len(temporal_missing) == 0 and len(temporal_unexpected) == 0)
+        if temporal_arch_ok:
+            _n_tc = len([k for k in model_state if k.startswith('temporal_encoder.')])
+            log(f"  [{tag}] ℹ️ Temporal encoder: **ATTENTION** — nạp đủ {_n_tc} keys "
+                f"`temporal_encoder.*`. Bỏ qua kiểm tra `x_proj`/`dt_proj` (key riêng của Mamba).")
+        else:
+            _bad = []
+            if temporal_missing:
+                _bad.append(f"THIẾU {len(temporal_missing)} keys")
+            if temporal_unexpected:
+                _bad.append(f"THỪA {len(temporal_unexpected)} keys (có trong checkpoint, "
+                            f"không có trong model)")
+            log(f"  [{tag}] ❌ Temporal encoder: {' + '.join(_bad)} `temporal_encoder.*` → "
+                f"trọng số temporal KHÔNG khớp kiến trúc (xem chi tiết bên dưới).")
+    elif ck_x is None:
+        # 🛠️ (24/9) Câu cũ — "checkpoint có thể thiếu cả nhánh temporal" — bị in CẢ KHI model là
+        # ATTENTION, lúc đó nó VÔ NGHĨA (attention không có `x_proj`) và gây hoang mang.
+        # Nay chỉ in trong nhánh MAMBA này, và nói đúng nguyên nhân khả dĩ nhất.
+        log(f"  [{tag}] ℹ️ Model là MAMBA nhưng checkpoint KHÔNG có `{_xk}` → không xác định "
+            f"được implementation temporal. Nhiều khả năng checkpoint được train bằng "
+            f"`temporal_type` khác (ATTENTION?) hoặc thiếu hẳn nhánh temporal.")
         temporal_arch_ok = False
     else:
         if ck_x[0] == 33:
@@ -504,23 +542,33 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
         if ck_cls and md_cls:
             detail = (f" (số lớp: checkpoint={ck_cls[0]} vs model={md_cls[0]})"
                       f" → model khởi tạo `num_identities` khác lúc train")
-        log(f"  [{tag}] ℹ️ {len(classifier_missing)} missing + {len(classifier_mismatch)} lệch shape "
-            f"thuộc đầu CLASSIFIER{detail}")
+        # 🛠️ (24/9) Một key lệch shape nằm ở CẢ `missing` lẫn `skipped_shape`, nên câu cũ
+        # "3 missing + 3 lệch shape" đọc như 6 vấn đề trong khi thật ra chỉ là 3 KEY. Tách rõ.
+        _cls_mm = {s[0] for s in classifier_mismatch}
+        _cls_only_missing = [k for k in classifier_missing if k not in _cls_mm]
+        _parts = []
+        if classifier_mismatch:
+            _parts.append(f"{len(classifier_mismatch)} key lệch shape (bị bỏ, không nạp)")
+        if _cls_only_missing:
+            _parts.append(f"{len(_cls_only_missing)} key thiếu hẳn")
+        log(f"  [{tag}] ℹ️ Đầu CLASSIFIER: " + " + ".join(_parts) + detail)
         log(f"      → KHÔNG phải lỗi: `head.classifier` chỉ dùng khi training "
             f"(eval trả `bn_feat` trước đó); `backbone.classifier_*` là đầu phân loại pretrain.")
         log(f"      → Đường trích feature (backbone trunk + temporal + bnneck) KHÔNG bị ảnh hưởng.")
         # Nếu muốn eval với đúng num_classes: truyền num_identities=<số lớp của checkpoint>.
 
-    if backbone_missing or head_feature_missing or temporal_missing:
+    if backbone_missing or head_feature_missing or temporal_missing or temporal_unexpected:
         log(f"  [{tag}] ❌ CẢNH BÁO NGHIÊM TRỌNG: "
             f"{len(backbone_missing)} keys `backbone.*` + {len(head_feature_missing)} keys "
-            f"feature của `head.*` + {len(temporal_missing)} keys `temporal_encoder.*` "
-            f"KHÔNG được nạp từ checkpoint.")
-        for k in (backbone_missing + head_feature_missing + temporal_missing)[:5]:
+            f"feature của `head.*` + {len(temporal_missing)} keys `temporal_encoder.*` THIẾU "
+            f"+ {len(temporal_unexpected)} keys `temporal_encoder.*` THỪA "
+            f"→ trọng số ĐẶC TRƯNG không khớp checkpoint.")
+        for k in (backbone_missing + head_feature_missing + temporal_missing
+                  + temporal_unexpected)[:5]:
             log(f"      - {k}")
         log(f"      → Trọng số ĐẶC TRƯNG đang là init/pretrain, KHÔNG phải trọng số đã train.")
         log(f"      → Kết quả eval/infer sẽ nhiễu (visual feature không khớp temporal/head).")
-        if temporal_missing:
+        if temporal_missing or temporal_unexpected:
             log(f"      → RIÊNG `temporal_encoder.*`: kiến trúc dựng model KHÁC lúc train.")
             log(f"        Kiểm tra `train.temporal_type` và `train.temporal_pool` trong config "
                 f"có khớp checkpoint không.")
@@ -537,6 +585,7 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
         'backbone_missing': backbone_missing,
         'head_feature_missing': head_feature_missing,
         'temporal_missing': temporal_missing,
+        'temporal_unexpected': temporal_unexpected,
         'classifier_missing': classifier_missing,
         'classifier_shape_mismatch': [s[0] for s in classifier_mismatch],
         'temporal_impl_checkpoint': ck_impl if ck_x is not None else None,
