@@ -109,7 +109,7 @@ eval:
   model_path: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/ablation_mamba/best_model.pth
   query_json: /content/processed/query_test.json
   gallery_json: /content/processed/gallery_test.json
-  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results/v3.8.3
+  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results/ablation_mamba
   batch_size: 32             # Khi test không cần tính gradient nên để batch size rất lớn
   num_workers: 8
   backbone: "dinov3_convnext"
@@ -124,11 +124,15 @@ eval:
   max_correct_vis: 0         # Tắt lưu ảnh để chạy nhanh và tiết kiệm dung lượng
   # Dùng threshold đã calibrate từ calibrate_threshold.py (Fixed FAR strategy)
   # Chạy calibrate_threshold.py trước để tạo file này
-  threshold_file: /content/drive/MyDrive/UAV_Anti_UAV/calib_results/calibrated_threshold.json
+  # 🛠️ (24/9) TÁCH RIÊNG khỏi nhánh attention — trước đây 2 config dùng CHUNG file này
+  # nên nhánh chạy sau ghi đè nhánh trước => `evaluate_reid.py` đọc nhầm threshold.
+  threshold_file: /content/drive/MyDrive/UAV_Anti_UAV/calib_results/ablation_mamba/calibrated_threshold.json
 
 # --- Threshold Calibration ---
 calibration:
-  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/calib_results/v3.8
+  # 🛠️ (24/9) TÁCH RIÊNG khỏi nhánh attention (trước đây dùng chung `calib_results/v3.8`
+  # nên `calibrated_threshold.json` của nhánh này bị nhánh kia ghi đè).
+  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/calib_results/ablation_mamba
   cal_ratio: 0.4             # 40% sequences dùng để tìm threshold, 60% còn lại là holdout eval
   far_target: 0.001          # FAR mục tiêu = 0.1%
   seed: 42                   # Seed cố định để split reproducible

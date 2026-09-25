@@ -535,7 +535,12 @@ def main():
     final_output_path = os.path.join(out_dir, os.path.basename(output_video_name))
     
     backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
-    temporal_type = inf_cfg.get('temporal_type', 'mamba')
+    # 🛠️ (24/9) FALLBACK về `train.temporal_type` (giống `evaluate_reid.py`).
+    # Section `infer_realworld` thường không khai báo key này -> trước đây luôn mặc định
+    # 'mamba'. Với checkpoint ATTENTION thì `strict=False` bỏ hết `temporal_encoder.transformer.*`
+    # -> temporal encoder chạy random, kết quả vô nghĩa mà không có cảnh báo nghiêm trọng.
+    temporal_type = inf_cfg.get(
+        'temporal_type', cfg.get('train', {}).get('temporal_type', 'mamba'))
     print(f"Initializing ReID Model with {backbone_type} backbone, temporal={temporal_type}...")
     model = UAVReIDNet(backbone=backbone_type, temporal_type=temporal_type)
     model_path = inf_cfg.get('model_path', './best_model.pth')

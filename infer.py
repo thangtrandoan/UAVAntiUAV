@@ -874,7 +874,14 @@ def main():
 
     print(f"Initializing ReID Model...")
     backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
-    temporal_type = inf_cfg.get('temporal_type', 'mamba')
+    # 🛠️ (24/9) FALLBACK về `train.temporal_type` (giống `evaluate_reid.py`).
+    # Lý do: section `infer` thường KHÔNG khai báo `temporal_type`, nên trước đây luôn
+    # mặc định 'mamba'. Với checkpoint ATTENTION, `load_state_dict(strict=False)` sẽ bỏ
+    # TOÀN BỘ `temporal_encoder.transformer.*` và giữ random init -> kết quả rác mà
+    # pipeline vẫn chạy (cảnh báo chỉ ở mức ⚠️ MISSING, không nằm trong nhóm ❌ nghiêm trọng
+    # vì `load_checkpoint_verbose` chỉ kiểm `backbone.*` và `head.*`).
+    temporal_type = inf_cfg.get(
+        'temporal_type', cfg.get('train', {}).get('temporal_type', 'mamba'))
     model = UAVReIDNet(backbone=backbone_type, temporal_type=temporal_type)
     model_path = args.checkpoint or inf_cfg.get('model_path', './best_model.pth')
     if os.path.exists(model_path):

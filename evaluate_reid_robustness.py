@@ -597,7 +597,12 @@ def main():
 
     print(f"Initializing Model...")
     backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
-    temporal_type = inf_cfg.get('temporal_type', 'mamba')
+    # 🛠️ (24/9) FALLBACK về `train.temporal_type` (giống `evaluate_reid.py`).
+    # Section `infer_robustness` thường không khai báo key này -> trước đây luôn mặc định
+    # 'mamba'. Với checkpoint ATTENTION thì `strict=False` bỏ hết `temporal_encoder.transformer.*`
+    # -> temporal encoder chạy random, kết quả vô nghĩa mà không có cảnh báo nghiêm trọng.
+    temporal_type = inf_cfg.get(
+        'temporal_type', cfg.get('train', {}).get('temporal_type', 'mamba'))
     model = UAVReIDNet(freeze_backbone=False, backbone=backbone_type, temporal_type=temporal_type)
     model_path = inf_cfg.get('model_path', args.checkpoint)
     if os.path.exists(model_path):
