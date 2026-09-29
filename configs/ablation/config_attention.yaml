@@ -50,6 +50,10 @@ paths:
 
 # --- Data Pipeline ---
 data_pipeline:
+  frame_stride: 4                  # 🔴 NGUỒN DUY NHẤT (infer.py:860-868 đọc key này để đồng bộ
+                                   #    `infer.stride`). THIẾU key => block đồng bộ KHÔNG chạy =>
+                                   #    triển khai lấy bước khác lúc train (md/29thg9.md §2.4).
+                                   #    Nếu chạy lại data_pipeline.py mà thiếu key => rơi về mặc định 1.
   num_before_frames: 16
   num_after_frames: 16
   bbox_padding: 0.2
@@ -145,7 +149,7 @@ infer:
   model_path: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/ablation_attention/best_model.pth
   output_video: output_reid.mp4
   out_dir: ./infer_output/infer_pipeline_3.5
-  stride: 2
+  stride: 4                      # = data_pipeline.frame_stride (tự đồng bộ ở infer.py:868)
   num_frames: 12
   bbox_padding: 0.2
   max_anchor_size: 5
