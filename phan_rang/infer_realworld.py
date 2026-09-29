@@ -3,6 +3,18 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cv2
 import yaml
+
+try:
+    from pipeline_lock import resolve_pipeline, provenance, assert_frozen
+except ImportError:  # thiếu module -> vẫn chạy được nhưng KHÔNG khóa pipeline
+    def resolve_pipeline(cfg, section, script='', verbose=True):
+        print(f"\u26a0\ufe0f  pipeline_lock.py không tìm thấy \u2014 {script} KHÔNG được khóa.")
+        return cfg.get(section) or {}
+    def provenance(cfg):
+        return {}
+    def assert_frozen(cfg):
+        return []
+
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -101,7 +113,7 @@ class SlidingWindowBuffer:
         """Trả về tensor [1, k, 2560] để đưa vào Mamba."""
         return torch.stack(self.features, dim=1)
 
-    # 🛠️ (15/9) PHÂN VAI stride: SOFT LOCK thu LIÊN TỤC (stride=1) để phản ứng nhanh;
+    # (15/9) PHÂN VAI stride: SOFT LOCK thu LIÊN TỤC (stride=1) để phản ứng nhanh;
     # HARD LOCK mới LẤY CÁCH QUÃNG (`stride = frame_stride`) để bước thời gian khớp
     # lúc train và khớp Memory Bank.
     def get_strided_sequence(self, stride: int = 1) -> torch.Tensor:
@@ -219,9 +231,9 @@ class ReIDPipeline:
         self._hijack_checks_remaining = 0
         
         self.soft_lock_id = None
-        # 🛠️ (15/9) PHÂN VAI stride: soft_lock THU LIÊN TỤC (stride=1) để phản ứng nhanh,
+        # (15/9) PHÂN VAI stride: soft_lock THU LIÊN TỤC (stride=1) để phản ứng nhanh,
         # HARD LOCK mới LẤY CÁCH QUÃNG `frame_stride` (khớp train + Memory Bank).
-        # 🛠️ (22/9) HAI CỬA SỔ SONG SONG: soft lock = `num_frames` frame LIÊN TỤC (nhanh,
+        # (22/9) HAI CỬA SỔ SONG SONG: soft lock = `num_frames` frame LIÊN TỤC (nhanh,
         # chỉ để chọn ứng viên / xem điểm), hard lock = `num_frames` MẪU cách nhau `frame_stride`
         # (chính xác, mới đem so Memory Bank). Xem infer.py để biết chi tiết.
         self.soft_lock_buffer = SlidingWindowBuffer(window_size=self.num_frames, stride=1)
@@ -230,7 +242,7 @@ class ReIDPipeline:
         self._soft_lock_passed = False
         self.candidate_scores = {}
 
-        # 🛠️ (22/9) NỚI RESET khi track soft-lock vắng mặt (md/22thg9.md §4, §8.3).
+        # (22/9) NỚI RESET khi track soft-lock vắng mặt (md/22thg9.md §4, §8.3).
         # Cần `(num_frames-1)*stride+1` frame LIÊN TỤC; mất track 1 frame mà reset ngay thì
         # hầu hết event không bao giờ đủ frame. Vắng ngắn -> GIỮ id + buffer, chỉ vắng
         # LIÊN TIẾP > `gap_tolerance` mới reset thật.
@@ -296,7 +308,7 @@ class ReIDPipeline:
             self.lost_count += 1
             if self.lost_count >= self.lost_threshold:
                 if len(self.sliding_window.features) > 0:
-                    # 🛠️ (15/9) BỎ pad NHÂN BẢN frame cuối (bước thời gian = 0) — xem infer.py
+                    # (15/9) BỎ pad NHÂN BẢN frame cuối (bước thời gian = 0) — xem infer.py
                         
                     visual_mean, fused_feat = compute_fused_vector(self.model, self.sliding_window)
                     if len(self.memory_bank.anchor_bank) < self.memory_bank.max_anchor:
@@ -354,7 +366,7 @@ class ReIDPipeline:
             if self.soft_lock_id != best_tid:
                 self.soft_lock_id = best_tid
                 self.soft_lock_buffer.clear()
-                # 🛠️ (22/9) BẮT BUỘC: cửa sổ HARD LOCK phải thuộc ĐÚNG ứng viên đang được
+                # (22/9) BẮT BUỘC: cửa sổ HARD LOCK phải thuộc ĐÚNG ứng viên đang được
                 # soft lock chọn. Đổi ứng viên mà không xoá -> cửa sổ temporal trộn frame của
                 # HAI vật khác nhau -> điểm hard lock vô nghĩa (nó không còn là "điểm của thằng
                 # có soft lock cao nhất" nữa).
@@ -380,11 +392,11 @@ class ReIDPipeline:
                         print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} collecting: {len(self.soft_lock_buffer.features)}/{self.num_frames}")
 
                     # (1) SOFT LOCK — đủ `num_frames` frame LIÊN TỤC -> TÍNH ĐIỂM (CỔNG CHẶN).
-                    #     Soft lock KHÔNG quyết định danh tính: điểm >= ngưỡng thì mới cho phép
-                    #     tính HARD LOCK; < ngưỡng thì quay lại T1_LOST và tính soft lock lại.
-                    #     Điểm = cosine COARSE (visual-only) giữa TRUNG BÌNH `num_frames` frame
-                    #     liên tục và Memory Bank (coarse chỉ dùng `feat_2560` nên KHÔNG dính lỗi
-                    #     temporal theo N; lấy trung bình N frame nên chống nhiễu per-frame).
+                    # Soft lock KHÔNG quyết định danh tính: điểm >= ngưỡng thì mới cho phép
+                    # tính HARD LOCK; < ngưỡng thì quay lại T1_LOST và tính soft lock lại.
+                    # Điểm = cosine COARSE (visual-only) giữa TRUNG BÌNH `num_frames` frame
+                    # liên tục và Memory Bank (coarse chỉ dùng `feat_2560` nên KHÔNG dính lỗi
+                    # temporal theo N; lấy trung bình N frame nên chống nhiễu per-frame).
                     if self.soft_lock_buffer.is_ready() and not self._soft_lock_announced:
                         self._soft_lock_announced = True
                         mean_visual = torch.stack(list(self.soft_lock_buffer.features)).mean(dim=0)
@@ -399,7 +411,7 @@ class ReIDPipeline:
                             self._transition_to_lost()
                             return
 
-                    # (2) HARD LOCK — ⚠️ CHỈ BẮT ĐẦU THU sau khi soft lock đã PASS. Không thu
+                    # (2) HARD LOCK —  CHỈ BẮT ĐẦU THU sau khi soft lock đã PASS. Không thu
                     # song song trước đó: chưa có điểm soft lock thì CHƯA BIẾT thu frame của
                     # MỤC TIÊU NÀO. Hệ quả: t_hard_lock ≈ N + (N−1)×stride = 56 frame.
                     _new_hard_sample = False
@@ -427,9 +439,9 @@ class ReIDPipeline:
                             
                             self.memory_bank.add_recent(visual_mean, fused_feat)
                             
-                            # 🛠️ (15/9) Nạp `sliding_window` từ ĐÚNG cửa sổ đã dùng để HARD LOCK
+                            # (15/9) Nạp `sliding_window` từ ĐÚNG cửa sổ đã dùng để HARD LOCK
                             # (bản lấy cách quãng), KHÔNG phải toàn bộ buffer thu liên tục.
-                            # 🛠️ (22/9) Nạp từ ĐÚNG cửa sổ HARD LOCK (đã cách quãng sẵn).
+                            # (22/9) Nạp từ ĐÚNG cửa sổ HARD LOCK (đã cách quãng sẵn).
                             self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
                             for _f, _s in zip(self.hard_lock_buffer.features,
                                               self.hard_lock_buffer.sharpness_scores):
@@ -445,7 +457,7 @@ class ReIDPipeline:
                             print(f"[{frame_idx}] Fine FAILED! ID:{self.soft_lock_id} (fine={fine_score:.3f} < {self.reid_threshold}) -> T1_LOST")
                             self._transition_to_lost()
             else:
-                # 🛠️ (22/9) NỚI RESET (md/22thg9.md §4, §8.3): giữ id + feature đã thu.
+                # (22/9) NỚI RESET (md/22thg9.md §4, §8.3): giữ id + feature đã thu.
                 self._absent_streak += 1
                 if self._absent_streak <= self.gap_tolerance:
                     print(f"[{frame_idx}] Soft Lock ID:{self.soft_lock_id} vang "
@@ -471,7 +483,7 @@ class ReIDPipeline:
         lost_tids = [tid for tid in self.candidate_scores.keys() if tid not in active_ids]
         for ltid in lost_tids:
             del self.candidate_scores[ltid]
-            # 🛠️ (22/9) KHÔNG clear soft-lock ở đây: việc reset do nhánh `else` phía trên
+            # (22/9) KHÔNG clear soft-lock ở đây: việc reset do nhánh `else` phía trên
             # quyết định (có nới `gap_tolerance`). Xoá khỏi `candidate_scores` vẫn cần, để
             # khi track quay lại nó được CHẤM LẠI coarse score.
                 
@@ -507,7 +519,8 @@ def main():
         with open(args.config, 'r') as f:
             cfg = yaml.safe_load(f)
             
-    inf_cfg = cfg.get('infer_realworld', {})
+    # (29/9) KHÓA PIPELINE (nguồn sự thật = train + data_pipeline).
+    inf_cfg = resolve_pipeline(cfg, 'infer_realworld', script='phan_rang/infer_realworld.py')
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     video_path = inf_cfg.get('video', '')
@@ -535,13 +548,13 @@ def main():
     final_output_path = os.path.join(out_dir, os.path.basename(output_video_name))
     
     backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
-    # 🛠️ (24/9) FALLBACK về `train.temporal_type` (giống `evaluate_reid.py`).
+    # (24/9) FALLBACK về `train.temporal_type` (giống `evaluate_reid.py`).
     # Section `infer_realworld` thường không khai báo key này -> trước đây luôn mặc định
     # 'mamba'. Với checkpoint ATTENTION thì `strict=False` bỏ hết `temporal_encoder.transformer.*`
     # -> temporal encoder chạy random, kết quả vô nghĩa mà không có cảnh báo nghiêm trọng.
     temporal_type = inf_cfg.get(
         'temporal_type', cfg.get('train', {}).get('temporal_type', 'mamba'))
-    # 🛠️ (24/9) `temporal_pool`/`temporal_pe` phải khớp lúc TRAIN, nếu không `attn_pool`
+    # (24/9) `temporal_pool`/`temporal_pe` phải khớp lúc TRAIN, nếu không `attn_pool`
     # giữ zero-init -> mất hệ số `sqrt(N)` (chi tiết: calibrate_threshold.py).
     temporal_pool = inf_cfg.get(
         'temporal_pool', cfg.get('train', {}).get('temporal_pool', 'attn'))

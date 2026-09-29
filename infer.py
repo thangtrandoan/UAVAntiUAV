@@ -8,6 +8,18 @@ import sys
 import time
 import argparse
 import yaml
+
+try:
+    from pipeline_lock import resolve_pipeline, provenance, assert_frozen
+except ImportError:  # thiếu module -> vẫn chạy được nhưng KHÔNG khóa pipeline
+    def resolve_pipeline(cfg, section, script='', verbose=True):
+        print(f"\u26a0\ufe0f  pipeline_lock.py không tìm thấy \u2014 {script} KHÔNG được khóa.")
+        return cfg.get(section) or {}
+    def provenance(cfg):
+        return {}
+    def assert_frozen(cfg):
+        return []
+
 import cv2
 import torch.nn.functional as F
 import numpy as np
@@ -69,12 +81,12 @@ class SlidingWindowBuffer:
     def get_sequence(self) -> torch.Tensor:
         return torch.stack(self.features, dim=1)
 
-    # 🛠️ (15/9) PHÂN VAI stride:
-    #   SOFT LOCK  → thu LIÊN TỤC (stride=1): chỉ lọc thô bằng `visual`, không cần
-    #                bước thời gian, thu liên tục để phản ứng nhanh.
-    #   HARD LOCK  → LẤY CÁCH QUÃNG (`stride = frame_stride`): bước thời gian của cửa sổ
-    #                temporal PHẢI khớp lúc train (`data_pipeline.frame_stride`) và khớp
-    #                Memory Bank (dựng từ `sliding_window`, cũng stride = frame_stride).
+    # (15/9) PHÂN VAI stride:
+    # SOFT LOCK thu LIÊN TỤC (stride=1): chỉ lọc thô bằng `visual`, không cần
+    # bước thời gian, thu liên tục để phản ứng nhanh.
+    # HARD LOCK LẤY CÁCH QUÃNG (`stride = frame_stride`): bước thời gian của cửa sổ
+    # temporal PHẢI khớp lúc train (`data_pipeline.frame_stride`) và khớp
+    # Memory Bank (dựng từ `sliding_window`, cũng stride = frame_stride).
     def get_strided_sequence(self, stride: int = 1) -> torch.Tensor:
         return torch.stack(self.features[::stride], dim=1)
     
@@ -94,13 +106,13 @@ class SlidingWindowBuffer:
         self.sharpness_scores.clear()
         self._frame_counter = 0
 
-# 🛠️ DEBUG (14/9): bundle trả về đủ mọi tầng của phép fusion để đo được
+# DEBUG (14/9): bundle trả về đủ mọi tầng của phép fusion để đo được
 # cosine TRƯỚC BatchNorm (raw_feat) vs SAU BatchNorm (fused_feat).
-#   visual_mean    : weighted mean theo sharpness — chỉ dùng cho coarse score
-#   visual_plain   : plain mean — đúng như lúc train, là input của head
-#   temporal_token : đầu ra Mamba
-#   raw_feat       : L2-normalize( cat(visual_plain, temporal_token) )  ← TRƯỚC bnneck
-#   fused_feat     : L2-normalize( bnneck(cat(...)) )                   ← SAU bnneck (fine score)
+# visual_mean    : weighted mean theo sharpness — chỉ dùng cho coarse score
+# visual_plain   : plain mean — đúng như lúc train, là input của head
+# temporal_token : đầu ra Mamba
+# raw_feat       : L2-normalize( cat(visual_plain, temporal_token) ) TRƯỚC bnneck
+# fused_feat     : L2-normalize( bnneck(cat(...)) ) SAU bnneck (fine score)
 FusedBundle = namedtuple(
     'FusedBundle',
     ['visual_mean', 'visual_plain', 'temporal_token', 'raw_feat', 'fused_feat']
@@ -108,19 +120,19 @@ FusedBundle = namedtuple(
 
 
 def compute_fused_vector(model, sliding_window, stride: int = 1):
-    # 🛠️ (15/9) `stride`: HARD LOCK truyền `frame_stride` để cửa sổ temporal có bước
+    # (15/9) `stride`: HARD LOCK truyền `frame_stride` để cửa sổ temporal có bước
     # thời gian khớp lúc train + khớp Memory Bank. SOFT LOCK để mặc định 1 (liên tục).
     seq_feats = sliding_window.get_strided_sequence(stride)
     
     # 1. BẮT BUỘC dùng mean để đưa vào khối Fusion Head (vì lúc train model học bằng mean)
     # Nếu đưa 1 frame vào Fusion Head, phân phối (variance) bị sai lệch dẫn đến Mamba tính sai bét
     #
-    # 🛠️ FIX: Fused Feature (qua head) phải dùng PLAIN MEAN giống training
+    # FIX: Fused Feature (qua head) phải dùng PLAIN MEAN giống training
     # (model.py: visual_feat = feats.mean(dim=1)). Weighted mean (theo sharpness)
     # chỉ nên dùng cho COARSE score (backbone feature), KHÔNG đưa vào head,
-    # vì head được train với plain mean → weighted mean làm fused feature lệch → fine score thấp.
+    # vì head được train với plain mean weighted mean làm fused feature lệch fine score thấp.
     visual_mean = sliding_window.get_weighted_visual_mean(stride)   # dùng cho coarse score (không qua head)
-    visual_plain = seq_feats.mean(dim=1)                     # giống hệt training → cho head
+    visual_plain = seq_feats.mean(dim=1)                     # giống hệt training cho head
     
     # Tính temporal_token + fused_feat MỘT LẦN (không gọi temporal_encoder 2 lần)
     with torch.no_grad():
@@ -249,10 +261,10 @@ class SeqReIDPipeline:
         self.update_interval_sec = cfg.get('update_interval_sec', 2.0)
         self.time_source = cfg.get('time_source', 'video')  # 'video' | 'wall'
         self.bbox_padding = cfg.get('bbox_padding', 0.2)
-        # 🛠️ DEBUG (14/9): in tách cosine TRƯỚC BN (raw) vs SAU BN (fused).
+        # DEBUG (14/9): in tách cosine TRƯỚC BN (raw) vs SAU BN (fused).
         # Bật/tắt bằng `debug_sim` trong block `infer` của config.
         self.debug_sim = cfg.get('debug_sim', True)
-        # 🛠️ (14/9): không gian dùng cho gate HARD LOCK: 'fused' (mặc định, hành vi cũ)
+        # (14/9): không gian dùng cho gate HARD LOCK: 'fused' (mặc định, hành vi cũ)
         # hoặc 'pre_bn' (đầu vào bnneck). Đổi sang 'pre_bn' thì PHẢI đổi `reid_threshold`
         # theo `calibrated_threshold.json -> thresholds.pre_bn` (hai thang điểm khác nhau).
         self.fine_space = cfg.get('fine_space', 'fused')
@@ -261,22 +273,22 @@ class SeqReIDPipeline:
             max_anchor=cfg.get('max_anchor_size', 10),
             max_recent=cfg.get('max_recent_size', 30)
         )
-        # 🛠️ (15/9) PHÂN VAI stride (theo yêu cầu: soft lock thu liên tục, hard lock mới stride):
-        #   - `sliding_window` (tracking + Memory Bank): lấy CÁCH QUÃNG `frame_stride`
-        #   - `soft_lock_buffer` (T2_SEARCH): thu LIÊN TỤC (stride=1) để phản ứng nhanh,
-        #     nhưng chứa đủ `(num_frames-1)*stride + 1` frame để khi HARD LOCK thì LẤY
-        #     CÁCH QUÃNG ra đúng `num_frames` mẫu với bước thời gian = frame_stride.
+        # (15/9) PHÂN VAI stride (theo yêu cầu: soft lock thu liên tục, hard lock mới stride):
+        # - `sliding_window` (tracking + Memory Bank): lấy CÁCH QUÃNG `frame_stride`
+        # - `soft_lock_buffer` (T2_SEARCH): thu LIÊN TỤC (stride=1) để phản ứng nhanh,
+        # nhưng chứa đủ `(num_frames-1)*stride + 1` frame để khi HARD LOCK thì LẤY
+        # CÁCH QUÃNG ra đúng `num_frames` mẫu với bước thời gian = frame_stride.
         # Trước đây soft_lock thu liên tục rồi đưa NGUYÊN chuỗi liên tục vào head
-        # → bước thời gian = 1 so với bank bước = frame_stride → temporal token lệch.
+        # bước thời gian = 1 so với bank bước = frame_stride temporal token lệch.
         # (xem md/15thg9.md §13)
         self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
-        # 🛠️ (22/9) HAI CỬA SỔ SONG SONG (theo yêu cầu):
-        #   (1) SOFT LOCK  — `num_frames` frame LIÊN TỤC (bước 1). NHANH, chỉ để CHỌN ỨNG VIÊN
-        #       / xem điểm. Khi tái xuất có nhiều mục tiêu, mục tiêu có điểm coarse cao nhất
-        #       được chọn để đem đi HARD LOCK. KHÔNG dùng để chốt.
-        #   (2) HARD LOCK  — `num_frames` MẪU, mỗi mẫu cách nhau `frame_stride`. CHÍNH XÁC,
-        #       mới là cửa sổ đem so với Memory Bank (bank cũng bước `frame_stride`).
-        #   (3) Memory Bank / tracking (`sliding_window`) — bước `frame_stride`.
+        # (22/9) HAI CỬA SỔ SONG SONG (theo yêu cầu):
+        # (1) SOFT LOCK  — `num_frames` frame LIÊN TỤC (bước 1). NHANH, chỉ để CHỌN ỨNG VIÊN
+        # / xem điểm. Khi tái xuất có nhiều mục tiêu, mục tiêu có điểm coarse cao nhất
+        # được chọn để đem đi HARD LOCK. KHÔNG dùng để chốt.
+        # (2) HARD LOCK  — `num_frames` MẪU, mỗi mẫu cách nhau `frame_stride`. CHÍNH XÁC,
+        # mới là cửa sổ đem so với Memory Bank (bank cũng bước `frame_stride`).
+        # (3) Memory Bank / tracking (`sliding_window`) — bước `frame_stride`.
         # Hệ quả số học: HARD LOCK cần `(num_frames-1)*stride+1` frame video (12/4 -> 45),
         # còn SOFT LOCK chỉ cần `num_frames` frame (-> 12). Soft lock KHÔNG phải chờ 45.
         self.soft_lock_capacity = self.num_frames
@@ -285,15 +297,15 @@ class SeqReIDPipeline:
         self.hard_lock_buffer = SlidingWindowBuffer(self.num_frames, self.stride)
         self._soft_lock_announced = False
         self._soft_lock_passed = False
-        # ⚠️ RÀNG BUỘC ỨNG VIÊN (22/9): cửa sổ HARD LOCK phải thuộc ĐÚNG ứng viên mà soft lock
+        # RÀNG BUỘC ỨNG VIÊN (22/9): cửa sổ HARD LOCK phải thuộc ĐÚNG ứng viên mà soft lock
         # đã chọn — nếu không, nó trộn frame của hai vật khác nhau và điểm hard lock vô nghĩa.
         # Ở pipeline NÀY bbox là GT nên chỉ có MỘT ứng viên (chính target), và ứng viên đó tồn
         # tại ngay từ frame tái xuất -> thu từ frame tái xuất là đúng, không cần reset.
         # NẾU mở rộng sang nhiều mục tiêu: phải `hard_lock_buffer.clear()` mỗi khi ứng viên đổi
         # (xem `phan_rang/infer_realworld.py`, chỗ `soft_lock_id != best_tid`).
 
-        # 🛠️ (22/9) NỚI RESET khi target vắng mặt trong T2_SEARCH (md/22thg9.md §4, §8.3).
-        # 🐛 SỬA (24/9): comment cũ ghi `soft_lock_buffer` — SAI (stale từ trước khi tách 2
+        # (22/9) NỚI RESET khi target vắng mặt trong T2_SEARCH (md/22thg9.md §4, §8.3).
+        # SỬA (24/9): comment cũ ghi `soft_lock_buffer` — SAI (stale từ trước khi tách 2
         # cửa sổ 22/9). Cửa sổ cần `(num_frames-1)*stride+1` frame là `hard_lock_buffer`
         # (xem `self.hard_lock_capacity`); `soft_lock_buffer` chỉ cần `num_frames` frame
         # LIÊN TỤC. Chính comment sai này gây kết luận nhầm ở md/24thg9.md §7.3.
@@ -313,7 +325,7 @@ class SeqReIDPipeline:
         
         self.metrics_cnn_times = []
         self.metrics_mamba_times = []
-        # 🛠️ (22/9) Tách RIÊNG thời gian TIỀN XỬ LÝ (cvtColor + resize + normalize + H2D).
+        # (22/9) Tách RIÊNG thời gian TIỀN XỬ LÝ (cvtColor + resize + normalize + H2D).
         # Trước đây nó nằm NGOÀI vùng đo của CNN nên chỉ hiện gián tiếp trong throughput.
         self.metrics_prep_times = []
         self.false_alarms = 0
@@ -322,7 +334,7 @@ class SeqReIDPipeline:
         # Tích luỹ để tổng hợp cuối sequence (trả lời câu hỏi: BN có phá cosine không?)
         self.debug_pre_bn_scores = []
         self.debug_post_bn_scores = []
-        # 🛠️ (14/9): tách theo tag — nếu gộp chung thì "tỉ lệ cửa sổ vượt ngưỡng" bị lẫn giữa
+        # (14/9): tách theo tag — nếu gộp chung thì "tỉ lệ cửa sổ vượt ngưỡng" bị lẫn giữa
         # cửa sổ re-acquire (T2_SEARCH) và kiểm tra anti-hijack (T3_VERIFIED), hai thứ khác bản chất.
         self.debug_tag_counts = {'re-acquire': 0, 'anti-hijack': 0}
         
@@ -363,7 +375,7 @@ class SeqReIDPipeline:
         
     def process_frame(self, frame, bbox, is_absent, frame_idx, transform, video_time=None):
         valid_bbox = bbox[2] > 0 and bbox[3] > 0
-                # 🛠️ (22/9) ĐỒNG HỒ: mặc định dùng **THỜI GIAN CỦA VIDEO** (`frame_idx / fps`),
+                # (22/9) ĐỒNG HỒ: mặc định dùng **THỜI GIAN CỦA VIDEO** (`frame_idx / fps`),
         # KHÔNG dùng `time.time()`. `update_interval_sec` nghĩa là "bao lâu (theo video) thì
         # cập nhật Memory Bank một lần" — đó là đại lượng CỦA VIDEO, không phải của máy.
         # Dùng đồng hồ thực làm số lần update phụ thuộc TỐC ĐỘ XỬ LÝ -> CÙNG MỘT VIDEO,
@@ -377,9 +389,9 @@ class SeqReIDPipeline:
         if self.state in [self.T0_INIT, self.T3_VERIFIED]:
             if is_absent or not valid_bbox:
                 if len(self.sliding_window.features) > 0:
-                    # 🛠️ (15/9) BỎ pad bằng cách NHÂN BẢN frame cuối (bước thời gian = 0).
+                    # (15/9) BỎ pad bằng cách NHÂN BẢN frame cuối (bước thời gian = 0).
                     # Cửa sổ đã thu với bước = frame_stride; nếu chưa đủ `num_frames` thì
-                    # tính trên ĐÚNG số frame đã có → MỌI bước chuyển tiếp vẫn = frame_stride.
+                    # tính trên ĐÚNG số frame đã có MỌI bước chuyển tiếp vẫn = frame_stride.
                     # (temporal_encoder dùng pos_embed[:, :N, :] và conv1d cắt về L nên N nhỏ OK)
                         
                     if self.device.type == 'cuda': torch.cuda.synchronize()
@@ -421,7 +433,7 @@ class SeqReIDPipeline:
                 self.metrics_mamba_times.append((time.time() - t0) * 1000)
                 
                 # Anti-Hijack: so sánh với bank CŨ trước khi thêm vector hiện tại vào bank.
-                # 🛠️ (14/9): gate này giữ NGUYÊN trên không gian `fused` + `hijack_threshold` riêng
+                # (14/9): gate này giữ NGUYÊN trên không gian `fused` + `hijack_threshold` riêng
                 # (đây là câu hỏi "còn đúng vật thể không?", khác gate HARD LOCK), nên `fine_space`
                 # KHÔNG ảnh hưởng tới nó.
                 if self.state == self.T3_VERIFIED and self._hijack_checks_remaining > 0:
@@ -458,7 +470,7 @@ class SeqReIDPipeline:
                 
         elif self.state == self.T2_SEARCH:
             if is_absent or not valid_bbox:
-                # 🛠️ (22/9) NỚI RESET (md/22thg9.md §4, §8.3): vắng NGẮN thì bỏ qua frame,
+                # (22/9) NỚI RESET (md/22thg9.md §4, §8.3): vắng NGẮN thì bỏ qua frame,
                 # GIỮ nguyên feature đã thu; chỉ vắng LIÊN TIẾP > `gap_tolerance` mới reset.
                 self._absent_streak += 1
                 if self._absent_streak <= self.gap_tolerance:
@@ -487,7 +499,7 @@ class SeqReIDPipeline:
                 self.metrics_cnn_times.append((t2 - t1) * 1000)
                 
                 # Nếu đang trong quá trình thu thập Soft Lock, tiếp tục thu thập vô điều kiện.
-                # 🛠️ (22/9) DỪNG thu soft lock ngay khi đã có ĐIỂM soft lock (`_soft_lock_announced`):
+                # (22/9) DỪNG thu soft lock ngay khi đã có ĐIỂM soft lock (`_soft_lock_announced`):
                 # cửa sổ soft đã làm xong việc, thu thêm chỉ tốn công và làm log gây hiểu nhầm
                 # ("Soft Lock collecting 12/12" lặp 44 frame trong khi thực ra đang thu HARD LOCK).
                 if self._soft_lock_announced:
@@ -508,13 +520,13 @@ class SeqReIDPipeline:
                         print(f"[{frame_idx}] Coarse FAILED! (coarse={coarse_score:.3f} < {self.soft_lock_threshold})")
                 
                 # (1) SOFT LOCK — đủ `num_frames` frame LIÊN TỤC -> TÍNH ĐIỂM.
-                #     Soft lock KHÔNG quyết định danh tính. Nó chỉ là CỔNG CHẶN: điểm cao
-                #     quá ngưỡng thì mới cho phép tính HARD LOCK; không cao thì quay lại
-                #     T1_LOST và tính soft lock lại từ đầu.
-                #     Điểm = cosine COARSE (visual-only, `coarse_score`) giữa TRUNG BÌNH
-                #     `num_frames` frame liên tục và Memory Bank. Chọn coarse vì (a) nó chỉ
-                #     dùng `feat_2560` nên KHÔNG dính lỗi temporal theo N (đã đo: visual_plain
-                #     0.986–0.994 ở MỌI N), (b) lấy trung bình N frame nên chống nhiễu per-frame.
+                # Soft lock KHÔNG quyết định danh tính. Nó chỉ là CỔNG CHẶN: điểm cao
+                # quá ngưỡng thì mới cho phép tính HARD LOCK; không cao thì quay lại
+                # T1_LOST và tính soft lock lại từ đầu.
+                # Điểm = cosine COARSE (visual-only, `coarse_score`) giữa TRUNG BÌNH
+                # `num_frames` frame liên tục và Memory Bank. Chọn coarse vì (a) nó chỉ
+                # dùng `feat_2560` nên KHÔNG dính lỗi temporal theo N (đã đo: visual_plain
+                # 0.986–0.994 ở MỌI N), (b) lấy trung bình N frame nên chống nhiễu per-frame.
                 if self.soft_lock_buffer.is_ready() and not self._soft_lock_announced:
                     self._soft_lock_announced = True
                     mean_visual = torch.stack(list(self.soft_lock_buffer.features)).mean(dim=0)
@@ -530,11 +542,11 @@ class SeqReIDPipeline:
                         return
 
                 # (2) HARD LOCK — cửa sổ `num_frames` MẪU cách nhau `frame_stride`.
-                #     ⚠️ CHỈ BẮT ĐẦU THU sau khi soft lock đã PASS. KHÔNG thu song song trước đó:
-                #     khi chưa có điểm soft lock thì CHƯA BIẾT phải thu frame của MỤC TIÊU NÀO.
-                #     Data hiện tại chỉ có 1 mục tiêu nên thu sớm cũng "đúng", nhưng pipeline sẽ
-                #     SAI khi có nhiều mục tiêu -> thu TUẦN TỰ cho đúng pipeline.
-                #     Hệ quả thời gian: t_hard_lock = N + (N−1)×stride ≈ 12 + 44 = 56 frame.
+                # CHỈ BẮT ĐẦU THU sau khi soft lock đã PASS. KHÔNG thu song song trước đó:
+                # khi chưa có điểm soft lock thì CHƯA BIẾT phải thu frame của MỤC TIÊU NÀO.
+                # Data hiện tại chỉ có 1 mục tiêu nên thu sớm cũng "đúng", nhưng pipeline sẽ
+                # SAI khi có nhiều mục tiêu -> thu TUẦN TỰ cho đúng pipeline.
+                # Hệ quả thời gian: t_hard_lock = N + (N−1)×stride ≈ 12 + 44 = 56 frame.
                 _new_hard_sample = False
                 if self._soft_lock_passed:
                     _new_hard_sample = self.hard_lock_buffer.should_extract()
@@ -557,9 +569,9 @@ class SeqReIDPipeline:
                     if self.memory_bank.is_empty():
                         fine_score = 1.0
                     else:
-                        # 🛠️ (14/9): `fine_space` chọn không gian cho gate HARD LOCK.
-                        #   'fused'  (mặc định, hành vi cũ) : qua ReIDHead (BatchNorm1d)
-                        #   'pre_bn'                        : cat(visual, temporal) — ĐẦU VÀO bnneck
+                        # (14/9): `fine_space` chọn không gian cho gate HARD LOCK.
+                        # 'fused'  (mặc định, hành vi cũ) : qua ReIDHead (BatchNorm1d)
+                        # 'pre_bn'                        : cat(visual, temporal) — ĐẦU VÀO bnneck
                         # ĐỔI SANG 'pre_bn' THÌ PHẢI ĐỔI LUÔN `reid_threshold` = threshold calibrate
                         # cho không gian đó (`calibrated_threshold.json` -> thresholds.pre_bn),
                         # vì hai không gian có thang điểm khác hẳn nhau.
@@ -569,7 +581,7 @@ class SeqReIDPipeline:
                             fine_score = self.memory_bank.raw_score(bundle.raw_feat)
                         else:
                             fine_score = fused_score
-                        # 🛠️ DEBUG (14/9): breakdown đầy đủ, đặc biệt là PRE-BN raw vs POST-BN fused
+                        # DEBUG (14/9): breakdown đầy đủ, đặc biệt là PRE-BN raw vs POST-BN fused
                         self._log_sim_breakdown(frame_idx, bundle, fused_score, tag="re-acquire")
                     if fine_score >= self.reid_threshold:
                         latency = frame_idx - self.reappeared_frame_idx
@@ -586,7 +598,7 @@ class SeqReIDPipeline:
                             self.memory_bank.add_recent(bundle.visual_mean, bundle.fused_feat, bundle.temporal_token,
                                                         bundle.visual_plain, bundle.raw_feat)
                             
-                        # 🛠️ (22/9) Nạp `sliding_window` từ ĐÚNG cửa sổ HARD LOCK vừa dùng
+                        # (22/9) Nạp `sliding_window` từ ĐÚNG cửa sổ HARD LOCK vừa dùng
                         # (`hard_lock_buffer` đã cách quãng sẵn, không cần `[::stride]`).
                         self.sliding_window = SlidingWindowBuffer(self.num_frames, self.stride)
                         for _f, _s in zip(self.hard_lock_buffer.features,
@@ -599,9 +611,9 @@ class SeqReIDPipeline:
                     else:
                         self.false_alarms += 1
                         print(f"[{frame_idx}] Fine FAILED! (fine={fine_score:.3f} < {self.reid_threshold}) -> Rolling Window...")
-                        # 🛠️ (22/9) Rolling window TỰ ĐỘNG: `hard_lock_buffer` được nuôi bằng
+                        # (22/9) Rolling window TỰ ĐỘNG: `hard_lock_buffer` được nuôi bằng
                         # `should_extract()` nên cứ mỗi `frame_stride` frame nó nhận 1 mẫu mới và
-                        # đẩy mẫu CŨ NHẤT ra → cửa sổ kế tiếp lệch đúng 1 mẫu (= frame_stride frame).
+                        # đẩy mẫu CŨ NHẤT ra cửa sổ kế tiếp lệch đúng 1 mẫu (= frame_stride frame).
                         # Không cần pop tay (pop tay là cách của buffer thu liên tục trước đây).
                         pass
 
@@ -748,8 +760,8 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     total_processing_time = 0.0
     total_write_time = 0.0
     
-    # Cảnh báo nếu absent.txt bị cắt ngắn — trước đây mặc định True (coi là "mất") 
-    # làm pipeline KHÔNG BAO GIỜ re-acquire → latency N/A âm thầm.
+    # Cảnh báo nếu absent.txt bị cắt ngắn — trước đây mặc định True (coi là "mất")
+    # làm pipeline KHÔNG BAO GIỜ re-acquire latency N/A âm thầm.
     if absent and len(absent) < len(bboxes):
         print(f" ⚠️ CẢNH BÁO: absent.txt có {len(absent)} dòng < GT {len(bboxes)} frame. "
               f"Các frame thiếu sẽ được coi là PRESENT (is_absent=False) để pipeline có thể re-acquire.")
@@ -759,19 +771,19 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
         if not ret: break
             
         # Mặc định is_absent = False (present) khi absent.txt thiếu dòng.
-        # Trước đây là True (absent) → target bị coi là mất vĩnh viễn ở các frame bị cắt → kết quả tệ âm thầm.
+        # Trước đây là True (absent) target bị coi là mất vĩnh viễn ở các frame bị cắt kết quả tệ âm thầm.
         is_absent = (absent[frame_idx] == 1) if frame_idx < len(absent) else False
         bbox = bboxes[frame_idx] if frame_idx < len(bboxes) else [0,0,0,0]
         
         t_start = time.time()
         display_frame = frame.copy()
         
-        # 🛠️ (22/9) THỜI GIAN THẬT CỦA VIDEO = frame_idx / fps. Không phụ thuộc tốc độ máy.
+        # (22/9) THỜI GIAN THẬT CỦA VIDEO = frame_idx / fps. Không phụ thuộc tốc độ máy.
         video_time = frame_idx / fps_video if (fps_video and fps_video > 0) else frame_idx / 30.0
         pipeline.process_frame(frame, bbox, is_absent, frame_idx, transform, video_time=video_time)
         pipeline.draw_ui(display_frame, bbox, frame_idx)
         
-        # 🛠️ (22/9) ĐỒNG BỘ GPU TRƯỚC KHI ĐO, rồi mới ghi video.
+        # (22/9) ĐỒNG BỘ GPU TRƯỚC KHI ĐO, rồi mới ghi video.
         # Trước đây `out_vid.write` nằm TRONG vùng đo của throughput -> con số FPS bị
         # trộn với thời gian MÃ HOÁ VIDEO (không phải throughput của model).
         if device.type == 'cuda': torch.cuda.synchronize()
@@ -792,11 +804,11 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     avg_cnn = 0.0
     avg_mamba = 0.0
     
-    # 🛠️ (22/9) Ghi rõ `n=` cho MỌI số trung bình: đây là trung bình TRÊN MỖI LẦN GỌI,
+    # (22/9) Ghi rõ `n=` cho MỌI số trung bình: đây là trung bình TRÊN MỖI LẦN GỌI,
     # không phải trên mỗi frame. Mỗi frame gọi CNN **0 hoặc 1** lần và Mamba **0 hoặc 1**
     # lần (3 nhánh if/elif loại trừ nhau), NHƯNG hai cổng khác nhau:
-    #   - CNN (tracking): `should_extract()` = đếm FRAME, mỗi `frame_stride` frame
-    #   - Mamba (tracking): `is_ready()` + `time_elapsed >= update_interval_sec` = ĐỒNG HỒ THỰC
+    # - CNN (tracking): `should_extract()` = đếm FRAME, mỗi `frame_stride` frame
+    # - Mamba (tracking): `is_ready()` + `time_elapsed >= update_interval_sec` = ĐỒNG HỒ THỰC
     # -> `n` của hai bên lệch nhau rất nhiều, nên `avg_cnn + avg_mamba` KHÔNG bằng 1 frame.
     if pipeline.metrics_prep_times:
         metrics_report.append(f"Avg Preprocess (cvt+resize+H2D): {np.mean(pipeline.metrics_prep_times):.2f} ms"
@@ -826,7 +838,7 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
         
     metrics_report.append(f"False Alarms (Fine Fails)  : {pipeline.false_alarms}")
     
-    # 🛠️ DEBUG (14/9): tổng hợp PRE-BN vs POST-BN để trả lời câu hỏi
+    # DEBUG (14/9): tổng hợp PRE-BN vs POST-BN để trả lời câu hỏi
     # "BatchNorm1d trong ReIDHead có phá cosine similarity không?" — dùng chung helper với main().
     metrics_report.extend(format_bn_debug_lines(
         pipeline.debug_pre_bn_scores, pipeline.debug_post_bn_scores, pipeline.reid_threshold,
@@ -837,7 +849,7 @@ def run_sequence(seq_dir, model, device, transform, cfg, inf_cfg, out_base=None)
     builtins.print = _orig_print
     
     mean_latency = np.mean(pipeline.reid_latency_frames) if pipeline.reid_latency_frames else -1.0
-    # 🛠️ (22/9) Trả `model_fps` (model+UI, KHÔNG gồm ghi video) — đây mới là con số
+    # (22/9) Trả `model_fps` (model+UI, KHÔNG gồm ghi video) — đây mới là con số
     # dùng để so sánh model. Trước đây trả `throughput` trộn cả thời gian mã hoá video.
     return (avg_cnn, avg_mamba, model_fps, mean_latency, pipeline.false_alarms,
             pipeline.debug_pre_bn_scores, pipeline.debug_post_bn_scores,
@@ -852,20 +864,11 @@ def main():
             
     inf_cfg = cfg.get('infer', {})
 
-    # 🛠️ (15/9) ĐỒNG BỘ frame_stride — NGUỒN DUY NHẤT là `data_pipeline.frame_stride`.
-    # Lý do: bước thời gian giữa 2 frame liên tiếp trong cửa sổ temporal phải GIỐNG NHAU
-    # ở data → train → infer. Nếu infer lấy dày hơn (stride nhỏ hơn frame_stride) thì
-    # temporal token lệch phân phối so với lúc train → fine score tụt dù `visual` vẫn khớp.
-    # (xem md/15thg9.md §13)
-    _dp_cfg = cfg.get('data_pipeline', {}) or {}
-    _frame_stride = _dp_cfg.get('frame_stride')
-    if _frame_stride is not None:
-        _old_stride = inf_cfg.get('stride')
-        if _old_stride is not None and _old_stride != _frame_stride:
-            print(f"⚠️  infer.stride={_old_stride} != data_pipeline.frame_stride={_frame_stride}"
-                  f" → DÙNG frame_stride={_frame_stride} (đồng bộ toàn pipeline).")
-        inf_cfg['stride'] = _frame_stride
-        print(f"🔗 frame_stride đồng bộ = {_frame_stride} (lấy từ data_pipeline.frame_stride)")
+    # (29/9) KHÓA PIPELINE — ép `num_frames` / `stride` / `backbone` / `bbox_padding`
+    # theo `train` + `data_pipeline`, IN cảnh báo nếu section `infer` ghi lệch.
+    # Trước đây chỉ đồng bộ `frame_stride`; `num_frames` đọc từ `infer` nên có thể
+    # lệch N so với lúc train mà KHÔNG báo gì (md/29thg9.md §2.5).
+    inf_cfg = resolve_pipeline(cfg, 'infer', script='infer.py')
 
     seq_dir_arg = args.seq_dir or inf_cfg.get('seq_dir')
     if not seq_dir_arg:
@@ -874,15 +877,15 @@ def main():
 
     print(f"Initializing ReID Model...")
     backbone_type = inf_cfg.get('backbone', 'resnet50_ibn')
-    # 🛠️ (24/9) FALLBACK về `train.temporal_type` (giống `evaluate_reid.py`).
+    # (24/9) FALLBACK về `train.temporal_type` (giống `evaluate_reid.py`).
     # Lý do: section `infer` thường KHÔNG khai báo `temporal_type`, nên trước đây luôn
     # mặc định 'mamba'. Với checkpoint ATTENTION, `load_state_dict(strict=False)` sẽ bỏ
     # TOÀN BỘ `temporal_encoder.transformer.*` và giữ random init -> kết quả rác mà
-    # pipeline vẫn chạy (cảnh báo chỉ ở mức ⚠️ MISSING, không nằm trong nhóm ❌ nghiêm trọng
+    # pipeline vẫn chạy (cảnh báo chỉ ở mức  MISSING, không nằm trong nhóm nghiêm trọng
     # vì `load_checkpoint_verbose` chỉ kiểm `backbone.*` và `head.*`).
     temporal_type = inf_cfg.get(
         'temporal_type', cfg.get('train', {}).get('temporal_type', 'mamba'))
-    # 🛠️ (24/9) `temporal_pool`/`temporal_pe` phải khớp lúc TRAIN, nếu không `attn_pool`
+    # (24/9) `temporal_pool`/`temporal_pe` phải khớp lúc TRAIN, nếu không `attn_pool`
     # giữ zero-init -> mất hệ số `sqrt(N)` (chi tiết: calibrate_threshold.py).
     temporal_pool = inf_cfg.get(
         'temporal_pool', cfg.get('train', {}).get('temporal_pool', 'attn'))
@@ -893,9 +896,9 @@ def main():
                        temporal_pool=temporal_pool, temporal_pe=temporal_pe)
     model_path = args.checkpoint or inf_cfg.get('model_path', './best_model.pth')
     if os.path.exists(model_path):
-        # 🛠️ (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch thay vì "Loaded" mù quáng.
+        # (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch thay vì "Loaded" mù quáng.
         # Cảnh báo nghiêm trọng nếu `backbone.*` không được nạp (visual branch chạy pretrain,
-        # trong khi temporal/head được train trên feature khác → mọi score đều đáng ngờ).
+        # trong khi temporal/head được train trên feature khác mọi score đều đáng ngờ).
         load_checkpoint_verbose(model, model_path, tag="infer")
         print("Model loaded successfully.")
     else:
@@ -959,7 +962,7 @@ def main():
         avg_latency = np.mean(all_latency) if all_latency else 0.0
         sum_false_alarms = int(np.sum(all_false_alarms)) if all_false_alarms else 0
         
-        # 🛠️ (14/9): dùng CHUNG helper với run_sequence -> verdict + tỉ lệ vượt ngưỡng cũng in ở đây.
+        # (14/9): dùng CHUNG helper với run_sequence -> verdict + tỉ lệ vượt ngưỡng cũng in ở đây.
         bn_lines = format_bn_debug_lines(
             all_pre_bn, all_post_bn, inf_cfg.get('reid_threshold', 0.75),
             tag_counts=all_tag_counts, n_false_alarms=sum_false_alarms)

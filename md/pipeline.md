@@ -1,5 +1,88 @@
 # Báo cáo UAV ReID Pipeline
 
+---
+
+# 🔒 PIPELINE ĐÓNG BĂNG (chốt 29/9/2026)
+
+**Từ nay CHỈ SỬA MODEL.** Mọi tham số pipeline là hằng số.
+
+| | |
+| :--- | :--- |
+| 🔓 **Biến tự do DUY NHẤT** | `train.temporal_type` = `"mamba"` \| `"attention"` (+ mọi thứ trong package `model/`, xem §dưới) |
+| 🔒 **Nguồn sự thật** | `configs/config_colab.yaml` (block `train` + `data_pipeline`) |
+| 🔒 **Cơ chế ép** | `pipeline_lock.py` → `resolve_pipeline(cfg, <section>)`. Mọi script ĐỌC LẠI `num_frames`/`stride`/`backbone`/`bbox_padding` từ nguồn và **IN CẢNH BÁO** nếu section của nó ghi lệch |
+| 🔒 **Kiểm tra hằng số** | `assert_frozen(cfg)` — chạy ở đầu `train_reid.py`, cảnh báo nếu ai mở lại biến đã khóa |
+| 📋 **Config ablation** | `configs/ablation/config_mamba.yaml` + `config_attention.yaml` — **sửa TAY**, phải giữ chỉ khác nhau **5 dòng** (4 đường dẫn + `temporal_type`). Kiểm bằng `diff` (xem §dưới) |
+| 📌 **Truy vết** | `calibrated_threshold.json → provenance` ghi `num_frames`, `frame_stride`, `temporal_type`, `temporal_pool`, `backbone` |
+
+### Hằng số đã chốt
+
+| Tham số | Giá trị | Vì sao |
+| :--- | :--- | :--- |
+| `backbone` | `dinov3_convnext` | M1/M2 dùng; `D_vis=960`, `fused=1472` |
+| `num_frames` | **12** | = M1/M2 = bản tham chiếu 15/9 |
+| `n_frames_choices` | **KHÔNG KHAI BÁO** | Memory bank chỉ cập nhật khi `is_ready()` (= đủ `N` frame) và HARD LOCK cũng chờ đủ `N` mẫu ⇒ lúc ra quyết định `N` **luôn** = `num_frames`. Random N làm BN running-stats thành **hỗn hợp** qua nhiều `N` (không `N` nào khớp) |
+| `frame_stride` | **4** | Bước thời gian, nguồn duy nhất; `infer.py` ép `infer.stride` theo |
+| `temporal_pool` | **`attn`** | Tổ hợp lồi (softmax tổng = 1) ⇒ scale bất biến theo `N`. `mean` chỉ bất biến khi frame iid |
+| `temporal_pe` | **true** | = bản tham chiếu (có `pos_embed`) |
+| `√N` ở nhánh `mean` | **ĐÃ BỎ** | `Var(mean) ≈ σ²(ρ + (1−ρ)/N)`; frame UAV có ρ ≈ 0.9 nên `mean·√N` làm **scale tăng theo N** |
+| `lam2` | **0.0** | `TemporalConsistencyLoss` bản cũ có nghiệm tầm thường (độc hại), bản mới bão hoà 0.0000 từ epoch 2 (trơ). Tắt **tường minh** |
+| `batch_size` / `num_instances` | **12 / 3** | = bản tham chiếu |
+| `stage1` / `stage2` epochs | **30 / 30** | Ngân sách cố định |
+| `stop_on_target` / `early_stop_patience` | **false / 0** | BẮT BUỘC TẮT: nếu bật, hai model dừng ở epoch khác nhau ⇒ so ở hai lượng train khác nhau ⇒ nhiễu |
+| `val_n_list` | `[8, 12, 16]` | **Chỉ ĐỂ ĐO** độ bền theo `N` (diagnostic). Không ảnh hưởng train |
+| `fine_space` | **`fused`** | TAR@FAR tốt nhất offline (8.45% vs 5.79% của `pre_bn` ở FAR 0.1%) |
+| `soft_lock_threshold` | **0.0** | Đo thực tế coarse score = 0.98–0.99 ⇒ ngưỡng 0.3 **chưa bao giờ chặn ai**. `0.0` cho trung thực với hành vi thật: cổng thô chỉ **CHỌN MAX**, không **LỌC** |
+| `reid_threshold` | 0.75 | = `thresholds.fused`. **PHẢI calibrate lại mỗi khi đổi model** |
+| `update_interval_sec` / `time_source` | 2.0 / `video` | Đếm theo thời gian **video**, không theo đồng hồ tường |
+| `max_anchor_size` / `max_recent_size` | 5 / 15 | |
+| `t2_search_gap_tolerance` | 2 | Số frame vắng **liên tiếp** tối đa trước khi reset cửa sổ HARD LOCK |
+
+### Khi đổi model, phải đổi 4 đường dẫn
+
+| # | Key | Thành |
+| :--- | :--- | :--- |
+| 1 | `paths.checkpoint_dir` | thư mục riêng cho model mới |
+| 2 | `paths.log_dir` | thư mục riêng |
+| 3 | `eval.output_dir` | thư mục riêng |
+| 4 | `infer.out_dir` | thư mục riêng |
+
+Đổi **bất kỳ key nào khác** ⇒ kết quả **KHÔNG** so được với các run trước.
+
+### Quy trình chuẩn
+
+```bash
+# 0. Kiểm 2 config ablation không trôi khỏi nhau (xem quy tắc ngay dưới)
+diff configs/ablation/config_mamba.yaml configs/ablation/config_attention.yaml
+
+# 1. Train 2 nhánh (BẮT BUỘC cả hai — chỉ một nhánh thì không có gì để so)
+python train_reid.py --config configs/ablation/config_mamba.yaml
+python train_reid.py --config configs/ablation/config_attention.yaml
+
+# 2. Calibrate ngưỡng (ghi kèm provenance)
+python calibrate_threshold.py --config configs/ablation/config_attention.yaml
+
+# 3. Eval offline (Rank-1 / mAP / TAR@FAR)
+python evaluate_reid.py --config configs/ablation/config_attention.yaml
+
+# 4. Infer online (T0→T3, HARD LOCK)
+python infer.py --config configs/ablation/config_attention.yaml
+```
+
+> 📋 **Quy tắc sửa 2 config ablation (sửa tay):** hai file **PHẢI** giống nhau, chỉ khác
+> **5 dòng**: `train.temporal_type`, `paths.checkpoint_dir`, `paths.log_dir`, `eval.output_dir`,
+> `infer.out_dir`. Sửa bất kỳ dòng nào khác ⇒ phải sửa **cả hai file**. Kiểm bằng:
+> ```bash
+> diff configs/ablation/config_mamba.yaml configs/ablation/config_attention.yaml
+> ```
+> Nếu `diff` ra dòng nào **không phải** 5 dòng trên ⇒ hai nhánh đã trôi khỏi nhau, kết quả
+> so sánh **không còn hợp lệ**. `configs/config_colab.yaml` là bản gốc để đối chiếu.
+
+> ⚠️ **Đổi model ⇒ phải calibrate lại `reid_threshold`.** Ngưỡng là thuộc tính của
+> **thang điểm của model**, không phải hằng số của pipeline.
+
+---
+
 > **Quy ước ký hiệu.** Tài liệu này cố ý **KHÔNG ghi giá trị cụ thể** — mọi giá trị đọc từ
 > config lúc chạy. Bảng dưới là ánh xạ ký hiệu → key config.
 >
@@ -15,6 +98,88 @@
 > | `n_cand` | — | số UAV ứng viên xuất hiện cùng lúc ở T2 |
 
 ---
+
+### Package `model/` — nơi DUY NHẤT được sửa khi thử nghiệm model
+
+`model.py` cũ (791 dòng) đã tách thành package. Mọi script vẫn chỉ gọi
+`from model import UAVReIDNet, load_checkpoint_verbose` — **không đổi**.
+
+```
+model/
+  __init__.py            API công khai + ràng buộc cần giữ
+  components.py          weights_init_*, AttentionPooling, ReIDHead
+  temporal_mamba.py      SimpleS6Block + TemporalMambaEncoder
+  temporal_attention.py  TemporalAttentionEncoder
+  registry.py            TEMPORAL_ENCODERS + build_temporal_encoder()
+  reidnet.py             UAVReIDNet (backbone + temporal encoder + head)
+  checkpoint.py          load_checkpoint_verbose()
+```
+
+**Thêm temporal encoder mới — chỉ 2 việc:**
+
+1. Tạo `model/temporal_<ten>.py`, ví dụ:
+
+   ```python
+   from .components import AttentionPooling
+   from .registry import register_temporal
+
+   @register_temporal('my_encoder')
+   class MyEncoder(nn.Module):
+       def __init__(self, d_in=2560, d_model=512, d_out=512, max_seq_len=64,
+                    num_layers=2, pool='attn', use_pe=True, **kwargs): ...
+       def forward(self, x):        # [B, N, d_in] -> ([B, d_out], [B, N, d_model])
+           ...
+   ```
+
+2. Thêm 1 dòng import vào `model/__init__.py`, rồi đặt
+   `train.temporal_type: "my_encoder"` trong config. **Không sửa `reidnet.py`.**
+
+Bỏ kwarg không dùng được tự động: `TemporalMambaEncoder` không có `num_heads`/`dropout`
+nên `build_temporal_encoder` lọc theo chữ ký của từng lớp.
+
+**Ba ràng buộc phải giữ** (nếu vi phạm, checkpoint cũ không nạp được hoặc pipeline vỡ):
+
+| Ràng buộc | Vì sao |
+|---|---|
+| `UAVReIDNet` giữ tên `self.backbone` / `self.temporal_encoder` / `self.head` | key state_dict sinh từ tên thuộc tính |
+| Encoder giữ interface `[B, N, d_in] -> ([B, d_out], [B, N, d_model])` | `reidnet.py` và mọi script dựa vào |
+| Temporal pooling là tổ hợp lồi (softmax) | scale bất biến theo N; `mean` thì không |
+
+⚠️ **Đổi model ⇒ PHẢI chạy lại `calibrate_threshold.py`.** `reid_threshold` là thuộc tính
+của thang điểm model, không phải hằng số pipeline.
+
+### Các chốt bảo vệ tự động (bổ sung 29/9)
+
+| Cơ chế | Ở đâu | Chặn được gì |
+|---|---|---|
+| `resolve_pipeline(cfg, section)` | `pipeline_lock.py`, gọi trong `infer.py`, `evaluate_reid.py`, `calibrate_threshold.py`, `evaluate_reid_robustness.py`, `phan_rang/infer_realworld.py` | `num_frames` / `stride` / `backbone` / `bbox_padding` / `temporal_*` ghi lệch giữa các section |
+| `assert_frozen(cfg)` | Đầu `train_reid.py` | Mở lại `n_frames_choices`, `pool='mean'`, `lam2 != 0`, thiếu `temporal_type`, `num_before/after_frames` < N cần dùng |
+| `provenance(cfg)` | Ghi vào `calibrated_threshold.json` **và mọi checkpoint** | Không biết một checkpoint / ngưỡng thuộc protocol nào |
+| `check_data_meta(cfg)` | Tự gọi trong `resolve_pipeline` + đầu `train_reid.py` | Config đổi `frame_stride` / `num_before/after_frames` / `bbox_padding` / `crop_size` mà **chưa sinh lại dữ liệu** |
+| Chặn `data_pipeline.py` khi thiếu key | `data_pipeline.py` | Sinh lại dữ liệu ở bước 1 (argparse mặc định) trong khi train dùng bước 4 |
+
+**`check_data_meta` cần `pipeline_meta.json`.** `data_pipeline.py` ghi file này vào
+`<paths.data_dir>/` khi sinh dữ liệu:
+
+```json
+{ "frame_stride": 4, "num_before_frames": 16, "num_after_frames": 16,
+  "bbox_padding": 0.2, "crop_size": 256 }
+```
+
+Bốn file `query/gallery_*.json` chỉ chứa **tên file**, không cho biết bước thời gian — nên
+không có `pipeline_meta.json` thì không cách nào biết dữ liệu cũ hay mới. Thiếu file này thì
+cảnh báo **im lặng bỏ qua** (tương thích ngược với dữ liệu sinh trước 29/9); có file thì lệch
+là **báo động**.
+
+### Ba việc duy nhất phải làm
+
+1. **Sửa model** — trong package `model/` (xem §trên)
+2. **Sửa config** — `train.temporal_type` + 4 đường dẫn. Đổi tham số trong `data_pipeline`
+   thì **phải sinh lại dữ liệu**
+3. **Chạy** `train_reid.py` → `calibrate_threshold.py` → `evaluate_reid.py` → `infer.py`
+
+⚠️ Đổi model ⇒ **PHẢI** chạy lại `calibrate_threshold.py`: `reid_threshold` là thuộc tính
+của thang điểm model, không phải hằng số pipeline.
 
 ## I. Các Module Cốt lõi và Lý do sử dụng
 Dưới đây là các thành phần chính được lựa chọn để tối ưu hóa pipeline:

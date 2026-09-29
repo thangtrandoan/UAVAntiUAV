@@ -2,6 +2,18 @@ import os
 import sys
 import json
 import yaml
+
+try:
+    from pipeline_lock import resolve_pipeline, provenance, assert_frozen
+except ImportError:  # thiếu module -> vẫn chạy được nhưng KHÔNG khóa pipeline
+    def resolve_pipeline(cfg, section, script='', verbose=True):
+        print(f"\u26a0\ufe0f  pipeline_lock.py không tìm thấy \u2014 {script} KHÔNG được khóa.")
+        return cfg.get(section) or {}
+    def provenance(cfg):
+        return {}
+    def assert_frozen(cfg):
+        return []
+
 import argparse
 import time
 import torch
@@ -61,10 +73,10 @@ class EvalDataset(Dataset):
         return len(self.valid_pairs)
         
     def _load_clip(self, folder, frames, take_last=False):
-        # 🛠️ (15/9) ĐỒNG BỘ frame_stride — BỎ `np.linspace` (xem train_reid.py::_load_clip).
-        # `np.linspace` làm bước thời gian hiệu dụng > frame_stride → offline eval lệch
+        # (15/9) ĐỒNG BỘ frame_stride — BỎ `np.linspace` (xem train_reid.py::_load_clip).
+        # `np.linspace` làm bước thời gian hiệu dụng > frame_stride offline eval lệch
         # với phân phối temporal lúc train và lúc infer.
-        # 🛠️ (22/9) COPY list — cùng bug như `UAVReIDDataset._load_clip`: dòng
+        # (22/9) COPY list — cùng bug như `UAVReIDDataset._load_clip`: dòng
         # `frames.append(...)` bên dưới làm list TRONG `valid_pairs` phình VĨNH VIỄN.
         # Hiện chưa gây hại vì mỗi N dùng một `EvalDataset` riêng (đọc lại JSON), nhưng
         # nếu dùng lại MỘT dataset cho nhiều N thì đây là lỗi thật (pad tới N nhỏ rồi đọc
@@ -227,7 +239,7 @@ def main():
                         help="Không gian feature dùng làm CHÍNH (áp calibrated threshold + visualization). "
                              "fused = qua ReIDHead (BatchNorm1d) — mặc định; pre_bn = cat(visual, temporal), "
                              "ĐẦU VÀO bnneck. Cả hai không gian luôn được đánh giá để so sánh (xem md/15thg9.md).")
-    # 🛠️ (25/9) Cho phép đặt threshold THỦ CÔNG ngay trên dòng lệnh.
+    # (25/9) Cho phép đặt threshold THỦ CÔNG ngay trên dòng lệnh.
     parser.add_argument("--threshold", default=None, type=float,
                         help="Đặt threshold THỦ CÔNG (ưu tiên cao nhất, ghi đè --threshold-file "
                              "và config). Dùng để thử nhanh một ngưỡng cụ thể, vd: --threshold 0.85")
@@ -247,6 +259,8 @@ def main():
     args.backbone_only = ec.get('backbone_only', False)
     args.intra_sequence = ec.get('intra_sequence', False)
     args.max_correct_vis = ec.get('max_correct_vis', -1)
+    # (29/9) KHÓA PIPELINE (nguồn sự thật = train + data_pipeline).
+    resolve_pipeline(cfg, 'eval', script='evaluate_reid.py')
     args.num_frames    = cfg.get('train', {}).get('num_frames', 16)
     args.backbone      = ec.get('backbone', 'resnet50_ibn')
     args.gpu_jetson    = cfg.get('device', {}).get('gpu_jetson', False)
@@ -290,7 +304,7 @@ def main():
         os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
         
     from model import UAVReIDNet, load_checkpoint_verbose
-    # 🛠️ (24/9) `temporal_pool`/`temporal_pe` phải khớp lúc TRAIN (chi tiết: calibrate_threshold.py).
+    # (24/9) `temporal_pool`/`temporal_pe` phải khớp lúc TRAIN (chi tiết: calibrate_threshold.py).
     temporal_type = cfg.get('eval', {}).get('temporal_type', cfg.get('train', {}).get('temporal_type', 'mamba'))
     temporal_pool = cfg.get('eval', {}).get('temporal_pool', cfg.get('train', {}).get('temporal_pool', 'attn'))
     temporal_pe = bool(cfg.get('eval', {}).get('temporal_pe', cfg.get('train', {}).get('temporal_pe', True)))
@@ -299,7 +313,7 @@ def main():
                        temporal_pool=temporal_pool, temporal_pe=temporal_pe)
     if not args.backbone_only:
         if os.path.exists(args.model_path):
-            # 🛠️ (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch thay vì "Loaded" mù quáng.
+            # (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch thay vì "Loaded" mù quáng.
             load_checkpoint_verbose(model, args.model_path, tag="eval")
             print(f"Loaded {args.model_path}")
         else:
@@ -309,9 +323,9 @@ def main():
     model.cuda()
     model.eval()
     
-    # 🛠️ (14/9): trích đồng thời 2 không gian trong MỘT lượt backbone:
-    #   fused  = qua ReIDHead (BatchNorm1d) — pipeline hiện tại (fine score)
-    #   pre_bn = cat(visual, temporal)      — ĐẦU VÀO bnneck (raw)
+    # (14/9): trích đồng thời 2 không gian trong MỘT lượt backbone:
+    # fused  = qua ReIDHead (BatchNorm1d) — pipeline hiện tại (fine score)
+    # pre_bn = cat(visual, temporal)      — ĐẦU VÀO bnneck (raw)
     # Cả hai được đánh giá bằng CÙNG một quy trình để trả lời: BatchNorm1d có thật sự
     # làm mất khả năng phân biệt, hay chỉ nén thang điểm? (xem md/15thg9.md)
     if args.backbone_only:
@@ -368,7 +382,7 @@ def main():
     calibrated_threshold = None
 
     if args.threshold is not None:
-        # 🛠️ (25/9) Ưu tiên CAO NHẤT: cho phép thử một ngưỡng cụ thể mà KHÔNG cần tạo file JSON
+        # (25/9) Ưu tiên CAO NHẤT: cho phép thử một ngưỡng cụ thể mà KHÔNG cần tạo file JSON
         # và KHÔNG cần chạy calibrate_threshold.py. Một giá trị áp cho không gian đang chọn.
         calibrated_threshold = float(args.threshold)
         threshold_source = f"THỦ CÔNG (--threshold={calibrated_threshold:.6f}, KHÔNG calibrate)"
@@ -585,8 +599,8 @@ def main():
             json.dump(eval_info, f, indent=4)
 
     # (Đã xóa khối "ONLINE SEQUENTIAL EVALUATION" — trước đây bịa latency bằng
-    #  np.random.randint(1,5), không đo được gì thật. Latency theo frame chỉ có
-    #  ở infer.py qua SeqReIDPipeline.reid_latency_frames.)
+    # np.random.randint(1,5), không đo được gì thật. Latency theo frame chỉ có
+    # ở infer.py qua SeqReIDPipeline.reid_latency_frames.)
 
 if __name__ == '__main__':
     main()

@@ -1,13 +1,14 @@
-# ============================================================
-# UAVAntiUAV — Local GPU Config (Smoke Test)
-# Mục đích: Chạy nhanh 1 epoch để kiểm tra code không lỗi
-# ============================================================
+# ============================================================================
+# UAVAntiUAV - Local GPU (smoke test: 1 epoch moi stage)
+# ============================================================================
+# Cung pipeline dong bang voi config_colab.yaml, chi khac so epoch va
+# batch_size. Dung de kiem code chay duoc, khong dung de lay so lieu.
+# ============================================================================
 
 device:
   platform: local             # jetson | local | server
   gpu_jetson: false
 
-# --- Paths ---
 paths:
   data_dir: ./processed
   raw_data_dir: ../UAV-Anti-UAV
@@ -15,7 +16,9 @@ paths:
   checkpoint_dir: ./checkpoints
   log_dir: ./logs
 
-# --- Data Pipeline ---
+# ============================================================================
+# DATA PIPELINE
+# ============================================================================
 data_pipeline:
   uav_anti_uav_dir: ./data/UAV-Anti-UAV
   anti_uav_rgbt_dir: ./data/Anti-UAV-RGBT
@@ -23,44 +26,55 @@ data_pipeline:
   output_dir: ./processed
   num_before_frames: 16
   num_after_frames: 16
-  frame_stride: 4
+  frame_stride: 4             # nguon duy nhat cua buoc thoi gian
   bbox_padding: 0.2
   crop_size: 256
   num_workers: 4
 
-# --- Training (smoke test: 1 epoch mỗi stage) ---
+# ============================================================================
+# TRAIN
+# ============================================================================
 train:
   backbone: dinov3_convnext
   resume: ""
   batch_size: 16
   num_instances: 4
-  num_frames: 16
+
+  # ---- model (phai khop checkpoint dang nap) ----
+  temporal_type: "attention"      # "mamba" | "attention"
+  temporal_pool: attn
+  temporal_pe: true
+  # ---------------------------------------------
+
+  num_frames: 12
   num_workers: 4
   use_amp: true
   pin_memory: true
-  val_freq: 1                 # Local test/smoke test thì chạy val mỗi epoch để dễ debug
+  val_freq: 1                     # chay val moi epoch cho de debug
 
   stage1:
-    epochs: 1                 # chỉ 1 epoch để test
+    epochs: 1
     lr: 3.5e-4
-    weight_decay: 5e-4
+    weight_decay: 5.0e-4
 
   stage2:
-    epochs: 1                 # chỉ 1 epoch để test
+    epochs: 1
     lr_backbone: 1.0e-5
     lr_temporal: 1.0e-4
     lr_head: 1.0e-4
-    weight_decay: 5e-4
+    weight_decay: 5.0e-4
 
   loss:
     lam1: 1.0
-    lam2: 0.5
+    lam2: 0.0                 # temporal consistency: khong dong gop gradient
     lam3: 0.05
     lr_center: 0.5
     triplet_margin: 0.3
     label_smooth: 0.1
 
-# --- Evaluation ---
+# ============================================================================
+# EVAL
+# ============================================================================
 eval:
   backbone: dinov3_convnext
   model_path: checkpoints/best_model.pth
@@ -72,27 +86,24 @@ eval:
   backbone_only: false
   reid_threshold: 0.7
 
-# --- Inference ---
+# ============================================================================
+# INFER
+# ============================================================================
 infer:
   backbone: dinov3_convnext
   seq_dir: all
   model_path: ./best_model_dino_convnext.pth
   output_video: output_reid.mp4
   out_dir: ./infer_output/infer_pipeline_3
-  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4).
-  stride: 4
-  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
-  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
-  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
-  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
-  t2_search_gap_tolerance: 2
-  # 🛠️ FIX (14/9): PHẢI khớp `train.num_frames` (đang = 16).
-  # Trước đây = 8 → Mamba + mean-pooling chạy 8 token trong khi train 16
-  # → phân phối temporal token lệch sẵn, rồi bnneck khuếch đại → fine score tụt.
-  # Đánh đổi: cửa sổ dài hơn thì khó thu đủ trong đoạn tái xuất ngắn
-  # (xem md/15thg9.md §5 — cần resample/pad lên đủ num_frames).
-  num_frames: 16
+
+  stride: 4                       # ep = data_pipeline.frame_stride luc chay
+  num_frames: 12                  # ep = train.num_frames luc chay
   bbox_padding: 0.2
+
+  # t2_search_gap_tolerance: so frame target vang lien tiep toi da truoc khi reset
+  # cua so soft-lock. Cua so can num_frames frame lien tuc; 0 = reset ngay.
+  t2_search_gap_tolerance: 2
+
   max_anchor_size: 5
   max_recent_size: 15
   soft_lock_threshold: 0.3
@@ -100,9 +111,11 @@ infer:
   hijack_threshold: 0.40
   hijack_check_count: 5
   update_interval_sec: 2.0
-  # 🛠️ (14/9): in cosine TRƯỚC bnneck (raw) vs SAU bnneck (fused). Mặc định true trong code.
+
+  # debug_sim: in cosine truoc bnneck (raw) va sau bnneck (fused).
   debug_sim: true
-  # 🛠️ (14/9): không gian cho gate HARD LOCK: 'fused' (cũ) hoặc 'pre_bn'.
-  # ⚠️ Đổi sang pre_bn thì PHẢI đổi `reid_threshold` = thresholds.pre_bn (calibrate trước).
-  # ✅ Đã kiểm chứng 15/9: pre_bn KÉM hơn fused 2.67% TAR -> GIỮ fused (md/15thg9.md §4.1).
+
+  # fine_space: khong gian cho gate HARD LOCK, 'fused' hoac 'pre_bn'.
+  # Doi sang pre_bn thi phai doi reid_threshold = thresholds.pre_bn.
+  # Do 15/9: pre_bn kem hon fused 2.67% TAR nen giu fused (md/15thg9.md §4.1).
   fine_space: fused

@@ -17,7 +17,7 @@ paths:
 
 # --- Data Pipeline ---
 data_pipeline:
-  # 🛠️ (15/9) NGUỒN DUY NHẤT của frame_stride (xem md/15thg9.md §13).
+  # (15/9) NGUỒN DUY NHẤT của frame_stride (xem md/15thg9.md §13).
   frame_stride: 4
   num_before_frames: 16
   num_after_frames: 16
@@ -39,14 +39,14 @@ train:
   stage1:
     epochs: 0                # CHỈ CHẠY 1 EPOCH ĐỂ TEST
     lr: 3.5e-4
-    weight_decay: 5e-4
+    weight_decay: 5.0e-4
 
   stage2:
     epochs: 1                 # CHỈ CHẠY 1 EPOCH ĐỂ TEST
     lr_backbone: 1.0e-5
     lr_temporal: 1.0e-4
     lr_head: 1.0e-4
-    weight_decay: 5e-4
+    weight_decay: 5.0e-4
 
   loss:
     lam1: 1.0

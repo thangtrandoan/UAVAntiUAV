@@ -2,6 +2,19 @@ import os
 import sys
 import json
 import yaml
+
+try:
+    from pipeline_lock import (resolve_pipeline, provenance, assert_frozen,
+                              check_data_meta)
+except ImportError:  # thiếu module -> vẫn chạy được nhưng KHÔNG khóa pipeline
+    def resolve_pipeline(cfg, section, script='', verbose=True):
+        print(f"\u26a0\ufe0f  pipeline_lock.py không tìm thấy \u2014 {script} KHÔNG được khóa.")
+        return cfg.get(section) or {}
+    def provenance(cfg):
+        return {}
+    def assert_frozen(cfg):
+        return []
+
 import argparse
 import time
 import random
@@ -100,7 +113,7 @@ class CenterLoss(nn.Module):
         self.num_classes = num_classes
         self.feat_dim = feat_dim
         # Khởi tạo centers = 0 thay vì randn:
-        # centers randn → ||c||² ≈ feat_dim (vd 1472) → center loss ban đầu cực lớn,
+        # centers randn ||c||² ≈ feat_dim (vd 1472) center loss ban đầu cực lớn,
         # cộng thêm ||x||² của feature thô sẽ dominate gradient, phá vỡ training.
         self.centers = nn.Parameter(torch.zeros(self.num_classes, self.feat_dim))
         self.lr_center = lr_center
@@ -169,7 +182,7 @@ class UAVReIDDataset(Dataset):
             
         self.transform = transform
         self.num_frames = num_frames
-        # 🛠️ (22/9) N RANDOM THEO BATCH (md/22thg9.md §16). `num_frames` giữ vai trò
+        # (22/9) N RANDOM THEO BATCH (md/22thg9.md §16). `num_frames` giữ vai trò
         # "N mặc định / N dùng cho validation". `n_values` là danh sách N sẽ random.
         # CHỈ SỐ ĐƯỢC MÃ HOÁ N:  idx = k * L + g   (k = chỉ số sample, g = chỉ số N, L = len(n_values))
         # Nhờ vậy `__getitem__` suy ra N TỪ CHÍNH INDEX -> stateless, an toàn với num_workers>0
@@ -200,18 +213,18 @@ class UAVReIDDataset(Dataset):
         
     def _load_clip(self, folder, frames, take_last=False, n=None):
         n = n or self.num_frames
-        # 🛠️ (22/9) COPY list: code cũ `frames.append(...)` khi clip ngắn làm list TRONG
+        # (22/9) COPY list: code cũ `frames.append(...)` khi clip ngắn làm list TRONG
         # `valid_pairs` phình ra vĩnh viễn. Với N cố định thì chỉ là rác; với N RANDOM thì
         # thành LỖI (pad tới n=4 rồi lần sau đọc n=16 -> toàn frame lặp).
         frames = list(frames)
-        # 🛠️ (15/9) ĐỒNG BỘ frame_stride — BỎ `np.linspace`.
-        # `np.linspace` lấy mẫu TRẢI ĐỀU cả danh sách → bước thời gian hiệu dụng
-        #     = frame_stride × (len-1)/(num_frames-1)   >   frame_stride
-        # trong khi infer lấy ĐÚNG 1 frame mỗi `frame_stride` → lệch phân phối temporal.
+        # (15/9) ĐỒNG BỘ frame_stride — BỎ `np.linspace`.
+        # `np.linspace` lấy mẫu TRẢI ĐỀU cả danh sách bước thời gian hiệu dụng
+        # = frame_stride × (len-1)/(num_frames-1)   >   frame_stride
+        # trong khi infer lấy ĐÚNG 1 frame mỗi `frame_stride` lệch phân phối temporal.
         # Cắt CONTIGUOUS để bước thời gian giữa 2 frame liên tiếp = ĐÚNG frame_stride
         # ở cả train và infer:
-        #   - before (gallery): lấy `num_frames` frame CUỐI → sát t1 (lúc mất dấu)
-        #   - after  (query)  : lấy `num_frames` frame ĐẦU → sát t2 (lúc tái xuất)
+        # - before (gallery): lấy `num_frames` frame CUỐI sát t1 (lúc mất dấu)
+        # - after  (query)  : lấy `num_frames` frame ĐẦU sát t2 (lúc tái xuất)
         # Kết quả Y HỆT việc sinh lại data với num_before/after_frames = num_frames,
         # nhưng KHÔNG cần chạy lại data_pipeline.py.
         if len(frames) > n:
@@ -259,7 +272,7 @@ class ReIDBatchSampler(Sampler):
         self.batch_size = batch_size
         self.num_instances = num_instances
         self.num_pids_per_batch = self.batch_size // self.num_instances
-        # 🛠️ (22/9) N random theo BATCH (không theo sample — không collate được (B,N,C)).
+        # (22/9) N random theo BATCH (không theo sample — không collate được (B,N,C)).
         self.n_values = list(n_values) if n_values else list(getattr(dataset, 'n_values', [dataset.num_frames]))
         self.L = len(self.n_values)
         
@@ -375,6 +388,20 @@ def main():
     with open(args.config, 'r', encoding='utf-8') as f:
         cfg = yaml.safe_load(f)
 
+    # (29/9) KIỂM TRA HẰNG SỐ ĐÃ CHỐT (md/pipeline.md).
+    # Không chặn chạy — chỉ báo để biết kết quả có so được với run trước hay không.
+    _frozen_warn = assert_frozen(cfg)
+    if _frozen_warn:
+        print("\n" + "!" * 66)
+        print("  ⚠️  PIPELINE ĐÃ BỊ MỞ KHÓA Ở CÁC ĐIỂM SAU:")
+        for _w in _frozen_warn:
+            print(f"     • {_w}")
+        print("  => KẾT QUẢ sẽ KHÔNG so được với các run theo pipeline đóng băng.")
+        print("!" * 66 + "\n")
+
+    # (29/9) Kiểm dữ liệu đã sinh có khớp `data_pipeline` trong config chưa.
+    check_data_meta(cfg)
+
     args.data_dir       = cfg.get('paths', {}).get('data_dir', 'processed')
     args.query_json     = os.path.join(args.data_dir, 'query_train.json')
     args.gallery_json   = os.path.join(args.data_dir, 'gallery_train.json')
@@ -392,7 +419,7 @@ def main():
             
     tc = cfg.get('train', {})
     args.resume         = tc.get('resume', '')
-    # 🛠️ (24/9) ÉP best toàn cục khi resume. Checkpoint CŨ (trước 24/9) KHÔNG có trường
+    # (24/9) ÉP best toàn cục khi resume. Checkpoint CŨ (trước 24/9) KHÔNG có trường
     # `best_val_rank1` -> restore 0.0 -> validation đầu tiên sẽ ghi đè `best_model.pth`
     # dù tệ hơn. Đặt = -1 để tắt (dùng giá trị trong checkpoint).
     args.resume_best_rank1 = float(tc.get('resume_best_rank1', -1.0))
@@ -404,17 +431,17 @@ def main():
     args.pin_memory     = tc.get('pin_memory', False)
     args.use_compile    = tc.get('use_compile', False) # Thêm cờ bật/tắt compile
     args.val_freq       = tc.get('val_freq', 5) # Đọc số epoch đánh giá từ config (mặc định 5)
-    # 🛠️ (22/9) ĐO NHIỀU N (md/22thg9.md §25). Tiêu chí đạt là "fused >= 0.85 ở CẢ 3 N và
+    # (22/9) ĐO NHIỀU N (md/22thg9.md §25). Tiêu chí đạt là "fused >= 0.85 ở CẢ 3 N và
     # lệch < 0.05", nhưng validation cũ chỉ đo MỘT N (args.num_frames) -> không thấy được
     # độ lệch theo N -> train mù. `val_n_list` là danh sách N sẽ đo mỗi lần validation.
     args.val_n_list     = tc.get('val_n_list') or [args.num_frames]
-    # 🛠️ Early stopping. patience = số LẦN VALIDATION liên tiếp không cải thiện (0 = tắt).
+    # Early stopping. patience = số LẦN VALIDATION liên tiếp không cải thiện (0 = tắt).
     args.early_stop_patience = int(tc.get('early_stop_patience', 0))
     args.early_stop_min_delta = float(tc.get('early_stop_min_delta', 1e-4))
     args.stop_on_target = bool(tc.get('stop_on_target', True))
     args.target_rank1   = float(tc.get('target_rank1', 0.85))
     args.target_spread  = float(tc.get('target_spread', 0.05))
-    # 🛠️ (22/9) torch.compile + N RANDOM: mỗi giá trị N cho một SHAPE khác nhau
+    # (22/9) torch.compile + N RANDOM: mỗi giá trị N cho một SHAPE khác nhau
     # (`extract_features` reshape thành [B*N, C, H, W]) -> compile mặc định (dynamic=False)
     # sẽ BIÊN DỊCH LẠI cho từng N. Với 7 giá trị N đó là 7 lần biên dịch (mỗi lần hàng
     # chục giây tới vài phút). `dynamic=True` xử lý shape thay đổi mà không biên dịch lại.
@@ -459,7 +486,7 @@ def main():
         transforms.RandomErasing(p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3))
     ])
 
-    # 🛠️ (22/9) N random theo batch (md/22thg9.md §16). Bỏ key / 1 phần tử = hành vi cũ.
+    # (22/9) N random theo batch (md/22thg9.md §16). Bỏ key / 1 phần tử = hành vi cũ.
     n_values = tc.get('n_frames_choices') or [args.num_frames]
     if len(n_values) > 1:
         print(f" 🔀 N RANDOM theo batch: {n_values} (cùng N cho query+gallery trong 1 batch)")
@@ -489,7 +516,7 @@ def main():
             )
         val_query_json = args.query_json.replace('query_train', 'query_test')
         val_gallery_json = args.gallery_json.replace('gallery_train', 'gallery_test')
-        # 🛠️ (22/9) Một EvalDataset cho MỖI N trong `val_n_list`.
+        # (22/9) Một EvalDataset cho MỖI N trong `val_n_list`.
         val_loaders = {}
         for _n in args.val_n_list:
             _ds = EvalDataset(test_dir, val_query_json, val_gallery_json,
@@ -550,7 +577,7 @@ def main():
         os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
         
     from model import UAVReIDNet
-    # 🛠️ (22/9) Pooling + PE của temporal encoder (md/22thg9.md §31).
+    # (22/9) Pooling + PE của temporal encoder (md/22thg9.md §31).
     # Mặc định 'attn' + PE: attention CHỌN được vị trí nên PE trở nên có ích (§30.5).
     # `infer.py`/`evaluate_reid_robustness.py` tạo model bằng DEFAULT nên PHẢI khớp.
     model = UAVReIDNet(
@@ -568,17 +595,17 @@ def main():
     # --- torch.compile cho tốc độ tối đa trên A100/H100 ---
     if not args.gpu_jetson and args.use_compile and hasattr(torch, 'compile'):
         print(f"Bật torch.compile() để tối ưu model (dynamic={args.compile_dynamic})...")
-        # 🛠️ (24/9) NÂNG GIỚI HẠN RECOMPILE.
+        # (24/9) NÂNG GIỚI HẠN RECOMPILE.
         # Run 24/9 gặp: `torch._dynamo hit config.recompile_limit (8)` với lý do
         # `before_clips size mismatch at index 0. expected 9, actual 2`.
-        # Nguyên nhân: `dynamic=False` ⇒ mỗi SHAPE là một graph riêng. Ta có
-        #   3 giá trị N × (train fwd + train bwd + eval) ≈ 9-12 shape > 8 (mặc định)
-        # + batch CUỐI của validation nhỏ hơn (len(dataset) % 9) ⇒ thêm shape nữa.
-        # Khi vượt giới hạn, dynamo gọi `unimplemented()` ⇒ **FALLBACK VỀ EAGER**
+        # Nguyên nhân: `dynamic=False` mỗi SHAPE là một graph riêng. Ta có
+        # 3 giá trị N × (train fwd + train bwd + eval) ≈ 9-12 shape > 8 (mặc định)
+        # + batch CUỐI của validation nhỏ hơn (len(dataset) % 9) thêm shape nữa.
+        # Khi vượt giới hạn, dynamo gọi `unimplemented()` **FALLBACK VỀ EAGER**
         # cho shape mới (torch/_dynamo/convert_frame.py: `exceeds_cache_size_limit`
         # -> `unimplemented(f"{limit_type} reached")`).
-        # ⚠️ KHÔNG sai kết quả (eager == compiled), nhưng CHẬM: validation run 24/9
-        #   63/86/111s -> 252/287/267s (đắt ở lần compile đầu mỗi shape + eager).
+        # KHÔNG sai kết quả (eager == compiled), nhưng CHẬM: validation run 24/9
+        # 63/86/111s -> 252/287/267s (đắt ở lần compile đầu mỗi shape + eager).
         # Nâng lên 64 để MỌI shape đều được compile.
         for _attr in ('cache_size_limit', 'recompile_limit'):
             if hasattr(torch._dynamo.config, _attr):
@@ -591,7 +618,7 @@ def main():
         except Exception as e:
             print(f"Cảnh báo: torch.compile() thất bại: {e}. Sẽ chạy mode bình thường.")
 
-    # 🛠️ (22/9) Đọc từ config — trước đây 2 key `label_smooth`/`triplet_margin` CÓ trong
+    # (22/9) Đọc từ config — trước đây 2 key `label_smooth`/`triplet_margin` CÓ trong
     # yaml nhưng code HARDCODE, sửa yaml không có tác dụng (bẫy âm thầm).
     criterion_id = LabelSmoothCrossEntropy(epsilon=float(lc.get('label_smooth', 0.1)))
     criterion_triplet = HardTripletLoss(margin=float(lc.get('triplet_margin', 0.3)))
@@ -649,9 +676,9 @@ def main():
                 
                 loss = loss_id + lam1 * loss_tri + lam2 * loss_temp + lam3 * loss_center 
                 
-            # 🛠️ FIX NaN: nếu loss không finite (NaN/inf) → BỎ QUA bước này,
+            # FIX NaN: nếu loss không finite (NaN/inf) BỎ QUA bước này,
             # không backward/step để tránh đầu độc toàn bộ weights.
-            # (Backbone vừa unfreeze + BN batch stats có thể tạo 1 batch xấu → inf grad)
+            # (Backbone vừa unfreeze + BN batch stats có thể tạo 1 batch xấu inf grad)
             if not torch.isfinite(loss):
                 print(f"[{i}] ⚠️ Bỏ qua batch (loss={loss.item():.3e} không finite).")
                 continue
@@ -694,7 +721,7 @@ def main():
     start_epoch_stage1 = 1
     start_epoch_stage2 = 1
     best_val_rank1 = 0.0 # Best TOÀN CỤC (MIN qua các N) — dùng để lưu best_model.pth
-    # 🛠️ (22/9) Early stopping theo TỪNG STAGE: `best` riêng để Stage 2 không bị chặn bởi
+    # (22/9) Early stopping theo TỪNG STAGE: `best` riêng để Stage 2 không bị chặn bởi
     # thành tích của Stage 1 (nếu so với best toàn cục thì Stage 2 gần như luôn "không cải
     # thiện" ngay từ lần validation đầu -> early stop sai).
     _es = {1: {'best': -1.0, 'bad': 0}, 2: {'best': -1.0, 'bad': 0}}
@@ -708,7 +735,7 @@ def main():
         stage = checkpoint.get('stage', 2)
         if 'loss' in checkpoint:
             best_loss = checkpoint['loss']
-        # 🛠️ (24/9) Khôi phục best TOÀN CỤC — xem giải thích ở `checkpoint_data`.
+        # (24/9) Khôi phục best TOÀN CỤC — xem giải thích ở `checkpoint_data`.
         best_val_rank1 = float(checkpoint.get('best_val_rank1', 0.0))
         if args.resume_best_rank1 >= 0:
             print(f"=> ÉP best_val_rank1 = {args.resume_best_rank1*100:.2f}% "
@@ -755,12 +782,15 @@ def main():
                 'stage': 1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                # 🛠️ (24/9) Lưu scheduler: nếu không, resume phải "đuổi" LR bằng cách gọi
+                # (24/9) Lưu scheduler: nếu không, resume phải "đuổi" LR bằng cách gọi
                 # `scheduler.step()` N lần TRƯỚC `optimizer.step()` -> PyTorch cảnh báo
                 # "skipping the first value of the learning rate schedule" (lệch 1 epoch LR).
                 'scheduler_state_dict': scheduler1.state_dict(),
                 'loss': avg_loss,
-                # 🛠️ (24/9) PHẢI lưu: nếu không, resume xong `best_val_rank1` reset về 0.0
+                # Ghi lại protocol đã dùng (N, stride, temporal_type, backbone, pool).
+                # Nhờ vậy mỗi checkpoint tự khai nó thuộc cấu hình nào, không phải đoán.
+                'provenance': provenance(cfg),
+                # (24/9) PHẢI lưu: nếu không, resume xong `best_val_rank1` reset về 0.0
                 # -> validation ĐẦU TIÊN sau resume sẽ ghi đè `best_model.pth` bằng model
                 # CÓ THỂ TỆ HƠN (run 24/9: epoch 55 = 40.91% sẽ đè epoch 35 = 61.56%).
                 'best_val_rank1': best_val_rank1
@@ -774,7 +804,7 @@ def main():
                 if met:
                     print(f"[✓] ĐẠT TIÊU CHÍ (epoch {epoch}): mọi N >= {args.target_rank1:.2f} "
                           f"và lệch {spread*100:.2f}% <= {args.target_spread*100:.0f}%")
-                # 🛠️ (24/9) CẢNH BÁO SỤP: run 24/9 sập về 0.04% (chance=2.90%) mà log chỉ
+                # (24/9) CẢNH BÁO SỤP: run 24/9 sập về 0.04% (chance=2.90%) mà log chỉ
                 # hiện "[i] Không cải thiện" bình thường -> rất dễ bỏ qua.
                 if best_val_rank1 > 0 and score < 0.3 * best_val_rank1:
                     print(f"🚨 [CẢNH BÁO SỤP] MIN={score*100:.2f}% < 30% của best "
@@ -811,11 +841,11 @@ def main():
         gc.collect()
         torch.cuda.empty_cache()
         
-        # 🛠️ FIX NaN: GradScaler phải được TẠO MỚI ở Stage 2.
+        # FIX NaN: GradScaler phải được TẠO MỚI ở Stage 2.
         # - Scale factor cũ đã tích lũy qua 30 epoch Stage 1 (lớn dần ×2 mỗi 2000 steps),
-        #   khiến gradient scaled của backbone (mạng sâu vừa unfreeze) bị overflow → inf → NaN.
+        # khiến gradient scaled của backbone (mạng sâu vừa unfreeze) bị overflow inf NaN.
         # - State cũ của optimizer Stage 1 vẫn nằm trong scaler, làm scaler.update() hoạt động sai.
-        # - torch.compile cũng cần graph mới khi backbone chuyển requires_grad=True → reset dynamo.
+        # - torch.compile cũng cần graph mới khi backbone chuyển requires_grad=True reset dynamo.
         scaler = torch.amp.GradScaler('cuda', enabled=args.use_amp)
         if args.use_compile and hasattr(torch, '_dynamo'):
             try:
@@ -824,17 +854,17 @@ def main():
             except Exception as e:
                 print(f"  Cảnh báo: không reset được dynamo: {e}")
         
-        # 🛠️ (24/9) NẠP LẠI `best_model.pth` LÀM ĐIỂM XUẤT PHÁT CHO STAGE 2.
+        # (24/9) NẠP LẠI `best_model.pth` LÀM ĐIỂM XUẤT PHÁT CHO STAGE 2.
         # VÌ SAO — lỗi thật của run 24/9:
-        #   Vòng Stage 1 kết thúc bằng EARLY STOP, nên `model` lúc này là epoch CUỐI
-        #   (tệ nhất trong đợt), KHÔNG phải epoch TỐT NHẤT. Số liệu run 24/9:
-        #       Stage 1 best : epoch 25 -> MIN = 63.46%   (đã lưu best_model.pth)
-        #       Stage 1 cuối : epoch 45 -> MIN = 31.52%   (early stop)
-        #   Stage 2 vì thế xuất phát từ 31.52% -> mất NGAY 31.94 điểm, và dù leo lên
-        #   54.11% (epoch 5) vẫn KHÔNG BAO GIỜ vượt 63.46% => kết luận "Stage 2 vô dụng"
-        #   là SAI, nó chỉ bị xuất phát từ điểm hỏng.
+        # Vòng Stage 1 kết thúc bằng EARLY STOP, nên `model` lúc này là epoch CUỐI
+        # (tệ nhất trong đợt), KHÔNG phải epoch TỐT NHẤT. Số liệu run 24/9:
+        # Stage 1 best : epoch 25 -> MIN = 63.46%   (đã lưu best_model.pth)
+        # Stage 1 cuối : epoch 45 -> MIN = 31.52%   (early stop)
+        # Stage 2 vì thế xuất phát từ 31.52% -> mất NGAY 31.94 điểm, và dù leo lên
+        # 54.11% (epoch 5) vẫn KHÔNG BAO GIỜ vượt 63.46% => kết luận "Stage 2 vô dụng"
+        # là SAI, nó chỉ bị xuất phát từ điểm hỏng.
         # LƯU Ý: `model` đang là bản ĐÃ COMPILE, và checkpoint cũng lưu từ bản compile
-        #   (key có tiền tố `_orig_mod.`) -> khớp trực tiếp, KHÔNG cần bóc tiền tố.
+        # (key có tiền tố `_orig_mod.`) -> khớp trực tiếp, KHÔNG cần bóc tiền tố.
         _best_path = os.path.join(args.checkpoint_dir, "best_model.pth")
         if os.path.isfile(_best_path):
             _bst = torch.load(_best_path, map_location='cpu')
@@ -854,7 +884,7 @@ def main():
         
         for name, param in model.backbone.named_parameters():
             # convnext_backbone + ga1-4 + fs1-2 đều có weights từ GASNet đã train VRU
-            # → thuộc nhóm pretrained (lr thấp 1e-5, fine-tune nhẹ lên domain UAV)
+            # thuộc nhóm pretrained (lr thấp 1e-5, fine-tune nhẹ lên domain UAV)
             if "convnext_backbone" in name or "swin_backbone" in name or "base" in name or "ga" in name or "fs" in name:
                 pretrained_params.append(param)
             else:
@@ -867,7 +897,7 @@ def main():
             {'params': model.temporal_encoder.parameters(), 'lr': args.lr_stage2_temporal}, # 1e-4
             {'params': model.head.parameters(), 'lr': args.lr_stage2_head}             # 1e-4
         ]
-        # 🛠️ (22/9) Trước đây hardcode 5e-4 -> key `stage2.weight_decay` trong yaml VÔ HIỆU.
+        # (22/9) Trước đây hardcode 5e-4 -> key `stage2.weight_decay` trong yaml VÔ HIỆU.
         _wd2 = float(tc.get('stage2', {}).get('weight_decay', 5e-4))
         optimizer2 = torch.optim.AdamW(param_groups, weight_decay=_wd2)
         scheduler2 = get_warmup_cosine_scheduler(optimizer2, warmup_epochs=5, total_epochs=epochs_stage2)
@@ -899,7 +929,9 @@ def main():
                 'optimizer_state_dict': optimizer2.state_dict(),
                 'scheduler_state_dict': scheduler2.state_dict(),
                 'loss': avg_loss,
-                # 🛠️ (24/9) PHẢI lưu: nếu không, resume xong `best_val_rank1` reset về 0.0
+                # Ghi lại protocol đã dùng (N, stride, temporal_type, backbone, pool).
+                'provenance': provenance(cfg),
+                # (24/9) PHẢI lưu: nếu không, resume xong `best_val_rank1` reset về 0.0
                 # -> validation ĐẦU TIÊN sau resume sẽ ghi đè `best_model.pth` bằng model
                 # CÓ THỂ TỆ HƠN (run 24/9: epoch 55 = 40.91% sẽ đè epoch 35 = 61.56%).
                 'best_val_rank1': best_val_rank1
@@ -913,7 +945,7 @@ def main():
                 if met:
                     print(f"[✓] ĐẠT TIÊU CHÍ (epoch {epoch}): mọi N >= {args.target_rank1:.2f} "
                           f"và lệch {spread*100:.2f}% <= {args.target_spread*100:.0f}%")
-                # 🛠️ (24/9) CẢNH BÁO SỤP: run 24/9 sập về 0.04% (chance=2.90%) mà log chỉ
+                # (24/9) CẢNH BÁO SỤP: run 24/9 sập về 0.04% (chance=2.90%) mà log chỉ
                 # hiện "[i] Không cải thiện" bình thường -> rất dễ bỏ qua.
                 if best_val_rank1 > 0 and score < 0.3 * best_val_rank1:
                     print(f"🚨 [CẢNH BÁO SỤP] MIN={score*100:.2f}% < 30% của best "

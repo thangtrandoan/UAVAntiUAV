@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import json
 import argparse
@@ -195,19 +196,37 @@ def main():
     import yaml
     args = parse_args()
     
-    if args.config and os.path.exists(args.config):
+    if args.config:
+        if not os.path.exists(args.config):
+            sys.exit(f"[data_pipeline] DỪNG: không tìm thấy config {args.config}")
         with open(args.config, "r") as f:
             cfg = yaml.safe_load(f)
-        if "data_pipeline" in cfg:
-            dp = cfg["data_pipeline"]
-            args.data_dir = dp.get("uav_anti_uav_dir", args.data_dir)
-            args.output_dir = dp.get("output_dir", args.output_dir)
-            args.num_before_frames = dp.get("num_before_frames", args.num_before_frames)
-            args.num_after_frames = dp.get("num_after_frames", args.num_after_frames)
-            args.frame_stride = dp.get("frame_stride", args.frame_stride)
-            args.bbox_padding = dp.get("bbox_padding", args.bbox_padding)
-            args.crop_size = dp.get("crop_size", args.crop_size)
-            args.num_workers = dp.get("num_workers", args.num_workers)
+        if "data_pipeline" not in cfg:
+            sys.exit("[data_pipeline] DỪNG: config không có block `data_pipeline`.")
+        dp = cfg["data_pipeline"]
+        # PHẢI có `frame_stride` trong config. argparse mặc định là 1, nên nếu key
+        # thiếu thì dataset bị sinh lại ở bước 1 trong khi train dùng bước 4 — sai
+        # trong IM LẶNG, chỉ phát hiện khi đã sinh xong toàn bộ dữ liệu.
+        if "frame_stride" not in dp:
+            sys.exit(
+                "[data_pipeline] DỪNG: config thiếu `data_pipeline.frame_stride`.\n"
+                "  argparse mặc định là 1 -> sẽ sinh dữ liệu ở bước 1, lệch với train.\n"
+                "  Điền `frame_stride` vào config rồi chạy lại."
+            )
+        args.data_dir = dp.get("uav_anti_uav_dir", args.data_dir)
+        args.output_dir = dp.get("output_dir", args.output_dir)
+        args.num_before_frames = dp.get("num_before_frames", args.num_before_frames)
+        args.num_after_frames = dp.get("num_after_frames", args.num_after_frames)
+        args.frame_stride = dp.get("frame_stride", args.frame_stride)
+        args.bbox_padding = dp.get("bbox_padding", args.bbox_padding)
+        args.crop_size = dp.get("crop_size", args.crop_size)
+        args.num_workers = dp.get("num_workers", args.num_workers)
+        print(f"[data_pipeline] config={args.config} | frame_stride={args.frame_stride} "
+              f"| num_before={args.num_before_frames} | num_after={args.num_after_frames}")
+    else:
+        print(f"[data_pipeline] CẢNH BÁO: không truyền --config, dùng mặc định argparse "
+              f"(frame_stride={args.frame_stride}). Phải khớp `data_pipeline.frame_stride` "
+              f"đã dùng lúc train.")
     
     train_dir = os.path.join(args.data_dir, "Train")
     test_dir = os.path.join(args.data_dir, "Test")
@@ -323,6 +342,21 @@ def main():
         json.dump(query_test, f, indent=4)
     with open(os.path.join(args.output_dir, "gallery_test.json"), "w") as f:
         json.dump(gallery_test, f, indent=4)
+
+    # Ghi lại tham số đã dùng để sinh dữ liệu. Bốn file JSON trên chỉ chứa TÊN FILE
+    # nên không cho biết bước thời gian; nếu config đổi `frame_stride` (hoặc
+    # num_before/after, bbox_padding, crop_size) mà chưa sinh lại thì train và infer
+    # sẽ lệch nhau trong im lặng. `pipeline_lock.check_data_meta` đọc file này để cảnh báo.
+    meta = {
+        'frame_stride':      args.frame_stride,
+        'num_before_frames': args.num_before_frames,
+        'num_after_frames':  args.num_after_frames,
+        'bbox_padding':      args.bbox_padding,
+        'crop_size':         args.crop_size,
+    }
+    with open(os.path.join(args.output_dir, "pipeline_meta.json"), "w") as f:
+        json.dump(meta, f, indent=4)
+    print(f"[data_pipeline] đã ghi pipeline_meta.json: {meta}")
         
     # Print stats
     print("\n" + "="*50)

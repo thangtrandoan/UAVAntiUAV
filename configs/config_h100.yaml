@@ -37,14 +37,14 @@ train:
   stage1:
     epochs: 30
     lr: 3.5e-4
-    weight_decay: 5e-4
+    weight_decay: 5.0e-4
 
   stage2:
     epochs: 20
     lr_backbone: 1.0e-5
     lr_temporal: 1.0e-4
     lr_head: 1.0e-4
-    weight_decay: 5e-4
+    weight_decay: 5.0e-4
 
   loss:
     lam1: 1.0

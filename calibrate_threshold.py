@@ -34,6 +34,18 @@ import os
 import sys
 import json
 import yaml
+
+try:
+    from pipeline_lock import resolve_pipeline, provenance, assert_frozen
+except ImportError:  # thiếu module -> vẫn chạy được nhưng KHÔNG khóa pipeline
+    def resolve_pipeline(cfg, section, script='', verbose=True):
+        print(f"\u26a0\ufe0f  pipeline_lock.py không tìm thấy \u2014 {script} KHÔNG được khóa.")
+        return cfg.get(section) or {}
+    def provenance(cfg):
+        return {}
+    def assert_frozen(cfg):
+        return []
+
 import argparse
 import time
 import random
@@ -78,7 +90,7 @@ class CalibDataset(Dataset):
             if key in g_dict:
                 g = g_dict[key]
                 if q.get('identity_id') is not None:
-                    # 🛠️ (14/9) GIỮ LẠI metadata định danh để chẩn đoán nhiễu nhãn/trùng danh tính
+                    # (14/9) GIỮ LẠI metadata định danh để chẩn đoán nhiễu nhãn/trùng danh tính
                     # (`diagnose_top_impostors`). KHÔNG đổi `__getitem__`/dataloader: DataLoader dùng
                     # `shuffle=False` nên hàng feature khớp 1:1 với `valid_pairs` -> truy cập trực tiếp.
                     self.valid_pairs.append({
@@ -95,8 +107,8 @@ class CalibDataset(Dataset):
         return len(self.valid_pairs)
 
     def _load_clip(self, folder, frames, take_last=False):
-        # 🛠️ (15/9) ĐỒNG BỘ frame_stride — BỎ `np.linspace` (xem train_reid.py::_load_clip).
-        # `np.linspace` làm bước thời gian hiệu dụng > frame_stride → calibration lệch
+        # (15/9) ĐỒNG BỘ frame_stride — BỎ `np.linspace` (xem train_reid.py::_load_clip).
+        # `np.linspace` làm bước thời gian hiệu dụng > frame_stride calibration lệch
         # với phân phối temporal lúc train và lúc infer.
         if len(frames) > self.num_frames:
             frames = frames[-self.num_frames:] if take_last else frames[:self.num_frames]
@@ -576,6 +588,8 @@ def main():
     model_path   = ec.get('model_path',   'checkpoints/best_model.pth')
     backbone     = ec.get('backbone',     'resnet50_ibn')
     backbone_only= ec.get('backbone_only', False)
+    # (29/9) KHÓA PIPELINE (nguồn sự thật = train + data_pipeline).
+    resolve_pipeline(cfg, 'eval', script='calibrate_threshold.py')
     num_frames   = cfg.get('train', {}).get('num_frames', 16)
     batch_size   = args.batch_size or ec.get('batch_size', 32)
     num_workers  = ec.get('num_workers', 4)
@@ -609,12 +623,12 @@ def main():
         os.environ['GASNET_PATH'] = os.path.abspath(gasnet_dir)
 
     from model import UAVReIDNet, load_checkpoint_verbose
-    # 🛠️ (24/9) `temporal_pool` / `temporal_pe` CŨNG phải khớp lúc TRAIN, không chỉ `temporal_type`.
+    # (24/9) `temporal_pool` / `temporal_pe` CŨNG phải khớp lúc TRAIN, không chỉ `temporal_type`.
     # Trước đây 2 key này không được truyền -> rơi về default của `UAVReIDNet` (`pool='attn'`).
     # Với checkpoint train bằng `pool='mean'`, `attn_pool` KHÔNG có trong file nên giữ zero-init
     # -> `attn_pool(x) = mean(x)` **KHÔNG nhân `sqrt(N)`**, trong khi lúc train là `mean(x)*sqrt(N)`
     # => token temporal ở eval LỆCH so với train (N=12: lệch hệ số 3.464, và vì `out_mlp` có bias
-    #    nên BatchNorm1d KHÔNG bù được). Biểu hiện: space `temporal` tụt mạnh nhất.
+    # nên BatchNorm1d KHÔNG bù được). Biểu hiện: space `temporal` tụt mạnh nhất.
     temporal_type = cfg.get('train', {}).get('temporal_type', 'mamba')
     temporal_pool = cfg.get('train', {}).get('temporal_pool', 'attn')
     temporal_pe = bool(cfg.get('train', {}).get('temporal_pe', True))
@@ -622,7 +636,7 @@ def main():
     model = UAVReIDNet(freeze_backbone=False, backbone=backbone, temporal_type=temporal_type,
                        temporal_pool=temporal_pool, temporal_pe=temporal_pe)
     if not backbone_only and os.path.exists(model_path):
-        # 🛠️ (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch (xem model.load_checkpoint_verbose)
+        # (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch (xem model.load_checkpoint_verbose)
         load_checkpoint_verbose(model, model_path, tag="calibrate")
         print(f"  Loaded weights: {model_path}")
     else:
@@ -640,10 +654,10 @@ def main():
     test_dir = os.path.join(data_dir, 'test')
 
     # 3. Extract features
-    # 🛠️ (14/9): trích đồng thời 2 không gian để trả lời câu hỏi
+    # (14/9): trích đồng thời 2 không gian để trả lời câu hỏi
     # "BatchNorm1d trong ReIDHead có thật sự làm mất khả năng phân biệt không?"
-    #   fused  = qua head (BatchNorm1d) — pipeline hiện tại
-    #   pre_bn = cat(visual, temporal)  — đầu vào bnneck (raw)
+    # fused  = qua head (BatchNorm1d) — pipeline hiện tại
+    # pre_bn = cat(visual, temporal)  — đầu vào bnneck (raw)
     spaces = ['backbone'] if backbone_only else ['fused', 'pre_bn', 'visual', 'temporal']
     print("\n[3/5] Extracting features...")
     print(f"  Spaces    : {', '.join(spaces)}")
@@ -684,7 +698,7 @@ def main():
         print(f"  [{s}] cal: genuine={len(gen_cal):,} impostor={len(imp_cal):,} | "
               f"eval: genuine={len(gen_eval):,} impostor={len(imp_eval):,}")
 
-    # 5. Calibrate (từng không gian, cùng một quy trình Fixed-FAR → so sánh được)
+    # 5. Calibrate (từng không gian, cùng một quy trình Fixed-FAR so sánh được)
     print("\n[5/5] Calibrating threshold (Fixed FAR)...")
     results = {}
     for s in spaces:
@@ -695,7 +709,7 @@ def main():
         t_star, cal_actual_far = calibrate_fixed_far(sc['imp_cal'], far_target)
         cal_tar, _, cal_frr = eval_at_threshold(sc['gen_cal'], sc['imp_cal'], t_star)
         eval_tar, eval_actual_far, eval_frr = eval_at_threshold(sc['gen_eval'], sc['imp_eval'], t_star)
-        # 🛠️ (14/9): Rank-1/mAP để tách "ngưỡng tuyệt đối tệ" khỏi "embedding mất khả năng phân biệt"
+        # (14/9): Rank-1/mAP để tách "ngưỡng tuyệt đối tệ" khỏi "embedding mất khả năng phân biệt"
         qf_cal, gf_cal = feats_cal[s]
         qf_eval, gf_eval = feats_eval[s]
         rank1_cal, map_cal, chance_cal = rank_metrics(qf_cal, gf_cal, pids_cal, pids_cal)
@@ -724,7 +738,7 @@ def main():
               f"{r['eval_tar']*100:>13.2f}% {r['eval_far']*100:>13.4f}% "
               f"{r['rank1_eval']*100:>13.2f}% {r['mAP_eval']*100:>7.2f}%")
 
-    # 🛠️ (14/9): tách "ngưỡng tuyệt đối tệ" khỏi "embedding mất khả năng phân biệt"
+    # (14/9): tách "ngưỡng tuyệt đối tệ" khỏi "embedding mất khả năng phân biệt"
     chance = next(iter(results.values())).get('rank1_chance', float('nan'))
     print(f"\n  Moc ngau nhien cua Rank-1 (ti le genuine) = {chance*100:.2f}%")
     for s, r in results.items():
@@ -734,10 +748,10 @@ def main():
         if r1 <= chance * 2.5:
             tag = "=> Rank-1 gan muc ngau nhien: EMBEDDING mat kha nang phan biet (loi train/backbone/nhan)"
         elif r1 >= 0.50 and r['eval_tar'] < 0.30:
-            # ⚠️ KHONG ket luan ngay "luat quyet dinh": 2 gia thuyet cung giai thich duoc hien tuong:
-            #   (a) diem cosine khong so sanh duoc giua cac truy van -> SUA LUAT QUYET DINH
-            #   (b) diem cosine da tuong thich, nhung genuine/impostor CHONG LAN that su
-            #       -> van de o embedding/du lieu, phai train lai
+            # KHONG ket luan ngay "luat quyet dinh": 2 gia thuyet cung giai thich duoc hien tuong:
+            # (a) diem cosine khong so sanh duoc giua cac truy van -> SUA LUAT QUYET DINH
+            # (b) diem cosine da tuong thich, nhung genuine/impostor CHONG LAN that su
+            # -> van de o embedding/du lieu, phai train lai
             # Khoi z-norm (chay SAU) moi phan biet duoc (a) vs (b).
             tag = ("=> Rank-1 tot nhung TAR@FAR thap: HAI gia thuyet — (a) luat quyet dinh "
                    "vs (b) embedding/du lieu. Doc khoi Z-NORM ben duoi de phan biet")
@@ -752,8 +766,8 @@ def main():
                    if d_tar < -0.02 else
                    "pre_bn ~= fused -> BN vo hai ve mat phan biet")
         print(f"\n  ΔTAR(eval, pre_bn - fused) = {d_tar*100:+.2f}%  -> {verdict}")
-        # ⚠️ So sánh TƯƠNG ĐỐI chỉ nói BN có phải thủ phạm hay không; còn phải xét MỨC TUYỆT ĐỐI.
-        # 🛠️ (14/9) FIX: bản cũ hardcode "CẢ HAI" + "8.45%" và kết luận "đổi LUẬT QUYẾT ĐỊNH" —
+        # So sánh TƯƠNG ĐỐI chỉ nói BN có phải thủ phạm hay không; còn phải xét MỨC TUYỆT ĐỐI.
+        # (14/9) FIX: bản cũ hardcode "CẢ HAI" + "8.45%" và kết luận "đổi LUẬT QUYẾT ĐỊNH" —
         # SAI, vì khối z-norm ở dưới đã bác bỏ giả thuyết đó (tốt nhất +0.22%). Giờ không kết luận
         # thay, chỉ nêu 2 nhánh và để khối z-norm + ablation quyết định.
         best_space = max(results, key=lambda k: results[k]['eval_tar'])
@@ -769,7 +783,7 @@ def main():
             print(f"            -> PHEP THU: khoi ABLATION + kiem tra nhiem nhan/trung danh tinh")
             print(f"        Luu y: Rank-1 cao KHONG tu no phan biet duoc (a) va (b).")
 
-    # 🛠️ (14/9): TAR tại NHIỀU mốc FAR — threshold calibrate trên CAL, đo TAR trên EVAL (out-of-sample).
+    # (14/9): TAR tại NHIỀU mốc FAR — threshold calibrate trên CAL, đo TAR trên EVAL (out-of-sample).
     # Vì sao cần: TAR@FAR=0.1% chỉ là MỘT điểm làm việc. Nếu TAR tăng vọt ở FAR 1–5% thì vấn đề nằm ở
     # việc CHỌN ĐIỂM LÀM VIỆC (luật quyết định), không phải ở chất lượng embedding.
     far_grid = [0.001, 0.01, 0.05, 0.10]
@@ -793,10 +807,10 @@ def main():
     # === THU NGHIEM: CHUAN HOA DIEM THEO TUNG TRUY VAN (z-norm) =========================
     # Rank-1 cao + TAR@FAR thap co the do MUC diem khong so sanh duoc giua cac truy van.
     # Do ca 2 bien the de tranh ket luan sai:
-    #   cohort='all'      : mu/sd tren toan bo gallery  -> THIEN VI (gallery chua ~21 genuine
-    #                       diem CAO moi truy van, lam mu/sd phong len va de z_genuine xuong)
-    #   cohort='impostor' : mu/sd chi tren cot KHAC danh tinh -> UPPER BOUND dung cua huong nay
-    #                       (dung nhan -> deployment phai dung cohort tham chieu co nhan)
+    # cohort='all'      : mu/sd tren toan bo gallery  -> THIEN VI (gallery chua ~21 genuine
+    # diem CAO moi truy van, lam mu/sd phong len va de z_genuine xuong)
+    # cohort='impostor' : mu/sd chi tren cot KHAC danh tinh -> UPPER BOUND dung cua huong nay
+    # (dung nhan -> deployment phai dung cohort tham chieu co nhan)
     # Rank-1 bat bien o ca 2 (bien doi affine theo hang), chi DET/TAR doi.
     print(f"\n  === THU NGHIEM: chuan hoa diem theo TUNG TRUY VAN (z-norm) ===")
     print(f"  {'Space':<10} {'cohort':<9} {'t* (z, cal)':>12} {'TAR@FAR=0.1%':>13} {'so voi goc':>11} "
@@ -843,11 +857,11 @@ def main():
 
     # === ABLATION: nhanh TEMPORAL co dong gop gi khong? ==================================
     # Tra loi cau hoi "diem temporal thap hon visual => temporal co y nghia khong?".
-    # ⚠️ KHONG so muc diem (vo nghia giua cac khong gian) — so KHẢ NĂNG PHÂN BIỆT.
+    # KHONG so muc diem (vo nghia giua cac khong gian) — so KHẢ NĂNG PHÂN BIỆT.
     if 'visual' in results and 'temporal' in results:
         print(f"\n  === ABLATION: nhanh TEMPORAL dong gop bao nhieu? (eval-split) ===")
         print(f"  {'Space':<10} {'dim':>6} {'Rank-1 (eval)':>14} {'mAP':>8} {'TAR@FAR0.1%':>12} {'TAR@FAR1%':>10}")
-        # 🛠️ (24/9) TRƯỚC ĐÂY là hằng số 2560/3072 — SAI với `dinov3_convnext` (thật ra
+        # (24/9) TRƯỚC ĐÂY là hằng số 2560/3072 — SAI với `dinov3_convnext` (thật ra
         # visual=960, temporal=512, fused=pre_bn=1472). Nay suy trực tiếp từ model.
         _in_dim = int(model.head.bnneck.num_features)
         _vis_dim = 960 if backbone == "dinov3_convnext" else 2560
@@ -875,7 +889,7 @@ def main():
                   f"TAR@FAR0.1% {d_tar*100:+.2f}%")
             same_rank = (abs(d_rank1) < 0.02 and abs(d_map) < 0.02)
             same_op = abs(d_tar) < 0.01
-            # 🛠️ (14/9): điểm quan trọng — temporal có thể giúp XẾP HẠNG mà KHÔNG giúp ĐIỂM LÀM VIỆC
+            # (14/9): điểm quan trọng — temporal có thể giúp XẾP HẠNG mà KHÔNG giúp ĐIỂM LÀM VIỆC
             # (hoặc ngược lại). Phải tách 2 tiêu chí, không gộp thành một kết luận.
             if same_rank and same_op:
                 print(f"  => fused ≈ visual o MOI chi so -> nhanh TEMPORAL KHONG dong gop gi.")
@@ -1003,6 +1017,9 @@ def main():
         'model_path': model_path,
         'backbone': backbone,
         'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+        # (29/9) PROVENANCE — biết số liệu này đo theo protocol nào.
+        # Thiếu các key này thì không truy vết được (md/29thg9.md §3 việc #8).
+        'provenance': provenance(cfg),
     }
     with open(threshold_out, 'w') as f:
         json.dump(threshold_data, f, indent=4)
@@ -1019,13 +1036,13 @@ def main():
         },
         'primary_space': primary,
         'spaces': results,
-        # 🛠️ (14/9): TAR tại nhiều mốc FAR (threshold calibrate trên cal, đo trên eval)
+        # (14/9): TAR tại nhiều mốc FAR (threshold calibrate trên cal, đo trên eval)
         'far_curve': far_curve,
-        # 🛠️ (14/9): thử nghiệm z-norm theo từng truy vấn (upper bound của "đổi luật quyết định")
+        # (14/9): thử nghiệm z-norm theo từng truy vấn (upper bound của "đổi luật quyết định")
         'znorm': znorm,
-        # 🛠️ (14/9): TAR/FAR offline tại đúng ngưỡng pipeline đang dùng (cầu nối offline <-> online)
+        # (14/9): TAR/FAR offline tại đúng ngưỡng pipeline đang dùng (cầu nối offline <-> online)
         'deployed_threshold': deployed,
-        # 🛠️ (14/9): chẩn đoán nhiễu nhãn / trùng danh tính (top cặp impostor + độ tập trung)
+        # (14/9): chẩn đoán nhiễu nhãn / trùng danh tính (top cặp impostor + độ tập trung)
         'label_noise_diagnosis': diag,
         # backward compat: giữ nguyên hình dạng cũ cho không gian chính
         'calibration': {

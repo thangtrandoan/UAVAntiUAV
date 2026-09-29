@@ -1,13 +1,15 @@
-# ============================================================
-# UAVAntiUAV — Jetson AGX Orin Config
-# Mục đích: Train/eval thật trên thiết bị Jetson (unified memory)
-# ============================================================
+# ============================================================================
+# UAVAntiUAV - Jetson AGX Orin (unified memory)
+# ============================================================================
+# Cung pipeline dong bang voi config_colab.yaml. Khac o cho do phan cung:
+# batch_size, num_workers, use_amp, epochs va cac duong dan.
+# KET QUA KHONG SO TRUC TIEP duoc voi run Colab.
+# ============================================================================
 
 device:
   platform: jetson            # jetson | local | server
   gpu_jetson: true
 
-# --- Paths ---
 paths:
   data_dir: ./processed
   raw_data_dir: ../UAV-Anti-UAV
@@ -15,50 +17,64 @@ paths:
   checkpoint_dir: ./checkpoints
   log_dir: ./logs
 
-# --- Data Pipeline ---
+# ============================================================================
+# DATA PIPELINE
+# ============================================================================
 data_pipeline:
-  # 🛠️ (15/9) NGUỒN DUY NHẤT của frame_stride (xem md/15thg9.md §13).
+  # Nguon duy nhat cua buoc thoi gian; pipeline_lock ep moi script theo no.
   frame_stride: 4
   num_before_frames: 16
   num_after_frames: 16
   bbox_padding: 0.2
   crop_size: 256
   num_workers: 2
+  # Chi dung khi chay lai data_pipeline.py (phai ghi ro, xem config_colab.yaml).
+  uav_anti_uav_dir: ../UAV-Anti-UAV
+  output_dir: ./processed
 
-# --- Training ---
+# ============================================================================
+# TRAIN
+# ============================================================================
 train:
   resume: ""
   backbone: "dinov3_convnext"
-  # temporal_type: 'mamba' (SSM/S6) hoặc 'attention' (Self-Attention Transformer)
-  temporal_type: "attention"
+
+  # ---- model ----
+  temporal_type: "attention"      # "mamba" | "attention"
+  temporal_pool: attn             # to hop loi -> scale bat bien theo N
+  temporal_pe: true
+  # ---------------
+
   batch_size: 8
   num_instances: 2
-  num_frames: 16
+  num_frames: 12
   num_workers: 2
-  use_amp: false              # Jetson unified memory -> AMP dễ gây NaN
+  use_amp: false                  # unified memory -> AMP de gay NaN
   pin_memory: true
 
   stage1:
     epochs: 30
     lr: 3.5e-4
-    weight_decay: 5e-4
+    weight_decay: 5.0e-4
 
   stage2:
     epochs: 20
     lr_backbone: 1.0e-5
     lr_temporal: 1.0e-4
     lr_head: 1.0e-4
-    weight_decay: 5e-4
+    weight_decay: 5.0e-4
 
   loss:
-    lam1: 1.0                 # triplet weight
-    lam2: 0.5                 # temporal consistency weight (chưa dùng)
-    lam3: 0.05                # center loss weight
+    lam1: 1.0                 # triplet
+    lam2: 0.0                 # temporal consistency: khong dong gop gradient
+    lam3: 0.05                # center
     lr_center: 0.5
     triplet_margin: 0.3
     label_smooth: 0.1
 
-# --- Evaluation ---
+# ============================================================================
+# EVAL
+# ============================================================================
 eval:
   model_path: UAVAntiUAV/checkpoints/best_model_v2.pth
   pairs_json: ./processed/pairs_test.json
@@ -69,24 +85,26 @@ eval:
   backbone_only: false
   reid_threshold: 0.7
 
-# --- Inference ---
+# ============================================================================
+# INFER
+# ============================================================================
 infer:
   backbone: dinov3_convnext
-  temporal_type: attention
+  temporal_type: attention        # ep = train.temporal_type luc chay
   seq_dir: all
   model_path: ./best_model_conv.pth
   output_video: output_reid.mp4
   out_dir: ./infer_output/infer_3.8
-  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride. `infer.py` tự đọc và GHI ĐÈ từ
-  # `data_pipeline.frame_stride`, nên giá trị ở đây chỉ là tài liệu tham chiếu.
-  stride: 4
-  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
-  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
-  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
-  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
-  t2_search_gap_tolerance: 2
-  num_frames: 16
+
+  stride: 4                       # ep = data_pipeline.frame_stride luc chay
+  num_frames: 12                  # ep = train.num_frames luc chay
   bbox_padding: 0.2
+
+  # t2_search_gap_tolerance: so frame target vang lien tiep toi da truoc khi reset
+  # cua so soft-lock. Cua so can num_frames frame lien tuc; reset ngay khi vang 1
+  # frame thi hau het event khong bao gio du frame (md/22thg9.md §4, §8.3).
+  t2_search_gap_tolerance: 2
+
   max_anchor_size: 5
   max_recent_size: 15
   soft_lock_threshold: 0.3
@@ -94,17 +112,21 @@ infer:
   hijack_threshold: 0.40
   hijack_check_count: 5
   update_interval_sec: 2.0
-  # 🛠️ (14/9): in cosine TRƯỚC bnneck (raw) vs SAU bnneck (fused).
+
+  # debug_sim: in cosine truoc bnneck (raw) va sau bnneck (fused).
   debug_sim: true
-  # 🛠️ (14/9): không gian dùng cho gate HARD LOCK.
-  #   fused  = qua ReIDHead (BatchNorm1d) — hành vi cũ
-  #   pre_bn = cat(visual, temporal)      — đầu vào bnneck (raw cosine)
-  # ⚠️ Đổi sang pre_bn thì PHẢI đổi `reid_threshold` = thresholds.pre_bn trong
-  #    calibrated_threshold.json (chạy calibrate_threshold.py trước). Hai thang điểm khác nhau.
-  # ✅ Đã kiểm chứng 15/9: pre_bn KÉM hơn fused 2.67% TAR@FAR=0.1% -> GIỮ fused (xem md/15thg9.md §4.1).
+
+  # fine_space: khong gian dung cho gate HARD LOCK.
+  #   fused  = qua ReIDHead (BatchNorm1d)
+  #   pre_bn = cat(visual, temporal), dau vao bnneck
+  # Doi sang pre_bn thi phai doi reid_threshold = thresholds.pre_bn trong
+  # calibrated_threshold.json. Do 15/9: pre_bn kem hon fused 2.67% TAR@FAR=0.1%
+  # nen giu fused (md/15thg9.md §4.1).
   fine_space: fused
 
-# --- Inference Robustness Test ---
+# ============================================================================
+# INFER ROBUSTNESS - evaluate_reid_robustness.py
+# ============================================================================
 infer_robustness:
   seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000212
   data_root: ./data/UAV-Anti-UAV/Test
@@ -112,18 +134,11 @@ infer_robustness:
   output_video: ./output_robustness.mp4
   out_dir: ./infer_robustness_new/UAV-Anti-UAV_Test_000212_2
   backbone: "dinov3_convnext"
-  temporal_type: "attention"
-  # === New OOP Pipeline Thresholds ===
-  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4).
-  stride: 4
-  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
-  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
-  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
-  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
-  t2_search_gap_tolerance: 2
-  # 🛠️ FIX (14/9): khớp `train.num_frames: 16` (trước đây = 8).
-  # `evaluate_reid_robustness.py` đọc block này qua cfg.get('infer_robustness').
-  num_frames: 16
+  temporal_type: "attention"      # ep = train.temporal_type luc chay
+
+  stride: 4                       # ep = data_pipeline.frame_stride luc chay
+  t2_search_gap_tolerance: 2      # xem giai thich o block infer
+  num_frames: 12                  # ep = train.num_frames luc chay
   bbox_padding: 0.2
   num_imposters: 5
   max_anchor_size: 5
@@ -134,7 +149,9 @@ infer_robustness:
   hijack_check_count: 5
   update_interval_sec: 2.0
 
-# --- Real-world Inference ---
+# ============================================================================
+# INFER REALWORLD - phan_rang/infer_realworld.py
+# ============================================================================
 infer_realworld:
   video: ./phan_rang/phanrang_raptor.mp4
   yolo_model: yolov8n.pt
@@ -147,20 +164,15 @@ infer_realworld:
   out_dir: ./infer_realworld/phanrang_raptor_2
   query_img: ""
   start_sec: 13.0
-  # === New Pipeline Thresholds ===
-  # 🛠️ (15/9) PHẢI = data_pipeline.frame_stride (= 4) để khớp bước thời gian lúc train.
-  stride: 4                    # Cửa sổ trượt lấy đặc trưng cách quãng
-  # 🛠️ (22/9) NỚI RESET trong T2_SEARCH: chịu được bấy nhiêu frame target VẮNG
-  # LIÊN TIẾP trước khi reset cửa sổ soft-lock về 0 (md/22thg9.md §4, §8.3).
-  # Cửa sổ cần (num_frames-1)*stride+1 frame liên tục; 1 frame vắng mà reset ngay
-  # thì hầu hết event không bao giờ đủ frame. 0 = hành vi cũ (reset ngay).
-  t2_search_gap_tolerance: 2
-  num_frames: 16               # Số frame cần thu thập trước khi chạy Mamba
-  bbox_padding: 0.2            # Mở rộng bounding box
-  max_anchor_size: 10          # Số lượng ảnh tối đa trong Anchor Bank
-  max_recent_size: 30          # Số lượng ảnh tối đa trong Recent Bank
-  soft_lock_threshold: 0.50    # Ngưỡng Lọc Thô (Coarse ReID)
-  reid_threshold: 0.75         # Ngưỡng Lọc Tinh (Fine ReID)
-  hijack_threshold: 0.40       # Ngưỡng phát hiện bám nhầm
-  hijack_check_count: 5        # Số lần kiểm tra anti-hijack sau Hard Lock
-  update_interval_sec: 2.0     # Thời gian giữa các lần cập nhật Memory Bank (giây)
+
+  stride: 4                       # ep = data_pipeline.frame_stride luc chay
+  t2_search_gap_tolerance: 2      # xem giai thich o block infer
+  num_frames: 12                  # ep = train.num_frames luc chay
+  bbox_padding: 0.2
+  max_anchor_size: 5
+  max_recent_size: 15
+  soft_lock_threshold: 0.50
+  reid_threshold: 0.75
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  update_interval_sec: 2.0
