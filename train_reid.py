@@ -580,7 +580,11 @@ def main():
     # (22/9) Pooling + PE của temporal encoder (md/22thg9.md §31).
     # Mặc định 'attn' + PE: attention CHỌN được vị trí nên PE trở nên có ích (§30.5).
     # `infer.py`/`evaluate_reid_robustness.py` tạo model bằng DEFAULT nên PHẢI khớp.
+    # (1/10) Kien truc backbone phai khop luc train. Opt-in: thieu key = DINOv3 goc.
+    _econvnext = bool(tc.get('econvnext', False))
+    print(f"  Kien truc backbone: {'E-ConvNeXt (II)' if _econvnext else 'DINOv3 goc'}")
     model = UAVReIDNet(
+        econvnext=_econvnext,
         gasnet_weights_path=args.gasnet_weights or None,
         num_identities=num_identities,
         freeze_backbone=True,
@@ -877,22 +881,56 @@ def main():
                   f"(có thể TỆ HƠN best).")
         
         model.unfreeze_backbone()
+
+        # (1/10) BN của backbone trong Stage 2: đóng băng weight/bias + hạ momentum
+        # 0.1 -> 0.01. BN cập nhật running_mean/var bằng momentum cố định, KHÔNG đi
+        # qua optimizer, nên lr = 1e-5 không hãm được nó: momentum 0.1 cho
+        # 0.9^7 = 0.478 (lệch ~50% chỉ sau 7 bước); momentum 0.01 cho
+        # 0.99^70 = 0.495 (lệch ~50% sau 70 bước), tức chậm hơn 10 lần. BN vẫn ở
+        # train() để tiếp tục thích nghi với domain UAV.
+        n_bn_frozen = 0
+        for _m in model.backbone.modules():
+            if isinstance(_m, nn.BatchNorm2d):
+                _m.weight.requires_grad = False
+                _m.bias.requires_grad = False
+                _m.momentum = 0.01
+                n_bn_frozen += 1
+        print(f"  Stage 2: đóng băng weight/bias + momentum=0.01 cho {n_bn_frozen} BatchNorm2d")
         
         # Phân tách trọng số có sẵn (pretrained) và trọng số random (GA, FS, Head...)
         pretrained_params = []
         random_params = []
-        
+        new_module_params = []
+
+        # (1/10) Module MỚI của E-ConvNeXt: stem + CSPStage (down, conv1/2/3, attn) +
+        # ESE trong block. Đây là random-init, KHÔNG có trọng số pretrain, nên nếu để
+        # lẫn vào nhóm `pretrained_params` (lr 1e-5) thì cổng ESE — khởi tạo
+        # fc.weight = 0, fc.bias = 0 nên công đứng đúng 0.5 — sẽ gần như không dịch
+        # chuyển, và thay đổi A thành vô hiệu. Tách ra lr 1e-4 như mọi thứ random.
+        # Các tensor còn lại của stage1/stage2 (depthwise_conv, norm, pointwise_conv1/2,
+        # norm2) ĐÃ được cắt từ pretrain nên vẫn thuộc nhóm pretrained.
+        NEW_TAGS = (".stem.", ".down.", ".conv1.", ".conv2.", ".conv3.", ".attn.", ".ese.")
+
         for name, param in model.backbone.named_parameters():
+            if "convnext_backbone" in name and any(t in name for t in NEW_TAGS):
+                new_module_params.append(param)
             # convnext_backbone + ga1-4 + fs1-2 đều có weights từ GASNet đã train VRU
             # thuộc nhóm pretrained (lr thấp 1e-5, fine-tune nhẹ lên domain UAV)
-            if "convnext_backbone" in name or "swin_backbone" in name or "base" in name or "ga" in name or "fs" in name:
+            elif "convnext_backbone" in name or "swin_backbone" in name or "base" in name or "ga" in name or "fs" in name:
                 pretrained_params.append(param)
             else:
                 # bnneck, classifier... là random/thay đổi theo num_identities UAV
                 random_params.append(param)
-                
+
+        _n_new = sum(p.numel() for p in new_module_params)
+        _n_all = sum(p.numel() for p in model.backbone.parameters())
+        print(f"  Stage 2 param groups: pretrained {len(pretrained_params)} tensor, "
+              f"module mới {len(new_module_params)} tensor ({_n_new/1e6:.3f} M = "
+              f"{100*_n_new/_n_all:.2f}% backbone), random {len(random_params)} tensor")
+
         param_groups = [
             {'params': pretrained_params, 'lr': args.lr_stage2_backbone},              # 1e-5
+            {'params': new_module_params, 'lr': args.lr_stage2_temporal},              # 1e-4
             {'params': random_params, 'lr': args.lr_stage2_temporal},                  # 1e-4 (dùng chung mức LR to)
             {'params': model.temporal_encoder.parameters(), 'lr': args.lr_stage2_temporal}, # 1e-4
             {'params': model.head.parameters(), 'lr': args.lr_stage2_head}             # 1e-4

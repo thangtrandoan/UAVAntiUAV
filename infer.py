@@ -892,7 +892,9 @@ def main():
     temporal_pe = bool(inf_cfg.get(
         'temporal_pe', cfg.get('train', {}).get('temporal_pe', True)))
     print(f"Temporal encoder: type={temporal_type}, pool={temporal_pool}, pe={temporal_pe}")
-    model = UAVReIDNet(backbone=backbone_type, temporal_type=temporal_type,
+    # (1/10) Kien truc phai khop luc train (giong temporal_pool/temporal_pe).
+    _econvnext = bool(cfg.get('train', {}).get('econvnext', False))
+    model = UAVReIDNet(econvnext=_econvnext, backbone=backbone_type, temporal_type=temporal_type,
                        temporal_pool=temporal_pool, temporal_pe=temporal_pe)
     model_path = args.checkpoint or inf_cfg.get('model_path', './best_model.pth')
     if os.path.exists(model_path):

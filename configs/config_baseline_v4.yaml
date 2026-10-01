@@ -1,0 +1,209 @@
+# ============================================================================
+# UAVAntiUAV - pipeline dong bang (Colab / A100)
+# ============================================================================
+# Chi sua model. Moi thu khac trong file nay la hang so.
+#   bien tu do duy nhat : train.temporal_type ("mamba" | "attention") + model.py
+#   khi doi model, doi 4 duong dan : paths.checkpoint_dir, paths.log_dir,
+#   eval.output_dir, infer.out_dir. Doi key khac => khong so duoc voi run truoc.
+#
+# Ly do tung hang so (N=12, pool=attn, lam2=0, tat early-stop, soft_lock=0):
+#   md/pipeline.md muc "Pipeline dong bang"; md/29thg9.md §5.
+# ============================================================================
+
+device:
+  platform: colab
+  gpu_jetson: false
+
+paths:
+  raw_data_dir: /content/UAV-Anti-UAV
+  gasnet_weights: /content/drive/MyDrive/output/gasnet_convnext_v0.best.pth
+  gasnet_dir: /content/UAVAntiUAV/gasnet
+  data_dir: /content/processed
+  # Checkpoint luu truc tiep len Drive de tranh mat khi Colab ngat.
+  checkpoint_dir: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/v4.0-base
+  log_dir: /content/drive/MyDrive/UAV_Anti_UAV/logs/v4.0-base
+
+# ============================================================================
+# DATA PIPELINE
+# ============================================================================
+# frame_stride la nguon duy nhat cua buoc thoi gian; pipeline_lock ep moi script
+# theo no. Thieu key => trien khai lay buoc khac luc train (md/29thg9.md §2.4).
+data_pipeline:
+  frame_stride: 4
+  # 16 frame/bien = dau du de do N toi 16; _load_clip chi lay N frame
+  # (gallery = N frame cuoi sat t1, query = N frame dau sat t2).
+  num_before_frames: 16
+  num_after_frames: 16
+  bbox_padding: 0.2
+  crop_size: 256
+  num_workers: 8
+  # Chi dung khi chay lai data_pipeline.py. Phai ghi ro vi argparse cua no mac
+  # dinh --data-dir ../UAV-Anti-UAV va --output-dir ./processed, khac paths.
+  uav_anti_uav_dir: /content/UAV-Anti-UAV
+  output_dir: /content/processed
+
+# ============================================================================
+# TRAIN - 12 x 3 = 36 anh/buoc; stage1 30 + stage2 30
+# ============================================================================
+train:
+  resume: ""                      # moi lan doi model la trong so khong tuong thich
+  resume_best_rank1: -1.0
+  backbone: "dinov3_convnext"     # dinov3: D_vis=960, fused=1472
+
+  batch_size: 12
+  num_instances: 3
+  num_frames: 12
+  # Khong khai bao n_frames_choices: N co dinh = num_frames. Them key nay la mo
+  # lai bien random-N va pha so sanh.
+
+  # ---- MODEL (bien tu do) ----
+  temporal_type: "attention"      # "mamba" | "attention"
+  temporal_pool: attn             # "attn" | "mean"
+  temporal_pe: true
+  # ---------------------------
+
+  num_workers: 8
+  use_amp: true
+  pin_memory: true
+  use_compile: true
+  compile_dynamic: false          # tranh Inductor CantSplit o backward stage 2
+
+  val_freq: 5
+  # Chi de do do ben theo N; khong anh huong train, khong dung de chon best.
+  val_n_list: [8, 12, 16]
+
+  stop_on_target: false
+  early_stop_patience: 0
+  early_stop_min_delta: 1.0e-4
+  target_rank1: 0.85
+  target_spread: 0.05
+
+  stage1:
+    epochs: 30
+    lr: 3.5e-4
+    weight_decay: 5.0e-4
+
+  stage2:
+    epochs: 30
+    lr_backbone: 1.0e-5
+    lr_temporal: 1.0e-4
+    lr_head: 1.0e-4
+    weight_decay: 5.0e-4
+
+  loss:
+    lam1: 1.0
+    lam2: 0.0                     # tat tuong minh, xem dau file
+    lam3: 0.001                   # nho vi center loss tinh tren feature tho 1472-d
+    lr_center: 0.5
+    triplet_margin: 0.3
+    label_smooth: 0.1
+
+# ============================================================================
+# EVAL - evaluate_reid.py (ca 340 sequence)
+# ============================================================================
+eval:
+  model_path: /content/best_model.pth
+  query_json: /content/processed/query_test.json
+  gallery_json: /content/processed/gallery_test.json
+  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results/v4.0-base
+  batch_size: 32
+  num_workers: 8
+  backbone: "dinov3_convnext"     # phai trung train.backbone
+  backbone_only: false
+  reid_threshold: 0.7
+  intra_sequence: false
+  space: fused
+  max_correct_vis: 0
+  # Threshold lay tu calibrate_threshold.py. Doi `space` thi phai doi
+  # reid_threshold theo thresholds.<space> vi hai thang diem khac nhau.
+  threshold_file: /content/drive/MyDrive/UAV_Anti_UAV/calib_results/calibrated_threshold.json
+
+# ============================================================================
+# CALIBRATION - calibrate_threshold.py (chia cal/eval theo sequence_id)
+# ============================================================================
+calibration:
+  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/calib_results/v3.8
+  cal_ratio: 0.4                  # 40% sequence tim threshold, 60% holdout de bao cao
+  far_target: 0.001               # FAR muc tieu 0.1%
+  seed: 42
+
+# ============================================================================
+# INFER - infer.py (T0..T3 tren video tho)
+# ============================================================================
+infer:
+  backbone: dinov3_convnext       # phai trung train.backbone
+  seq_dir: all
+  model_path: /content/best_model.pth
+  output_video: output_reid.mp4
+  out_dir: ./infer_output/infer_pipeline_4.0-base
+
+  stride: 4                       # ep = data_pipeline.frame_stride luc chay
+  num_frames: 12                  # ep = train.num_frames luc chay
+  bbox_padding: 0.2
+
+  # --- memory bank ---
+  max_anchor_size: 5
+  max_recent_size: 15
+  update_interval_sec: 2.0        # chu ky cap nhat bank
+  time_source: video              # dem theo thoi gian video, khong theo dong ho tuong
+
+  # --- cong quyet dinh ---
+  soft_lock_threshold: 0.0        # 0.0 = khong loc, xem dau file
+  reid_threshold: 0.75            # = thresholds.fused; calibrate lai khi doi model
+  fine_space: fused               # khong gian dung cho HARD LOCK
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  t2_search_gap_tolerance: 2      # so frame vang lien tiep toi da truoc khi reset cua so
+  debug_sim: true
+
+# ============================================================================
+# INFER REALWORLD - phan_rang/infer_realworld.py (video tho + detector YOLO)
+# ============================================================================
+# Phai co block nay: thieu no thi moi key roi ve default trong code, trong do
+# backbone mac dinh la "resnet50_ibn" => dung sai kien truc.
+infer_realworld:
+  backbone: dinov3_convnext       # ep = train.backbone luc chay
+  video: ''                       # bat buoc: truyen --video hoac dien duong dan
+  query_img: ''
+  start_sec: 0.0
+  yolo_model: yolov8n.pt
+  detector_conf: 0.1
+  detector_imgsz: 1088
+  detector_classes: [4]           # class 'airplane' cua COCO
+  lost_threshold: 10              # so frame mat dau lien tiep truoc khi coi la lost
+  model_path: /content/best_model.pth
+  output_video: output_realworld.mp4
+  out_dir: ./infer_output/infer_realworld
+
+  stride: 4                       # ep = data_pipeline.frame_stride luc chay
+  num_frames: 12                  # ep = train.num_frames luc chay
+  bbox_padding: 0.2
+
+  max_anchor_size: 5
+  max_recent_size: 15
+  update_interval_sec: 2.0
+  time_source: video
+
+  soft_lock_threshold: 0.0
+  reid_threshold: 0.75            # = thresholds.fused; calibrate lai khi doi model
+  fine_space: fused
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  t2_search_gap_tolerance: 2
+
+# ============================================================================
+# INFER ROBUSTNESS - evaluate_reid_robustness.py
+# ============================================================================
+infer_robustness:
+  seq_dir: /content/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  data_root: /content/UAV-Anti-UAV/Test
+  model_path: /content/best_model.pth
+  output_video: output_robustness.mp4
+  backbone: "dinov3_convnext"     # phai trung train.backbone
+  reid_threshold: 0.7
+  stride: 4                       # ep = data_pipeline.frame_stride luc chay
+  num_frames: 12                  # ep = train.num_frames luc chay
+  bbox_padding: 0.2
+  num_imposters: 10
+  time_source: video
+  t2_search_gap_tolerance: 2

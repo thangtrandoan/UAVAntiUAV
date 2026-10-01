@@ -309,7 +309,9 @@ def main():
     temporal_pool = cfg.get('eval', {}).get('temporal_pool', cfg.get('train', {}).get('temporal_pool', 'attn'))
     temporal_pe = bool(cfg.get('eval', {}).get('temporal_pe', cfg.get('train', {}).get('temporal_pe', True)))
     print(f"Temporal encoder: type={temporal_type}, pool={temporal_pool}, pe={temporal_pe}")
-    model = UAVReIDNet(freeze_backbone=False, backbone=args.backbone, temporal_type=temporal_type,
+    # (1/10) Kien truc phai khop luc train (giong temporal_pool/temporal_pe).
+    _econvnext = bool(cfg.get('train', {}).get('econvnext', False))
+    model = UAVReIDNet(econvnext=_econvnext, freeze_backbone=False, backbone=args.backbone, temporal_type=temporal_type,
                        temporal_pool=temporal_pool, temporal_pe=temporal_pe)
     if not args.backbone_only:
         if os.path.exists(args.model_path):

@@ -562,7 +562,9 @@ def main():
         'temporal_pe', cfg.get('train', {}).get('temporal_pe', True)))
     print(f"Initializing ReID Model with {backbone_type} backbone, "
           f"temporal={temporal_type}, pool={temporal_pool}, pe={temporal_pe}...")
-    model = UAVReIDNet(backbone=backbone_type, temporal_type=temporal_type,
+    # (1/10) Kien truc phai khop luc train (giong temporal_pool/temporal_pe).
+    _econvnext = bool(cfg.get('train', {}).get('econvnext', False))
+    model = UAVReIDNet(econvnext=_econvnext, backbone=backbone_type, temporal_type=temporal_type,
                        temporal_pool=temporal_pool, temporal_pe=temporal_pe)
     model_path = inf_cfg.get('model_path', './best_model.pth')
     if os.path.exists(model_path):
