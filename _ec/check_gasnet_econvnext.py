@@ -31,6 +31,7 @@ NEEDED = [
     "BNNeck",
     "GeMPool",
     # E-ConvNeXt
+    "LayerNorm2d",
     "EffectiveSELayer",
     "EConvNeXtBlock",
     "ConvBNGELU",
@@ -44,12 +45,17 @@ NEEDED = [
 
 def load_classes() -> dict:
     tree = ast.parse(SRC.read_text(encoding="utf-8"))
+    consts = {"SIGMA_B"}
     body = [
         n
         for n in tree.body
-        if isinstance(n, (ast.FunctionDef, ast.ClassDef)) and n.name in NEEDED
+        if (isinstance(n, (ast.FunctionDef, ast.ClassDef)) and n.name in NEEDED)
+        or (
+            isinstance(n, ast.Assign)
+            and any(getattr(t, "id", None) in consts for t in n.targets)
+        )
     ]
-    missing = set(NEEDED) - {n.name for n in body}
+    missing = set(NEEDED) - {getattr(n, "name", None) for n in body}
     if missing:
         raise SystemExit(f"Thieu: {sorted(missing)}")
     ns = {"torch": torch, "nn": nn, "F": F, "os": os}

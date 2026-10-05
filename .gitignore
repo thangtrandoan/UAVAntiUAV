@@ -35,3 +35,5 @@ infer_output/
 *.mp4
 *.whl
 **/*.whl
+
+_ec/
