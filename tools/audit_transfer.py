@@ -210,7 +210,7 @@ def main():
         ps = list(mod.parameters()) + list(mod.buffers())
         tot_drop += sum(t.numel() for t in ps)
         print(f"    - {nm:<52} {sum(t.numel() for t in ps):>9,} tham so", flush=True)
-    print(f"    TONG bi bo: {tot_drop:,} tham so -> thay bang stem moi (28,416) + stage1.down (20,720)",
+    print(f"    TONG bi bo: {tot_drop:,} tham so -> thay bang stem moi + stage1.down (xem phan B)",
           flush=True)
     check("cac tensor bi bo deu co chu dinh (thay bang module moi)", True)
 
@@ -218,33 +218,37 @@ def main():
     print("\n" + "=" * 78, flush=True)
     print("  B. TENSOR DICH KHONG DEN TU PRETRAIN (module moi)", flush=True)
     print("=" * 78, flush=True)
-    groups = {"stem.": 0, "stage1.down.": 0, "stage1.conv1.": 0, "stage1.conv2.": 0,
-              "stage1.conv3.": 0, "stage1.attn.": 0, "stage1.blocks.": 0,
-              "stage2.down.": 0, "stage2.conv1.": 0, "stage2.conv2.": 0,
-              "stage2.conv3.": 0, "stage2.attn.": 0, "stage2.blocks.": 0,
-              "stage3.downsample_layers.0.running": 0, "stage4.downsample_layers.0.running": 0}
-    tot_new = 0
-    for n, t in new.named_parameters():
-        if "running" in n:
-            continue
-        hit = None
-        for g in groups:
-            if n.startswith(g):
-                hit = g
-                break
-        if hit:
+    GROUPS = (
+        "stem.", "stage1.down.", "stage1.conv1.", "stage1.conv2.", "stage1.conv3.",
+        "stage1.attn.", "stage1.blocks.",
+        "stage2.down.", "stage2.conv1.", "stage2.conv2.", "stage2.conv3.",
+        "stage2.attn.", "stage2.blocks.",
+    )
+    groups = {g: 0 for g in GROUPS}
+    tot_all = 0
+    outside = 0
+    n_outside = 0
+    # Phan loai MOI tham so VA buffer theo tien to module. Truoc day buffer co nhanh
+    # rieng va tinh khoa nham (vi du "stem.bn.running" thay vi "stem."), nen running
+    # stats cua BatchNorm bi cong vao TONG ma khong roi vao NHOM nao -> tong khong
+    # bang tong cac nhom. Gop ve mot duong phan loai duy nhat de khong tai dien.
+    for n, t in list(new.named_parameters()) + list(new.named_buffers()):
+        tot_all += t.numel()
+        hit = next((g for g in GROUPS if n.startswith(g)), None)
+        if hit is None:
+            outside += t.numel()
+            n_outside += 1
+        else:
             groups[hit] += t.numel()
-            tot_new += t.numel()
-    for n, t in new.named_buffers():
-        if "running_mean" in n or "running_var" in n:
-            key = n.split("running")[0] + "running"
-            if key in groups:
-                groups[key] += t.numel()
-            tot_new += t.numel()
+    tot_new = sum(groups.values())
     for g, v in groups.items():
         if v:
             print(f"    {g:<42} {v:>10,} tham so", flush=True)
     print(f"    {'TONG module moi':<42} {tot_new:>10,} tham so", flush=True)
+    print(f"    {'NGOAI nhom (stage3/stage4 copy tu pretrain)':<42} {outside:>10,} tham so "
+          f"({n_outside} tensor)", flush=True)
+    check("tong module moi + ngoai nhom = toan bo model", tot_new + outside == tot_all,
+          f"{tot_new:,} + {outside:,} = {tot_new + outside:,} / model {tot_all:,}")
 
     # ---------- C. tuong duong chuc nang ca stage voi LayerNorm ----------
     print("\n" + "=" * 78, flush=True)
