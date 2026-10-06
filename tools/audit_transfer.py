@@ -214,9 +214,12 @@ def main():
           flush=True)
     check("cac tensor bi bo deu co chu dinh (thay bang module moi)", True)
 
-    # ---------- B. tensor dich khong den tu pretrain ----------
+    # ---------- B. tensor duoi tien to module moi ----------
+    # LUU Y: nhom theo TIEN TO, nen "stage1.blocks." va "stage2.blocks." bao gom CA cac
+    # tensor cat tu pretrain (da doi chieu o phan A) — khong phai tat ca deu la module moi.
     print("\n" + "=" * 78, flush=True)
-    print("  B. TENSOR DICH KHONG DEN TU PRETRAIN (module moi)", flush=True)
+    print("  B. TENSOR DUOI TIEN TO MODULE MOI (gom ca phan cat tu pretrain trong blocks)",
+          flush=True)
     print("=" * 78, flush=True)
     GROUPS = (
         "stem.", "stage1.down.", "stage1.conv1.", "stage1.conv2.", "stage1.conv3.",

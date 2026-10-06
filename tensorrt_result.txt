@@ -1,0 +1,30 @@
+Temporal:
+    Throughput: 1574.34 qps
+    Latency: min = 0.60376 ms, max = 3.24756 ms, mean = 0.646457 ms, median = 0.622955 ms, percentile(90%) = 0.633667 ms, percentile(95%) = 0.871582 ms, percentile(99%) = 1.00146 ms
+
+Backbone
+    convnext:
+        maxShape: 4x3x224x224:
+            Throughput: 102.008 qps
+            Latency: min = 7.3418 ms, max = 13.6991 ms, mean = 9.80527 ms, median = 10.2361 ms, percentile(90%) = 11.5349 ms, percentile(95%) = 12.221 ms, percentile(99%) = 13.1337 ms
+        maxShape: 12x3x224x224:
+            Throughput: 133.771 qps
+            Latency: min = 7.35236 ms, max = 13.1122 ms, mean = 7.49508 ms, median = 7.38403 ms, percentile(90%) = 7.41187 ms, percentile(95%) = 7.7672 ms, percentile(99%) = 10.6613 ms
+        Throughput: 110.907 qps
+        Latency: min = 8.41333 ms, max = 11.3304 ms, mean = 9.03208 ms, median = 9.03296 ms, percentile(90%) = 9.43506 ms, percentile(95%) = 9.84351 ms, percentile(99%) = 10.2905 ms
+
+    resnet50: 
+        maxShape 12x3x224x224
+            Throughput: 163.226 qps
+            Latency: min = 6.06128 ms, max = 7.32495 ms, mean = 6.15229 ms, median = 6.09009 ms, percentile(90%) = 6.38123 ms, percentile(95%) = 6.45361 ms, percentile(99%) = 7.22461 ms
+        maxShape 16x3x224x224:
+            Throughput: 161.155 qps
+            Latency: min = 6.14862 ms, max = 9.1228 ms, mean = 6.22936 ms, median = 6.16663 ms, percentile(90%) = 6.18924 ms, percentile(95%) = 6.24591 ms, percentile(99%) = 8.79297 ms
+
+    econvnext: 
+        maxShape 12x3x224x224:
+            Throughput: 129.111 qps
+            Latency: min = 7.55701 ms, max = 9.19641 ms, mean = 7.7686 ms, median = 7.65221 ms, percentile(90%) = 7.95288 ms, percentile(95%) = 8.15222 ms, percentile(99%) = 8.78101 ms
+        maxShape 16x3x224x224:
+            Throughput: 87.9159 qps
+            Latency: min = 8.11234 ms, max = 22.1497 ms, mean = 11.3927 ms, median = 11.0318 ms, percentile(90%) = 13.5914 ms, percentile(95%) = 14.272 ms, percentile(99%) = 18.8082 ms

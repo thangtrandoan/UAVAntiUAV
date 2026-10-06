@@ -1,9 +1,10 @@
+import os
 """Nạp checkpoint kèm báo cáo missing / unexpected / lệch shape."""
 
 import torch
 
 from .temporal_mamba import HAS_MAMBA
-
+import os
 
 def _is_classifier_key(name):
     """
@@ -247,7 +248,7 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
         'temporal_unexpected': temporal_unexpected,
         'classifier_missing': classifier_missing,
         'classifier_shape_mismatch': [s[0] for s in classifier_mismatch],
-        'temporal_impl_checkpoint': ck_impl if ck_x is not None else None,
+        'temporal_impl_checkpoint': ck_impl if "ck_impl" in locals() else None,
         'temporal_impl_active': active_impl,
         'temporal_arch_ok': temporal_arch_ok,
     }
