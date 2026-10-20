@@ -1,0 +1,49 @@
+# Config cho inference với backbone resnet50_ibn (checkpoint best_model_v1.pth)
+# Tạo 20/10 để chạy debug_sim, xem breakdown visual / temporal / PRE-BN raw / POST-BN fused.
+# Các tham số pipeline (num_frames/stride/backbone/temporal_*) lấy từ block `train` +
+# `data_pipeline` theo pipeline_lock.py; block `infer` chỉ override khi cần.
+
+paths:
+  data_dir: ./processed
+  raw_data_dir: ../UAV-Anti-UAV
+
+data_pipeline:
+  frame_stride: 4
+  num_before_frames: 16
+  num_after_frames: 16
+  bbox_padding: 0.2
+  crop_size: 256
+
+train:
+  backbone: resnet50_ibn          # <-- resnet50-IBN
+  temporal_type: mamba            # v1 checkpoint dùng Mamba (A_log/dt_proj/conv1d)
+  temporal_pool: mean             # v1 KHÔNG có attn_pool.* -> pool='mean'
+  temporal_pe: true               # có pos_embed
+  num_frames: 12
+
+infer:
+  backbone: resnet50_ibn
+  temporal_type: mamba
+  temporal_pool: mean
+  temporal_pe: true
+  seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  model_path: ./best_model_v1.pth
+  output_video: output_reid.mp4
+  out_dir: ./infer_output/resnet50_ibn_20thg10
+
+  stride: 4
+  num_frames: 12
+  bbox_padding: 0.2
+
+  t2_search_gap_tolerance: 2
+
+  max_anchor_size: 5
+  max_recent_size: 15
+  soft_lock_threshold: 0.3
+  reid_threshold: 0.75
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  update_interval_sec: 2.0
+
+  debug_sim: true
+  fine_space: fused

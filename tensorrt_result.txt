@@ -26,5 +26,5 @@ Backbone
             Throughput: 129.111 qps
             Latency: min = 7.55701 ms, max = 9.19641 ms, mean = 7.7686 ms, median = 7.65221 ms, percentile(90%) = 7.95288 ms, percentile(95%) = 8.15222 ms, percentile(99%) = 8.78101 ms
         maxShape 16x3x224x224:
-            Throughput: 87.9159 qps
-            Latency: min = 8.11234 ms, max = 22.1497 ms, mean = 11.3927 ms, median = 11.0318 ms, percentile(90%) = 13.5914 ms, percentile(95%) = 14.272 ms, percentile(99%) = 18.8082 ms
+            Throughput: 109.796 qps
+            Latency: min = 8.68079 ms, max = 11.2334 ms, mean = 9.11852 ms, median = 9.11189 ms, percentile(90%) = 9.46948 ms, percentile(95%) = 9.97223 ms, percentile(99%) = 10.3005 ms
