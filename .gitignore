@@ -38,3 +38,29 @@ infer_output/
 **/*.whl
 
 _ec/
+
+# Build C++/CUDA (trt_cpp/) — artifact sinh ra, không phải mã nguồn.
+# `trt_cpp/build/` chứa CMakeCache, object và 2 binary ~6.5 MB.
+trt_cpp/build/
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+*.o
+*.obj
+*.d
+*.a
+*.so
+*.so.*
+
+# Cache của công cụ Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# File tạm khi thử engine
+*.engine.tmp
+*.timing
+demo*.mp4
+trt_demo*.mp4
