@@ -36,12 +36,14 @@ inline uav::HostFrame frame(const unsigned char* img, int w, int h, int stride) 
 extern "C" {
 
 // Mở engine. `bgr` = 1 nếu ảnh nguồn là BGR (cv2.imread / cv2 VideoCapture).
+// `num_frames <= 0` = lấy N từ engine temporal (khuyến nghị: engine là nguồn
+// tin, config có thể đã lệch).
 void* uav_create(const char* backbone_plan, const char* temporal_plan,
                  int num_frames, int device, int bgr) {
   uav::Pipeline::Config cfg;
   cfg.backbone_plan = backbone_plan;
   cfg.temporal_plan = temporal_plan;
-  cfg.num_frames = num_frames;
+  cfg.num_frames = num_frames > 0 ? num_frames : 0;  // 0 = tự đọc từ engine
   cfg.max_clips = 1;
   cfg.device = device;
   cfg.order = (bgr != 0) ? uav::ChannelOrder::kBGR : uav::ChannelOrder::kRGB;

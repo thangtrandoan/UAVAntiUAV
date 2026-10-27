@@ -11,16 +11,22 @@ KHÔNG sửa `infer.py`. Chỉ thay đúng các điểm nối của nó:
 Toàn bộ phần còn lại — đọc video, bbox GT, Memory Bank, SOFT/HARD LOCK, vẽ,
 `cv2.VideoWriter` — vẫn là code của `infer.py`, nên chỉ có MỘT nguồn sự thật.
 
-Chạy:
-    cd trt_cpp
-    ../uav_env/bin/python infer_trt.py \\
-        --engine-backbone ../v1_backbone.engine \\
-        --engine-temporal ../v1_temporal.engine \\
-        --config ../configs/config_jetson.yaml \\
-        --seq-dir ../data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000169 \\
-        --out-dir ../infer_output/trt_000169
+Chạy (mọi thứ khác đọc từ config, gồm cả đường dẫn engine):
+    uav_env/bin/python trt_cpp/infer_trt.py \\
+        --config configs/config_resnet50_ibn.yaml
 
-Mọi cờ khác được chuyển nguyên cho `infer.py` (`--checkpoint`, `--out-dir`...).
+Ghi đè khi cần:
+    --engine-backbone / --engine-temporal   (mặc định: trt.backbone_engine / trt.temporal_engine)
+    --num-frames                            (mặc định: infer.num_frames)
+
+Mọi cờ khác được chuyển nguyên cho `infer.py` (`--seq-dir`, `--checkpoint`,
+`--out-dir`...); thiếu thì `infer.py` tự lấy `infer.seq_dir` / `infer.model_path`
+/ `infer.out_dir` trong config, nên bình thường không phải gõ.
+
+Quét nhiều N: engine temporal bị khóa cứng theo N lúc export (vòng lặp selective
+scan bị unroll), nên mỗi N cần một engine riêng. Đổi N khi chạy bằng:
+
+    --num-frames 8   # ghi đè infer.num_frames, phải khớp N của engine
 """
 
 from __future__ import annotations
@@ -67,10 +73,42 @@ class RawCrop:
 TRANSFORM = RawCrop()
 ENGINE: ReIDEngine | None = None
 
+# Engine hiện chỉ xuất `reid_embed`; `temporal_token` / `raw_feat` không có nên
+# hai tầng điểm đó KHÔNG đo được. Bật lên khi export temporal kèm đầu ra
+# `temporal_token` và bổ sung đường đọc tương ứng ở C++.
+_HAS_TOKEN = False
 
-def _install(engine: ReIDEngine) -> None:
+
+_PATH_FLAGS = ("--config", "--seq-dir", "--out-dir", "--checkpoint")
+
+
+def _absolutize(argv, base: str):
+    """Đổi giá trị của các cờ đường dẫn sang tuyệt đối theo `base`."""
+    out = list(argv)
+    for i, a in enumerate(out[:-1]):
+        if a in _PATH_FLAGS:
+            v = out[i + 1]
+            if v and not os.path.isabs(v):
+                out[i + 1] = os.path.normpath(os.path.join(base, v))
+    return out
+
+
+def _install(engine: ReIDEngine, force_n: int = 0) -> None:
     global ENGINE
     ENGINE = engine
+
+    # `--num-frames` ghi đè N ngay trong `resolve_pipeline` của infer.py, để
+    # sweep nhiều N mà không phải sửa config mỗi lần.
+    if force_n:
+        _orig_resolve = infer.resolve_pipeline
+
+        def _resolve(cfg, section, script="", verbose=True):
+            sec = _orig_resolve(cfg, section, script, verbose)
+            if section == "infer":
+                sec["num_frames"] = force_n
+            return sec
+
+        infer.resolve_pipeline = _resolve
 
     # --- 2. backbone ------------------------------------------------------
     def _extract(model, tensor_frame):
@@ -101,16 +139,52 @@ def _install(engine: ReIDEngine) -> None:
     infer.compute_fused_vector = _fused
 
     # --- 4. _max_sim chịu None -------------------------------------------
-    # temporal_token/raw_feat là None nên F.normalize(None) sẽ nổ; trả 0.0 và
-    # phần debug in ra 0.000 (đúng nghĩa "không có số liệu").
+    # temporal_token/raw_feat là None nên F.normalize(None) sẽ nổ. Trả NaN chứ
+    # KHÔNG trả 0.0: 0.0 trông như "điểm thật bằng 0" và dẫn tới kết luận sai,
+    # còn NaN in ra là `nan` — thấy ngay là không có số liệu.
     _orig_max_sim = infer.TwoTierMemoryBank._max_sim
 
     def _max_sim(self, query_feat, key):
         if query_feat is None:
-            return 0.0
+            return float("nan")
         return _orig_max_sim(self, query_feat, key)
 
     infer.TwoTierMemoryBank._max_sim = _max_sim
+
+    # --- 4b. không để bảng tổng kết kết luận sai --------------------------
+    # `format_bn_debug_lines` (infer.py:654) thấy pre_mean = 0.0 < 0.70 nên in
+    # "raw cũng thấp sẵn -> lỗi nằm ở feature (temporal/dữ liệu train)". Với
+    # engine, 0.0 đó KHÔNG phải phép đo mà là "không có dữ liệu" -> kết luận
+    # hoàn toàn sai. Thay bằng báo cáo trung thực.
+    _orig_bn_lines = infer.format_bn_debug_lines
+
+    def _bn_lines(pre_scores, post_scores, thr, tag_counts=None,
+                  n_false_alarms=None):
+        if _HAS_TOKEN:
+            return _orig_bn_lines(pre_scores, post_scores, thr, tag_counts,
+                                  n_false_alarms)
+        post = np.asarray(post_scores or [], dtype=np.float64)
+        out = ["Sim PRE-BN  (raw concat)   : KHONG CO SO LIEU — engine chi xuat "
+               "reid_embed"]
+        if post.size:
+            out.append(f"Sim POST-BN (fused/fine)   : {post.mean():.3f} "
+                       f"(n={post.size})")
+            out.append(f"Cua so vuot nguong {thr:.2f}    : fused "
+                       f"{float(np.mean(post >= thr)) * 100.0:.1f}%")
+        # Giữ dòng phân bố theo tag (hữu ích, không liên quan tới hai tầng thiếu).
+        if tag_counts:
+            n_re = int(tag_counts.get("re-acquire", 0))
+            n_ah = int(tag_counts.get("anti-hijack", 0))
+            extra = (f"Phan bo theo tag           : re-acquire {n_re} | "
+                     f"anti-hijack {n_ah}")
+            if n_false_alarms is not None and n_re > 0:
+                n_lock = max(0, n_re - int(n_false_alarms))
+                extra += (f"   -> HARD LOCK {n_lock}/{n_re} = "
+                          f"{100.0 * n_lock / n_re:.1f}% (chi tinh re-acquire)")
+            out.append(extra)
+        return out
+
+    infer.format_bn_debug_lines = _bn_lines
 
     # --- 1. transform -----------------------------------------------------
     # `main()` tạo transform rồi truyền vào run_sequence; thay ở đây để không
@@ -138,15 +212,24 @@ def main() -> int:
         return 0
 
     ap = argparse.ArgumentParser(add_help=False)
-    ap.add_argument("--engine-backbone", required=True)
-    ap.add_argument("--engine-temporal", required=True)
-    ap.add_argument("--engine-device", type=int, default=0)
+    ap.add_argument("--engine-backbone", default=None,
+                    help="mặc định: trt.backbone_engine trong config")
+    ap.add_argument("--engine-temporal", default=None,
+                    help="mặc định: trt.temporal_engine trong config")
+    ap.add_argument("--engine-device", type=int, default=None,
+                    help="mặc định: trt.device trong config")
+    ap.add_argument("--num-frames", type=int, default=0,
+                    help="ghi đè infer.num_frames (phải khớp N của engine)")
     ap.add_argument("--allow-pad", action="store_true",
                     help="cho phép đệm cửa sổ lên N của engine (điểm sẽ lệch)")
     args, rest = ap.parse_known_args()
 
+    # Giữ CWD lúc gọi: đường dẫn người dùng gõ trên dòng lệnh hiểu theo chỗ họ
+    # đứng, còn đường dẫn trong config hiểu theo gốc repo (xem _pick bên dưới).
+    cwd0 = os.getcwd()
+
     # Đọc num_frames của infer để so với N thật của engine.
-    cfg_path = "configs/config_jetson.yaml"
+    cfg_path = os.path.join(PROJ, "configs", "config_jetson.yaml")
     if "--config" in rest:
         cfg_path = rest[rest.index("--config") + 1]
     try:
@@ -155,12 +238,53 @@ def main() -> int:
     except OSError:
         cfg = {}
     inf_cfg = cfg.get("infer", {}) or {}
-    want_n = int(inf_cfg.get("num_frames", 16))
+    # Phải đi qua pipeline_lock: `num_frames` có thể được đè ở block `infer`, còn
+    # thiếu thì mới lấy `train.num_frames`. Đọc YAML thô sẽ ra giá trị khác với
+    # giá trị `infer.py` thực dùng.
+    try:
+        from pipeline_lock import resolve_pipeline
+        inf_cfg = resolve_pipeline(cfg, "infer", script="infer_trt.py",
+                                   verbose=False)
+    except ImportError:
+        print("  CẢNH BÁO: không import được pipeline_lock; đọc thẳng block infer")
+    if inf_cfg.get("num_frames") is None:
+        inf_cfg = dict(inf_cfg)
+        inf_cfg["num_frames"] = (cfg.get("train") or {}).get("num_frames", 16)
+    want_n = int(inf_cfg["num_frames"])
+    force_n = int(args.num_frames or 0)
+    if force_n:
+        want_n = force_n
 
-    engine = ReIDEngine(args.engine_backbone, args.engine_temporal,
-                        num_frames=want_n, device=args.engine_device, bgr=False)
+    trt_cfg = cfg.get("trt") or {}
+
+    def _pick(cli_val, cfg_val):
+        """CLI tính theo CWD lúc gọi, config tính theo gốc repo."""
+        for val, base in ((cli_val, cwd0), (cfg_val, PROJ)):
+            if val:
+                return os.path.normpath(
+                    val if os.path.isabs(val) else os.path.join(base, val))
+        return None
+
+    eng_bb = _pick(args.engine_backbone, trt_cfg.get("backbone_engine"))
+    eng_tp = _pick(args.engine_temporal, trt_cfg.get("temporal_engine"))
+    if not eng_bb or not eng_tp:
+        print("  Thiếu đường dẫn engine. Truyền --engine-backbone/--engine-temporal")
+        print("  hoặc khai trong config:")
+        print("    trt:")
+        print("      backbone_engine: ./v1_backbone.engine")
+        print("      temporal_engine: ./v1_temporal.engine")
+        return 2
+    dev = args.engine_device
+    if dev is None:
+        dev = int(trt_cfg.get("device", 0))
+
+    # num_frames=0: lấy N từ engine, rồi mới so với config — nếu truyền want_n
+    # vào thì Pipeline sẽ yêu cầu shape N=want_n và dừng ngay khi engine khác.
+    engine = ReIDEngine(eng_bb, eng_tp, num_frames=0, device=dev, bgr=False)
     print("=" * 66)
     print(f"  {engine}")
+    print(f"  engine backbone = {os.path.basename(eng_bb)}")
+    print(f"  engine temporal = {os.path.basename(eng_tp)}")
     print(f"  infer.num_frames = {want_n}")
     if engine.temporal_n != want_n:
         print("=" * 66)
@@ -183,7 +307,14 @@ def main() -> int:
               "mà engine chưa xuất -> gate HARD LOCK sẽ luôn bằng 0.")
     print("=" * 66)
 
-    _install(engine)
+    _install(engine, force_n)
+
+    # Đường dẫn trong config (`./data`, `./best_model_v1.pth`, `./infer_output`)
+    # đều tính từ gốc repo, nên chạy infer.py ở đó; đường dẫn người dùng gõ thì
+    # đổi sang tuyệt đối trước để không đổi nghĩa.
+    rest = _absolutize(rest, cwd0)
+    if os.path.abspath(os.getcwd()) != PROJ:
+        os.chdir(PROJ)
 
     # Chuyển các cờ còn lại cho infer.py.
     sys.argv = [sys.argv[0]] + rest

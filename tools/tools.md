@@ -41,10 +41,47 @@ python3 tools/measure_sigma_b.py
 
 Script in ra luôn dòng `SIGMA_B = (...)` để dán thẳng vào `gasnet/train.py`.
 
+## `check_gasnet_econvnext.py` — GASNet đầy đủ với E-ConvNeXt
+
+Xác nhận bốn điều: GASNet dựng được với cả `econvnext=True/False`, forward chạy,
+tham số truyền qua `GASNet -> DINOv3ConvNeXtBackbone` đúng, và **RGA vẫn nhận đúng
+`96@56x56`** nên không raise.
+
+Trích class cần thiết từ `gasnet/train.py` bằng `ast` rồi `exec`, để không phải
+import cả module (chạy được cả khi thiếu dataset).
+
+```
+uav_env/bin/python tools/check_gasnet_econvnext.py
+```
+
+In ra: params gốc `57.659 M` -> E-ConvNeXt `56.824 M` (-1.45%), và so shape đầu ra.
+
+## `smoke_econvnext.py` — smoke test backbone
+
+Cùng cách `ast`-extract, nhưng chỉ kiểm backbone E-ConvNeXt dựng được và forward
+ra đúng shape. Nhẹ hơn `check_gasnet_econvnext.py`.
+
+```
+uav_env/bin/python tools/smoke_econvnext.py
+```
+
+## `measure_rga.py` — `rga_c` có thật sự chọn kênh không
+
+Đo **cổng (gate)** của `rga_c` trên ảnh thật. Nếu cổng gần như hằng số theo kênh
+thì `rga_c` không làm gì theo kênh, và câu hỏi "ESE có bị thừa không" trở nên có
+nghĩa. Đây là số liệu để trả lời câu đó, không phải suy đoán.
+
+```
+uav_env/bin/python tools/measure_rga.py
+```
+
 ## Ghi chú
 
-Cả hai script chạy được từ bất kỳ thư mục nào (đường dẫn repo tự suy ra từ vị trí file).
-Cần `uav_env/bin/python` và thư mục `processed/train/` có ảnh thật.
+Các script chạy được từ bất kỳ thư mục nào (đường dẫn repo tự suy ra từ vị trí file).
+Cần `uav_env/bin/python`; `audit_transfer.py` và `measure_sigma_b.py` cần
+`processed/train/` có ảnh thật.
 
-`_ec/` là thư mục cũ, đã nằm trong `.gitignore`; các script thí nghiệm một lần ở đó đã
-được dọn, chỉ còn vài file cũ được git theo dõi từ trước.
+Thư mục `_ec/` cũ đã bỏ (27/10): ba script ở trên được chuyển sang `tools/`,
+`cspconvnext.py` đã xoá — đó là bản copy code **PaddlePaddle** của paper, không
+import được trong repo PyTorch này (`import paddle`, `from .convnext import ...`).
+Bản gốc nằm ở PaddleClas; bản trong repo vẫn lấy lại được từ git history.

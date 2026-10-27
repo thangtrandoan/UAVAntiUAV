@@ -4,7 +4,7 @@ Xac nhan: (1) GASNet dung duoc voi ca econvnext=True/False, (2) forward chay,
 (3) tham so truyen qua GASNet -> DINOv3ConvNeXtBackbone dung, (4) RGA van nhan
 dung 96@56x56 nen khong raise.
 
-Chay: uav_env/bin/python _ec/check_gasnet_econvnext.py
+Chay: uav_env/bin/python tools/check_gasnet_econvnext.py
 """
 from __future__ import annotations
 

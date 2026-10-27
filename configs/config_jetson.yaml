@@ -97,7 +97,7 @@ infer:
   out_dir: ./infer_output/infer_3.8
 
   stride: 4                       # ep = data_pipeline.frame_stride luc chay
-  num_frames: 12                  # ep = train.num_frames luc chay
+  num_frames: 12                  # đè được; bỏ trống -> lấy train.num_frames
   bbox_padding: 0.2
 
   # t2_search_gap_tolerance: so frame target vang lien tiep toi da truoc khi reset
@@ -138,7 +138,7 @@ infer_robustness:
 
   stride: 4                       # ep = data_pipeline.frame_stride luc chay
   t2_search_gap_tolerance: 2      # xem giai thich o block infer
-  num_frames: 12                  # ep = train.num_frames luc chay
+  num_frames: 12                  # đè được; bỏ trống -> lấy train.num_frames
   bbox_padding: 0.2
   num_imposters: 5
   max_anchor_size: 5
@@ -167,7 +167,7 @@ infer_realworld:
 
   stride: 4                       # ep = data_pipeline.frame_stride luc chay
   t2_search_gap_tolerance: 2      # xem giai thich o block infer
-  num_frames: 12                  # ep = train.num_frames luc chay
+  num_frames: 12                  # đè được; bỏ trống -> lấy train.num_frames
   bbox_padding: 0.2
   max_anchor_size: 5
   max_recent_size: 15

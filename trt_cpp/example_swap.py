@@ -69,9 +69,14 @@ def main() -> int:
     ap.add_argument("--max-frames", type=int, default=0)
     args = ap.parse_args()
 
-    engine = ReIDEngine(args.backbone, args.temporal, num_frames=args.num_frames,
+    # num_frames=0 -> N lấy từ engine; dùng engine.num_frames làm độ sâu cửa sổ.
+    engine = ReIDEngine(args.backbone, args.temporal, num_frames=0,
                         device=args.device, bgr=True)
     print(engine)
+    n_win = engine.num_frames
+    if args.num_frames and args.num_frames != n_win:
+        print(f"  --num-frames={args.num_frames} bị bỏ qua: engine build với "
+              f"N={n_win}")
 
     cap = cv2.VideoCapture(args.video)
     if not cap.isOpened():
@@ -85,7 +90,7 @@ def main() -> int:
     print(f"video {w}x{h} @ {fps:.1f} fps -> {args.out}")
 
     # Bộ đệm vòng phía Python: giữ N vector feature gần nhất.
-    ring: deque[np.ndarray] = deque(maxlen=args.num_frames)
+    ring: deque[np.ndarray] = deque(maxlen=n_win)
     prev_emb: np.ndarray | None = None
     idx = 0
     t_frame = 0.0
@@ -117,7 +122,7 @@ def main() -> int:
         t_frame += (t1 - t0) * 1000.0
 
         emb = None
-        if len(ring) == args.num_frames:
+        if len(ring) == n_win:
             seq = np.stack(ring, axis=0)      # (N, 2560)
             t2 = time.perf_counter()
             emb = engine.temporal(seq)        # (3072,) đã chuẩn hoá
@@ -130,7 +135,7 @@ def main() -> int:
         cv2.rectangle(frame, (x, y), (x + bw, y + bh), (0, 255, 0), 2)
         cv2.putText(frame, f"frame {idx}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
                     0.7, (255, 255, 255), 2)
-        cv2.putText(frame, f"buf {len(ring)}/{args.num_frames}", (20, 70),
+        cv2.putText(frame, f"buf {len(ring)}/{n_win}", (20, 70),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
         if emb is not None:
             sim = cosine(emb, prev_emb) if prev_emb is not None else 1.0

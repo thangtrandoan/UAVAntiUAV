@@ -31,6 +31,17 @@ SOURCES = {
     'temporal_pe':   ('train', 'temporal_pe'),
 }
 
+# Key được phép TỰ CHỌN theo từng section: section có giá trị riêng thì dùng,
+# thiếu mới lấy từ nguồn. Các key còn lại vẫn bị ép theo nguồn.
+#
+# `num_frames` chỉ là tham số LÚC CHẠY (độ dài cửa sổ đưa vào temporal encoder,
+# vốn nhận mọi N) chứ không phải hằng số kiến trúc như `backbone` hay
+# `temporal_type`. Nhờ vậy `train.num_frames` vẫn ghi đúng cấu hình đã train
+# (`assert_frozen` kiểm == 12), còn `infer.num_frames`/`eval.num_frames` chọn N
+# thực dùng. Hệ quả: ngưỡng calibrate ở N=8 phải được ghi kèm N (xem
+# `provenance`).
+OVERRIDABLE = {'num_frames'}
+
 # Nhãn nguồn để in ra cho dễ đối chiếu.
 _SRC_LABEL = {k: f'{blk}.{sk}' for k, (blk, sk) in SOURCES.items()}
 
@@ -49,11 +60,22 @@ def resolve_pipeline(cfg, section, script='', verbose=True):
         cfg[section] = sec
 
     warnings = []
-    resolved = {}   # key -> (giá trị nguồn, giá trị config ghi)
+    notes = []      # ghi đè hợp lệ, không phải lỗi
+    resolved = {}   # key -> (giá trị dùng, giá trị config ghi, nhãn nguồn)
 
     for key, (blk, src_key) in SOURCES.items():
+        src_label = _SRC_LABEL[key]
         source = (cfg.get(blk) or {}).get(src_key)
         own = sec.get(key)
+
+        # Key được tự chọn: có giá trị riêng thì dùng, thiếu mới lấy từ nguồn.
+        if key in OVERRIDABLE and own is not None:
+            if source is not None and own != source:
+                notes.append(f"{section}.{key} = {own!r} đè {src_label} = "
+                             f"{source!r} (được phép)")
+            sec[key] = own
+            resolved[key] = (own, own, f'{section}.{key}')
+            continue
 
         if source is None:
             if own is None:
@@ -62,17 +84,17 @@ def resolve_pipeline(cfg, section, script='', verbose=True):
             else:
                 warnings.append(f"thiếu nguồn {blk}.{src_key}; giữ nguyên "
                                 f"{section}.{key} = {own!r} (không đồng bộ được)")
-            resolved[key] = (own, own)
+            resolved[key] = (own, own, f'{section}.{key}')
             continue
 
         if own is not None and own != source:
             warnings.append(f"lệch {section}.{key} = {own!r} vs {blk}.{src_key} = "
                             f"{source!r} -> ép dùng {source!r}")
         sec[key] = source
-        resolved[key] = (source, own)
+        resolved[key] = (source, own, src_label)
 
     if verbose:
-        _print_banner(section, script, resolved, warnings)
+        _print_banner(section, script, resolved, warnings, notes)
 
     check_data_meta(cfg, verbose=verbose)
     return sec
@@ -129,20 +151,24 @@ def check_data_meta(cfg, verbose=True):
     return []
 
 
-def _print_banner(section, script, resolved, warnings):
+def _print_banner(section, script, resolved, warnings, notes=()):
     line = '=' * 62
     print(line)
     print(f"  PIPELINE  script={script or '?'}  section={section}")
     print(line)
-    for key, (val, own) in resolved.items():
+    for key, (val, own, label) in resolved.items():
         flag = f"   (config ghi {own!r})" if (own is not None and own != val) else ''
-        print(f"  {key:<14} {val!r:<22} <- {_SRC_LABEL[key]}{flag}")
+        print(f"  {key:<14} {val!r:<22} <- {label}{flag}")
     print('-' * 62)
     if warnings:
         for w in warnings:
             print(f"  [!] {w}")
+    elif notes:
+        print("  không có lệch bị ép; xem các mục [i] bên dưới")
     else:
         print("  không có lệch; mọi script dùng cùng một pipeline")
+    for n in notes:
+        print(f"  [i] {n}")
     print(f"  biến tự do duy nhất: train.temporal_type")
     print(line + "\n")
 
@@ -154,8 +180,16 @@ def provenance(cfg):
     """
     tr = cfg.get('train') or {}
     dp = cfg.get('data_pipeline') or {}
+    # `num_frames` được phép đè theo từng section (xem OVERRIDABLE), nên N lúc
+    # chạy có thể khác N lúc train. Ghi lại để file kết quả không ghi sai N.
+    runtime_n = {
+        s: cfg[s].get('num_frames')
+        for s in ('eval', 'infer', 'infer_robustness', 'infer_realworld')
+        if isinstance(cfg.get(s), dict) and cfg[s].get('num_frames') is not None
+    }
     return {
         'num_frames':     tr.get('num_frames'),
+        'num_frames_override': runtime_n or None,
         'frame_stride':   dp.get('frame_stride'),
         'temporal_type':  tr.get('temporal_type'),
         'temporal_pool':  tr.get('temporal_pool'),

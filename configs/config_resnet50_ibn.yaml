@@ -22,17 +22,16 @@ train:
   num_frames: 12
 
 infer:
-  backbone: resnet50_ibn
-  temporal_type: mamba
-  temporal_pool: mean
-  temporal_pe: true
+  # backbone / temporal_* KHONG khai lai o day: `pipeline_lock.resolve_pipeline`
+  # luon ep chung theo block `train` (chi `num_frames` moi duoc phep de).
+  # Khai lai chi gay hieu nham la sua duoc.
   seq_dir: ./data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
   model_path: ./best_model_v1.pth
   output_video: output_reid.mp4
   out_dir: ./infer_output/resnet50_ibn_20thg10
 
   stride: 4
-  num_frames: 12
+  num_frames: 8                   # đè được; v1 tốt nhất ở N=8 (train giữ 12)
   bbox_padding: 0.2
 
   t2_search_gap_tolerance: 2
@@ -47,3 +46,10 @@ infer:
 
   debug_sim: true
   fine_space: fused
+
+# Đường dẫn engine TensorRT cho `trt_cpp/infer_trt.py` (infer.py bỏ qua block này).
+# Tính từ gốc repo; dòng lệnh vẫn ghi đè được bằng --engine-backbone/--engine-temporal.
+trt:
+  backbone_engine: ./v1_backbone.engine
+  temporal_engine: ./v1_n8_temporal.engine   # engine N=8, khớp infer.num_frames: 8
+  device: 0

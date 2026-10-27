@@ -52,6 +52,9 @@ def main() -> int:
                     help="ghi đè; mặc định suy từ chiều đặc trưng của engine")
     ap.add_argument("--econvnext", action="store_true",
                     help="bật E-ConvNeXt (chỉ dùng với dinov3_convnext)")
+    ap.add_argument("--temporal-type", default=None,
+                    choices=["mamba", "attention"],
+                    help="phải khớp lúc train, nếu không cosine sẽ lệch vô cớ")
     ap.add_argument("--temporal-pool", default=None, choices=["mean", "attn"])
     ap.add_argument("--temporal-pe", default=None, type=int, choices=[0, 1])
     ap.add_argument("--other", default=None,
@@ -77,7 +80,8 @@ def main() -> int:
 
     train = cfg.get("train", {}) or {}
     ev = cfg.get("eval", {}) or {}
-    temporal_type = ev.get("temporal_type", train.get("temporal_type", "mamba"))
+    temporal_type = args.temporal_type or ev.get(
+        "temporal_type", train.get("temporal_type", "mamba"))
     temporal_pool = args.temporal_pool or ev.get(
         "temporal_pool", train.get("temporal_pool", "attn"))
     temporal_pe = (bool(ev.get("temporal_pe", train.get("temporal_pe", True)))
@@ -86,9 +90,12 @@ def main() -> int:
     # Mở engine TRƯỚC để biết chiều đặc trưng thật, rồi suy kiến trúc backbone.
     # Config trong repo có thể không phải config đã dùng để train, nên chiều của
     # engine là nguồn tin đáng tin hơn.
-    eng = ReIDEngine(args.backbone, args.temporal,
-                     num_frames=args.num_frames, bgr=True)
+    eng = ReIDEngine(args.backbone, args.temporal, num_frames=0, bgr=True)
     print(f"  {eng}")
+    n_win = eng.num_frames
+    if args.num_frames and args.num_frames != n_win:
+        print(f"  CẢNH BÁO: --num-frames={args.num_frames} nhưng engine build với "
+              f"N={n_win}; dùng N={n_win} để so sánh cho công bằng")
     by_dim = {2560: "resnet50_ibn", 960: "dinov3_convnext"}
     guessed = by_dim.get(eng.visual_dim)
     backbone_name = args.backbone_name or guessed or "resnet50_ibn"
@@ -102,7 +109,7 @@ def main() -> int:
     print(f"  backbone={backbone_name} temporal={temporal_type} "
           f"pool={temporal_pool} pe={temporal_pe} econvnext={econvnext}")
     print("  (nếu config khác lần train thật, ghi đè bằng --backbone-name/"
-          "--temporal-pool/--temporal-pe)")
+          "--temporal-type/--temporal-pool/--temporal-pe)")
 
     model = UAVReIDNet(econvnext=econvnext, freeze_backbone=False,
                        backbone=backbone_name, temporal_type=temporal_type,
@@ -149,11 +156,11 @@ def main() -> int:
         cap.release()
         return out
 
-    crops = grab(args.frames or args.video, args.start, args.bbox, args.num_frames)
+    crops = grab(args.frames or args.video, args.start, args.bbox, n_win)
     if not crops:
         raise SystemExit("không lấy được frame nào")
-    if len(crops) < args.num_frames:
-        print(f"  CẢNH BÁO: chỉ có {len(crops)} frame < N={args.num_frames}; "
+    if len(crops) < n_win:
+        print(f"  CẢNH BÁO: chỉ có {len(crops)} frame < N={n_win}; "
               "sẽ lặp frame cuối (cùng quy ước hai bên)")
 
     def cos(a, b):
@@ -180,12 +187,12 @@ def main() -> int:
 
     # ---- 2. Fused: PyTorch vs C++ ----
     pad = list(cpp_feats)
-    while len(pad) < args.num_frames:
+    while len(pad) < n_win:
         pad.append(pad[-1])
 
     py_seq = torch.from_numpy(np.stack(py_feats)).unsqueeze(0).cuda()
-    if py_seq.shape[1] < args.num_frames:
-        k = args.num_frames - py_seq.shape[1]
+    if py_seq.shape[1] < n_win:
+        k = n_win - py_seq.shape[1]
         py_seq = torch.cat([py_seq, py_seq[:, -1:].repeat(1, k, 1)], dim=1)
     with torch.no_grad():
         py_fused = F.normalize(model(py_seq), p=2, dim=1).squeeze(0).cpu().numpy()
@@ -200,12 +207,12 @@ def main() -> int:
 
     # ---- 3. Impostor: cùng clip nhưng vật khác ----
     if args.other:
-        other = grab(args.other, 0, args.other_bbox, args.num_frames)
+        other = grab(args.other, 0, args.other_bbox, n_win)
         if len(other) >= 2:
             of = [eng.backbone(c) for c in other]
-            while len(of) < args.num_frames:
+            while len(of) < n_win:
                 of.append(of[-1])
-            o_fused = eng.temporal(np.stack(of[:args.num_frames]))
+            o_fused = eng.temporal(np.stack(of[:n_win]))
             print("\n  [3] PHÂN TÁCH")
             print(f"      cosine với vật KHÁC = {cos(cpp_fused, o_fused):.6f}")
             print("      kỳ vọng: thấp hơn hẳn ngưỡng đã calibrate (0.6667)")

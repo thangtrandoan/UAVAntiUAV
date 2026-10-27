@@ -34,8 +34,10 @@ PixelType to_pixel_type(nvinfer1::DataType t) {
 }  // namespace
 
 Pipeline::Pipeline(const Config& cfg) : cfg_(cfg) {
-  if (cfg_.num_frames <= 0) {
-    std::fprintf(stderr, "[Pipeline] num_frames phải > 0\n");
+  // `num_frames == 0` hợp lệ: lấy N từ engine temporal (xem prepare_engines).
+  // Số âm thì sai.
+  if (cfg_.num_frames < 0) {
+    std::fprintf(stderr, "[Pipeline] num_frames phải >= 0 (0 = lấy từ engine)\n");
     std::exit(EXIT_FAILURE);
   }
   if (cfg_.max_clips <= 0) {
@@ -52,6 +54,11 @@ Pipeline::Pipeline(const Config& cfg) : cfg_(cfg) {
   UAV_CUDA_CHECK(cudaEventCreate(&ev_b_));
 
   prepare_engines();
+  if (num_frames_ <= 0) {
+    std::fprintf(stderr,
+                 "[Pipeline] không xác định được số frame cho cửa sổ temporal\n");
+    std::exit(EXIT_FAILURE);
+  }
   prepare_buffers();
   if (cfg_.mode == Mode::kStream) prepare_stream();
 }
@@ -101,6 +108,26 @@ void Pipeline::prepare_engines() {
     std::fprintf(stderr, "[Pipeline] '%s' có chiều đặc trưng động (%d)\n",
                  kBackboneOut, visual_dim_);
     std::exit(EXIT_FAILURE);
+  }
+
+  // `num_frames <= 0` = lấy N từ chính engine temporal. Cần thiết vì shape được
+  // chốt lúc allocate(): nếu config ghi 12 mà engine build với N=16 thì
+  // choose_profile() không tìm được profile nào và dừng ngay, trước khi tầng
+  // trên kịp so sánh và báo lỗi rõ ràng.
+  if (num_frames_ <= 0) {
+    nvinfer1::Dims d = temporal_.profile_shape(kTemporalIn, 0,
+                                               nvinfer1::OptProfileSelector::kOPT);
+    if (d.nbDims != 3 || d.d[1] <= 0) {
+      d = temporal_.profile_shape(kTemporalIn, 0,
+                                  nvinfer1::OptProfileSelector::kMIN);
+    }
+    if (d.nbDims != 3 || d.d[1] <= 0) {
+      std::fprintf(stderr,
+                   "[Pipeline] không đọc được N của engine temporal từ profile "
+                   "của '%s'; hãy truyền num_frames tường minh\n", kTemporalIn);
+      std::exit(EXIT_FAILURE);
+    }
+    num_frames_ = static_cast<int>(d.d[1]);
   }
 
   // Cố định shape một lần. Mọi lần chạy sau dùng đúng shape này.

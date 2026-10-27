@@ -352,43 +352,80 @@ engine. **Không sửa `infer.py`** — chỉ thay 4 điểm nối:
 Phần còn lại (đọc mp4, bbox GT, Memory Bank, SOFT/HARD LOCK, vẽ, `VideoWriter`)
 vẫn là code của `infer.py`, nên chỉ có một nguồn sự thật.
 
-```bash
-cd trt_cpp
-../uav_env/bin/python infer_trt.py \
-    --engine-backbone ../v1_backbone.engine \
-    --engine-temporal ../v1_temporal.engine \
-    --config ../configs/config_jetson.yaml \
-    --seq-dir ../data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000169 \
-    --checkpoint ../best_model_conv.pth \
-    --out-dir ../infer_output/trt_000169
+Đường dẫn engine khai trong block `trt` của config, nên lệnh chỉ còn `--config`:
+
+```yaml
+trt:
+  backbone_engine: ./v1_backbone.engine
+  temporal_engine: ./v1_temporal.engine
+  device: 0
 ```
 
-`--seq-dir` là thư mục sequence, chứa `<tên_seq>.mp4`, `groundtruth_rect.txt`,
-`absent.txt` (xem `infer.py:698-700`). Mọi cờ khác chuyển nguyên cho `infer.py`.
+```bash
+uav_env/bin/python trt_cpp/infer_trt.py --config configs/config_resnet50_ibn.yaml
+```
+
+`--seq-dir`, `--checkpoint`, `--out-dir` cũng đã có trong config (`infer.seq_dir`,
+`infer.model_path`, `infer.out_dir`) nên bình thường không phải gõ; thiếu thì
+`infer.py` tự lấy (xem `infer.py:873,899,943`). `--seq-dir` là thư mục sequence,
+chứa `<tên_seq>.mp4`, `groundtruth_rect.txt`, `absent.txt` (`infer.py:698-700`).
+
+Ghi đè khi cần:
+
+```bash
+--engine-backbone/--engine-temporal   # thay cho trt.* trong config
+--num-frames 8                        # thay cho infer.num_frames
+```
+
+Đường dẫn gõ trên dòng lệnh tính theo chỗ bạn đứng; đường dẫn trong config tính
+theo gốc repo. `infer_trt.py` tự chuyển CWD về gốc repo trước khi gọi `infer.py`,
+nên chạy từ đâu cũng được.
 
 ### BẮT BUỘC: N của engine phải bằng `num_frames` của infer
 
-`config_jetson.yaml` dùng `num_frames = 12`, nhưng lệnh `trtexec` ghim `N=16`.
-Đệm 12 lên 16 bằng cách lặp frame cuối **không** tương đương PyTorch chạy N=12:
-`seq.mean(dim=1)` lấy trung bình 16 giá trị (có 4 bản trùng) và Mamba quét 16
-bước thay vì 12. Cosine sẽ lệch, ngưỡng `0.6667` đã calibrate mất hiệu lực.
+v1 chốt **N = 8** (thực nghiệm cho kết quả tốt nhất). Đệm lên N khác bằng cách
+lặp frame cuối **không** tương đương PyTorch chạy đúng số frame: `seq.mean(dim=1)`
+lấy trung bình N giá trị (có bản trùng) và Mamba quét N bước thay vì n. Cosine sẽ
+lệch, ngưỡng đã calibrate mất hiệu lực.
 
 `infer_trt.py` **dừng lại** nếu phát hiện lệch (trừ khi thêm `--allow-pad`).
-Build lại engine cho khớp:
+Build engine:
 
 ```bash
 trtexec --onnx=v1_temporal.onnx --saveEngine=v1_temporal.engine --fp16 \
-  --minShapes=seq_feats:1x12x2560 --optShapes=seq_feats:1x12x2560 \
-  --maxShapes=seq_feats:12x12x2560
+  --minShapes=seq_feats:1x8x2560 --optShapes=seq_feats:1x8x2560 \
+  --maxShapes=seq_feats:12x8x2560
 ```
 
-Muốn N linh hoạt (1..16) thì mở dải, ONNX đã khai báo axis 1 là dynamic
-(`export_onnx.py:64`), không phải export lại:
+Backbone giữ nguyên: stream luôn chạy batch 1 nên N không ảnh hưởng.
 
-```bash
---minShapes=seq_feats:1x1x2560 --optShapes=seq_feats:1x12x2560 \
---maxShapes=seq_feats:12x16x2560
-```
+**`num_frames` đè được theo từng section** (`pipeline_lock.OVERRIDABLE`): có giá
+trị riêng trong `infer`/`eval` thì dùng giá trị đó, bỏ trống mới lấy
+`train.num_frames`. Nên `train.num_frames: 12` vẫn là bản ghi cấu hình đã train
+(`assert_frozen` kiểm == 12), còn `infer.num_frames: 8` chọn N lúc chạy. Các key
+khác (`backbone`, `stride`, `temporal_*`) vẫn bị ép theo nguồn như cũ.
+
+> Ngưỡng phải calibrate ở đúng N sẽ dùng. `calibrate_threshold.py` resolve section
+> `eval`, nên đặt `eval.num_frames: 8` nếu muốn calibrate ở N=8; khi đó
+> `provenance()` ghi `num_frames_override = {'eval': 8}` để file kết quả không
+> ghi sai N.
+
+Hệ quả có lợi: `hard_lock_capacity = (num_frames-1)*stride + 1` = `7*4+1` = **29**
+frame (N=12 là 45), nên HARD LOCK chốt sớm hơn 16 frame — có thể chính là lý do
+N=8 cho kết quả tốt hơn.
+
+> Ngưỡng (`reid_threshold`, `soft_lock_threshold`, `hijack_threshold`) phải được
+> calibrate **ở N=8**. Calibrate ở N khác thì con số không dùng lại được.
+
+**Mở dải KHÔNG đủ để N linh hoạt.** ONNX đã khai báo axis 1 là dynamic
+(`export_onnx.py:66`) nên engine nhận dải `min..max`, NHƯNG `Pipeline` chốt shape
+một lần trong `allocate()` (`setInputShape` + `inferShapes`) và `rebind()` chỉ đổi
+`setTensorAddress`, không đổi shape. Nghĩa là engine vẫn chạy ở đúng một N (N của
+`--optShapes`) suốt vòng đời; muốn N thay đổi theo từng lần gọi thì phải gọi lại
+`setInputShape` + `inferShapes` trước mỗi lần suy luận — hiện **chưa** làm.
+
+Vì vậy cứ ghim `min = opt = max = N` cho khớp `num_frames`. Khi nào cần cửa sổ
+ngắn thật (lúc gần LOST), phải sửa `TrtEngine` để đổi shape theo từng lần gọi.
 
 ### Giới hạn còn lại
 
@@ -397,8 +434,10 @@ Engine temporal chỉ xuất `reid_embed`, nên `temporal_token` và `raw_feat` 
 
 - `fine_space` **phải** là `fused` (mặc định). `pre_bn` sẽ cho điểm 0 và gate
   HARD LOCK không bao giờ mở.
-- Với `debug_sim: true`, hai cột temporal/raw in ra `0.000` — đúng nghĩa "không
-  có số liệu", không phải điểm thật bằng 0.
+- Với `debug_sim: true`, hai cột temporal/raw in ra `nan` — đúng nghĩa "không
+  có số liệu", không phải điểm thật bằng 0. Bảng tổng kết cũng không kết luận
+  gì về hai tầng đó nữa: `infer.py` gốc thấy `pre_mean = 0` rồi in "raw cũng
+  thấp sẵn -> lỗi ở feature", kết luận SAI khi 0 chỉ là chỗ giữ chỗ.
 
 Muốn có đủ, export lại temporal với thêm đầu ra `temporal_token` (mục 8).
 `raw_feat` không cần xuất: nó bằng `L2(cat(visual_plain, temporal_token))` và

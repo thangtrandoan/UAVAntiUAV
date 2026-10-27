@@ -10,7 +10,7 @@ khớp ABI Python.
 
     from uav_reid_engine import ReIDEngine
 
-    eng = ReIDEngine('v1_backbone.engine', 'v1_temporal.engine', num_frames=16)
+    eng = ReIDEngine('v1_backbone.engine', 'v1_temporal.engine')
 
     feat = eng.backbone(crop_bgr)          # (2560,) float32, mỗi frame
     emb  = eng.temporal(seq)               # (3072,) float32, seq = (N, 2560)
@@ -98,7 +98,7 @@ class ReIDEngine:
         self,
         backbone_plan: str,
         temporal_plan: str,
-        num_frames: int = 16,
+        num_frames: int = 0,
         device: int = 0,
         bgr: bool = True,
         lib_path: str = _DEFAULT_LIB,
@@ -113,6 +113,8 @@ class ReIDEngine:
         )
         if not self._handle:
             raise RuntimeError("uav_create trả về null")
+        # num_frames <= 0 -> C++ tự đọc N từ engine temporal, nên
+        # self.num_frames luôn là sự thật của engine, không phải của config.
         self.visual_dim = int(self._lib.uav_visual_dim(self._handle))
         self.embed_dim = int(self._lib.uav_embed_dim(self._handle))
         self.num_frames = int(self._lib.uav_num_frames(self._handle))

@@ -3,7 +3,7 @@
 Khong import duoc gasnet.train (thieu dataset.py / evaluation.py / utils.py o goc
 repo), nen AST-extract rieng cac class can thiet roi exec.
 
-Chay: uav_env/bin/python _ec/smoke_econvnext.py
+Chay: uav_env/bin/python tools/smoke_econvnext.py
 """
 from __future__ import annotations
 
