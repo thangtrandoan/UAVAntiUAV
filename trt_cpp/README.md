@@ -442,3 +442,64 @@ Engine temporal chỉ xuất `reid_embed`, nên `temporal_token` và `raw_feat` 
 Muốn có đủ, export lại temporal với thêm đầu ra `temporal_token` (mục 8).
 `raw_feat` không cần xuất: nó bằng `L2(cat(visual_plain, temporal_token))` và
 `visual_plain` đã có sẵn ở phía Python.
+
+## 10. Bản C++ của infer.py (`uav_reid_infer`)
+
+Một chương trình duy nhất: **video vào -> video ra (có overlay) + file txt**. Toàn bộ
+đường chạy nằm trong C++, không gọi sang Python, nên số FPS ở đây là số của thiết bị.
+
+```bash
+trt_cpp/build/uav_reid_infer \
+    --config configs/config_resnet50_ibn.yaml \
+    --seq-dir data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059 \
+    --backbone v1_backbone.engine \
+    --temporal v1_n8_temporal.engine
+```
+
+`--config` đọc các khoá phẳng trong block `infer:` (yaml tối giản, không cần yaml-cpp),
+rồi **CLI đè lên**. Kiểm dữ liệu trước, không cần GPU: thêm `--dry-run`.
+
+### Ghi ra những gì
+
+| File | Nội dung |
+|---|---|
+| `output.mp4` | overlay: state, bank, soft/hard fill, coarse/soft/fine, bbox, frame, FPS |
+| `frames.csv` | mọi thông số từng frame — thứ không vừa trên video |
+| `events.txt` | chuyển trạng thái + quyết định, kèm frame và lý do |
+| `summary.txt` | latency, false alarm, FPS, thời gian từng chặng, giới hạn |
+| `config_used.txt` | tham số thực tế đã dùng |
+
+`frames.csv` có 22 cột: `frame, video_time_s, state, present, bbox_*, crop_*, sharpness,
+coarse, soft, fine, soft_fill, hard_fill, anchor, recent, hijack_left, ms_backbone,
+ms_temporal, event`.
+
+### Port nguyên từ infer.py
+
+| infer.py | ở đây |
+|---|---|
+| `SlidingWindowBuffer` (:58) | `Window` |
+| `TwoTierMemoryBank` (:149) | `Bank` |
+| `compute_fused_vector` (:122) | `Runner::fused_bundle` |
+| `SeqReIDPipeline.process_frame` (:376) | `Runner::process` |
+| `draw_ui` (:620) | `draw_ui` |
+
+Ngưỡng, công thức crop, sharpness (phương sai Laplacian) đều giữ nguyên.
+
+### Ba chỗ KHÁC infer.py
+
+**1. Không có cột PRE-BN.** Engine temporal chỉ xuất `reid_embed`, không xuất
+`temporal_token` và `raw_feat`, nên không tính được `raw_score` và `fine_space: pre_bn`
+(công cụ sẽ từ chối chạy với `pre_bn` thay vì lặng lẽ cho kết quả sai). Muốn có: export
+lại ONNX kèm 2 output đó.
+
+**2. Cửa sổ chưa đủ N hàng phải đệm.** Nhánh "cập nhật bank ngay trước khi LOST" dùng
+cửa sổ có thể ngắn hơn N. PyTorch cắt được `pos_embed` theo độ dài thật; engine đã unroll
+đúng N hàng nên phải đệm bằng cách lặp hàng cuối -> lệch so với bản Python ở đúng nhánh
+này.
+
+**3. Không tự sửa bbox.** Như infer.py, bbox lấy từ `groundtruth_rect.txt`.
+
+### Vì sao không gộp luôn vào `uav_reid_trt`
+
+`uav_reid_trt` là CLI đo tốc độ thuần engine (batch, manifest, so khớp). Công cụ này là
+đường chạy đầy đủ có trạng thái + video. Hai mục đích khác nhau, giữ riêng.

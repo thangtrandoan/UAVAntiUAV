@@ -16,7 +16,7 @@ if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
 endif()
 
 find_package(CUDAToolkit REQUIRED)
-find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs)
+find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs videoio)
 
 # TensorRT không có FindTensorRT chuẩn; dò trực tiếp. JetPack đặt header trong
 # /usr/include/aarch64-linux-gnu và lib trong /usr/lib/aarch64-linux-gnu.
@@ -79,6 +79,14 @@ set_target_properties(uav_core PROPERTIES
 add_executable(uav_reid_trt src/main.cpp)
 target_link_libraries(uav_reid_trt PRIVATE uav_core)
 set_target_properties(uav_reid_trt PROPERTIES CUDA_SEPARABLE_COMPILATION OFF)
+
+# ---------------------------------------------------------------------------
+# Bản C++ của infer.py: video vào -> video ra + file txt. Gộp cả đo tốc độ.
+# Cần OpenCV videoio (đọc/ghi mp4) nên tách khỏi CLI chính.
+# ---------------------------------------------------------------------------
+add_executable(uav_reid_infer src/infer_video.cpp)
+target_link_libraries(uav_reid_infer PRIVATE uav_core)
+set_target_properties(uav_reid_infer PROPERTIES CUDA_SEPARABLE_COMPILATION OFF)
 
 # ---------------------------------------------------------------------------
 # Thư viện cho Python (nạp bằng ctypes trong uav_reid_engine.py).

@@ -1,0 +1,178 @@
+
+====================================================================================================
+KIỂM TRA TRÙNG LẶP DỮ LIỆU UAV-ANTI-UAV (TXT)
+====================================================================================================
+Dataset      : /home/nvidia/thang/UAVAntiUAV/data/UAV-Anti-UAV
+Report       : /home/nvidia/thang/UAVAntiUAV/tools/check_data_results.txt
+Cấu hình     : min_block=12, shingle_size=8, shingle_sample=1, high_overlap=0.9
+               max_pairs=200, max_verify_pairs=5000, max_files_per_shingle=50
+
+LƯU Ý ĐƯỜNG DẪN: Không thấy data/UAV_anti_UAV; đã tự dùng /home/nvidia/thang/UAVAntiUAV/data/UAV-Anti-UAV (đổi tên thư mục hoặc truyền --data-dir để chắc chắn).
+
+====================================================================================================
+1. TỔNG QUAN DỮ LIỆU
+====================================================================================================
+Dataset root : /home/nvidia/thang/UAVAntiUAV/data/UAV-Anti-UAV
+Thời điểm    : 2026-10-29 09:35:25
+Số sequence  : 1,820
+Tổng file txt: 7,280 (15.7 MB)
+Tổng video   : 1,820 (17.0 GB)
+
+Quy ước:
+  * 'Toàn bộ' = nội dung sau chuẩn hoá giống hệt (không chỉ hash byte).
+  * 'Một phần' = đoạn bbox liên tiếp giống hệt, dài >= --min-block dòng.
+  * Chỉ phân tích nội dung txt; KHÔNG hash nội dung video.
+
+Split               #seq  #groundtruth   #absent   #video
+Test                 420           420       420      420
+Train              1,400         1,400     1,400    1,400
+
+Vai trò           Số file      Số dòng                           Ghi chú
+groundtruth         1,820    1,057,386          937,766 dòng bbox hợp lệ
+absent              1,820    1,057,386                 0/1: 1 = vắng mặt
+attributes          1,820       27,300                                  
+language            1,820        1,820                                  
+
+Thiếu groundtruth: 0 sequence | Thiếu absent: 0 sequence | Thiếu video: 0
+
+====================================================================================================
+2. TRÙNG TOÀN BỘ SEQUENCE (groundtruth + absent giống hệt)
+====================================================================================================
+Không phát hiện sequence nào trùng cả groundtruth + absent (sau chuẩn hoá).
+
+====================================================================================================
+3. TRÙNG GROUNDTRUTH (nhưng chưa chắc trùng absent)
+====================================================================================================
+Không có nhóm groundtruth trùng ngoài các nhóm đã báo ở mục 2.
+
+====================================================================================================
+4. TRÙNG MỘT PHẦN (đoạn bbox liên tiếp / file nằm trong file khác)
+====================================================================================================
+Đã gộp 0 file trùng tuyệt đối; bỏ qua 0 file có < 12 dòng bbox — còn 1,820 đại diện để so cặp.
+Tiêu chí: >= 12 dòng bbox liên tiếp giống hệt, hoặc >= 90% dòng chung (trùng rời rạc).
+
+Shingle: k=8, sample=1, min_shared=1 | 920,820 shingle, 10 cặp thô, 10 cặp từ shingle.
+MinHash: 27,987 band, 0 cặp bổ sung | tổng ứng viên: 10 cặp.
+
+Phát hiện 8 cặp trùng một phần:
+[DUP] = cùng split; [LEAK] = khác split. 'informative' = dòng bbox có w>0,h>0 (bỏ dòng 0/không hợp lệ).
+
+[DUP]  [001] MỘT PHẦN LỚN | run=1,328 dòng | 86.1% của file ngắn hơn | dòng chung=99.4%
+        A: Test/UAV-Anti-UAV_Test_000394/groundtruth_rect.txt  (3,251 dòng informative, Test)
+           đoạn dòng 1..1328
+        B: Test/UAV-Anti-UAV_Test_000395/groundtruth_rect.txt  (1,542 dòng informative, Test)
+           đoạn dòng 1..1328
+[DUP]  [002] MỘT PHẦN LỚN | run=498 dòng | 83.0% của file ngắn hơn | dòng chung=89.9%
+        A: Test/UAV-Anti-UAV_Test_000337/groundtruth_rect.txt  (4,443 dòng informative, Test)
+           đoạn dòng 3349..3846
+        B: Test/UAV-Anti-UAV_Test_000348/groundtruth_rect.txt  (600 dòng informative, Test)
+           đoạn dòng 13..510
+[DUP]  [003] MỘT ĐOẠN | run=342 dòng | 34.2% của file ngắn hơn | dòng chung=89.4%
+        A: Test/UAV-Anti-UAV_Test_000338/groundtruth_rect.txt  (2,061 dòng informative, Test)
+           đoạn dòng 660..1001
+        B: Test/UAV-Anti-UAV_Test_000350/groundtruth_rect.txt  (1,001 dòng informative, Test)
+           đoạn dòng 660..1001
+[DUP]  [004] MỘT ĐOẠN | run=77 dòng | 15.2% của file ngắn hơn | dòng chung=29.0%
+        A: Test/UAV-Anti-UAV_Test_000337/groundtruth_rect.txt  (4,443 dòng informative, Test)
+           đoạn dòng 4237..4313
+        B: Test/UAV-Anti-UAV_Test_000349/groundtruth_rect.txt  (507 dòng informative, Test)
+           đoạn dòng 301..377
+[DUP]  [005] MỘT ĐOẠN | run=62 dòng | 12.4% của file ngắn hơn | dòng chung=27.8%
+        A: Test/UAV-Anti-UAV_Test_000337/groundtruth_rect.txt  (4,443 dòng informative, Test)
+           đoạn dòng 2275..2336
+        B: Test/UAV-Anti-UAV_Test_000346/groundtruth_rect.txt  (500 dòng informative, Test)
+           đoạn dòng 439..500
+[DUP]  [006] MỘT ĐOẠN | run=21 dòng | 4.5% của file ngắn hơn | dòng chung=14.3%
+        A: Test/UAV-Anti-UAV_Test_000337/groundtruth_rect.txt  (4,443 dòng informative, Test)
+           đoạn dòng 2..22
+        B: Test/UAV-Anti-UAV_Test_000342/groundtruth_rect.txt  (465 dòng informative, Test)
+           đoạn dòng 2..22
+[DUP]  [007] MỘT ĐOẠN | run=16 dòng | 1.8% của file ngắn hơn | dòng chung=48.4%
+        A: Test/UAV-Anti-UAV_Test_000394/groundtruth_rect.txt  (3,251 dòng informative, Test)
+           đoạn dòng 2562..2577
+        B: Test/UAV-Anti-UAV_Test_000397/groundtruth_rect.txt  (909 dòng informative, Test)
+           đoạn dòng 90..105
+[DUP]  [008] MỘT ĐOẠN | run=15 dòng | 1.5% của file ngắn hơn | dòng chung=52.4%
+        A: Test/UAV-Anti-UAV_Test_000337/groundtruth_rect.txt  (4,443 dòng informative, Test)
+           đoạn dòng 2826..2840
+        B: Test/UAV-Anti-UAV_Test_000347/groundtruth_rect.txt  (1,000 dòng informative, Test)
+           đoạn dòng 490..504
+
+====================================================================================================
+5. LẶP BẤT THƯỜNG TRONG MỘT FILE (cảnh báo, không kết luận trùng)
+====================================================================================================
+7 file có dấu hiệu lặp bất thường (ngưỡng: chuỗi lặp >= 30 dòng, hoặc >= 50% dòng bị lặp).
+Đây có thể là UAV đứng yên / tracker bị kẹt / annotation copy — cần xem video.
+
+[W01] Train/UAV-Anti-UAV_Train_000831/groundtruth_rect.txt | informative=1,938 | lặp nội bộ=252 (13.0%) | chuỗi giống nhau dài nhất=181 dòng (bắt đầu dòng 334)
+[W02] Train/UAV-Anti-UAV_Train_000721/groundtruth_rect.txt | informative=2,136 | lặp nội bộ=1,017 (47.6%) | chuỗi giống nhau dài nhất=51 dòng (bắt đầu dòng 971)
+[W03] Test/UAV-Anti-UAV_Test_000167/groundtruth_rect.txt | informative=3,628 | lặp nội bộ=153 (4.2%) | chuỗi giống nhau dài nhất=37 dòng (bắt đầu dòng 4801)
+[W04] Train/UAV-Anti-UAV_Train_000234/groundtruth_rect.txt | informative=315 | lặp nội bộ=85 (27.0%) | chuỗi giống nhau dài nhất=34 dòng (bắt đầu dòng 72)
+[W05] Test/UAV-Anti-UAV_Test_000166/groundtruth_rect.txt | informative=2,949 | lặp nội bộ=109 (3.7%) | chuỗi giống nhau dài nhất=33 dòng (bắt đầu dòng 3395)
+[W06] Train/UAV-Anti-UAV_Train_000718/groundtruth_rect.txt | informative=79 | lặp nội bộ=42 (53.2%) | chuỗi giống nhau dài nhất=10 dòng (bắt đầu dòng 46)
+[W07] Train/UAV-Anti-UAV_Train_000890/groundtruth_rect.txt | informative=130 | lặp nội bộ=70 (53.8%) | chuỗi giống nhau dài nhất=4 dòng (bắt đầu dòng 30)
+
+====================================================================================================
+6. LỖI CẤU TRÚC & CHẤT LƯỢNG ANNOTATION
+====================================================================================================
+Thiếu groundtruth : 0
+Thiếu absent      : 0
+groundtruth rỗng  : 0
+absent rỗng       : 0
+gt không có bbox hợp lệ: 0
+absent có giá trị khác 0/1: 0
+Lệch số dòng gt/absent: 0
+Tổng bbox all-zero / w,h<=0: 119,620 / 0
+Thiếu video       : 0
+
+
+====================================================================================================
+7. TRÙNG TÊN SEQUENCE / VIDEO (khác thư mục)
+====================================================================================================
+Không có tên sequence nào xuất hiện ở nhiều thư mục.
+
+====================================================================================================
+8. TRÙNG ABSENT VÀ METADATA (chỉ tham khảo)
+====================================================================================================
+absent.txt giống hệt: 206 nhóm | trong đó groundtruth khác (không phải trùng toàn bộ): 206 nhóm.
+Lưu ý: cùng lịch vắng mặt KHÔNG đủ kết luận trùng dữ liệu; phải xem groundtruth/video.
+Ví dụ:
+    - 3 sequence: Test/UAV-Anti-UAV_Test_000010, Train/UAV-Anti-UAV_Train_000103, Train/UAV-Anti-UAV_Train_000104
+    - 9 sequence: Test/UAV-Anti-UAV_Test_000011, Train/UAV-Anti-UAV_Train_000355, Train/UAV-Anti-UAV_Train_000385, Train/UAV-Anti-UAV_Train_000497, Train/UAV-Anti-UAV_Train_000530, Train/UAV-Anti-UAV_Train_000531, Train/UAV-Anti-UAV_Train_000827, Train/UAV-Anti-UAV_Train_001168 ...
+    - 3 sequence: Test/UAV-Anti-UAV_Test_000014, Train/UAV-Anti-UAV_Train_000306, Train/UAV-Anti-UAV_Train_000680
+    - 2 sequence: Test/UAV-Anti-UAV_Test_000036, Train/UAV-Anti-UAV_Train_000210
+    - 2 sequence: Test/UAV-Anti-UAV_Test_000083, Test/UAV-Anti-UAV_Test_000356
+    - 3 sequence: Test/UAV-Anti-UAV_Test_000087, Train/UAV-Anti-UAV_Train_000594, Train/UAV-Anti-UAV_Train_000595
+    - 3 sequence: Test/UAV-Anti-UAV_Test_000103, Train/UAV-Anti-UAV_Train_000987, Train/UAV-Anti-UAV_Train_001400
+    - 8 sequence: Test/UAV-Anti-UAV_Test_000105, Train/UAV-Anti-UAV_Train_000326, Train/UAV-Anti-UAV_Train_000330, Train/UAV-Anti-UAV_Train_000347, Train/UAV-Anti-UAV_Train_000372, Train/UAV-Anti-UAV_Train_000674, Train/UAV-Anti-UAV_Train_000727, Train/UAV-Anti-UAV_Train_001213
+    - 2 sequence: Test/UAV-Anti-UAV_Test_000128, Train/UAV-Anti-UAV_Train_000384
+    - 14 sequence: Test/UAV-Anti-UAV_Test_000132, Test/UAV-Anti-UAV_Test_000178, Train/UAV-Anti-UAV_Train_000156, Train/UAV-Anti-UAV_Train_000290, Train/UAV-Anti-UAV_Train_000299, Train/UAV-Anti-UAV_Train_000386, Train/UAV-Anti-UAV_Train_000513, Train/UAV-Anti-UAV_Train_000667 ...
+
+attributes.txt: 1,328 file nằm trong 282 nhóm giống hệt.
+language.txt: 278 file nằm trong 124 nhóm giống hệt.
+Metadata thường dùng chung template nên trùng là bình thường; không tính vào kết luận.
+
+====================================================================================================
+9. KẾT LUẬN
+====================================================================================================
+Trùng toàn bộ sequence : 0 nhóm / 0 sequence
+Trùng groundtruth      : 0 nhóm
+Trùng một phần         : 8 cặp
+Tên sequence trùng     : 0 tên
+Lặp bất thường nội bộ  : 7 file
+Lỗi/annotation bất thường: 0 mục
+
+KẾT LUẬN: CÓ trùng lặp nội dung annotation. Cần giữ một bản hoặc loại bỏ bản trùng.
+
+Gợi ý xử lý:
+  1. Mở trực tiếp các file/đoạn dòng ở mục 2-4 để xác nhận (đặc biệt cặp chỉ trùng một đoạn).
+  2. Trùng toàn bộ cùng split: giữ 1 bản, xoá/rename bản còn lại.
+  3. Trùng khác split: chuyển tất cả về cùng một split trước khi chia train/test.
+  4. Nếu chỉ trùng một đoạn: kiểm tra xem có phải cùng video bị cắt thành nhiều sequence.
+  5. Các file ở mục 5-6 cần xem video/annotation gốc; không tự động xoá dựa trên cảnh báo.
+
+Lưu ý: trùng txt không chắc trùng nội dung video, và ngược lại hai video khác nhau có thể
+có annotation giống nhau do dữ liệu tổng hợp. Báo cáo này là bằng chứng để kiểm tra, không
+phải lệnh xoá tự động.
+Thời gian chạy: 19.7s
+Report: /home/nvidia/thang/UAVAntiUAV/tools/check_data_results.txt

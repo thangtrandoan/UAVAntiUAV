@@ -1,0 +1,114 @@
+[f 60] bank update. Anchor: 1/5 | Recent: 0/15
+[f 70] Last-moment Memory Bank update before LOST. Bank: Anchor: 2/5 | Recent: 0/15
+[f 70] T0_INIT -> T1_LOST (target vang mat)
+[f 100] T1_LOST -> T2_SEARCH (UAV tai xuat theo GT)
+[f 101] Soft Lock collecting: 1/8 (coarse=0.972)
+[f 102] Soft Lock collecting: 2/8
+[f 103] Soft Lock collecting: 3/8
+[f 104] Soft Lock collecting: 4/8
+[f 105] Soft Lock collecting: 5/8
+[f 106] Soft Lock collecting: 6/8
+[f 107] Soft Lock collecting: 7/8
+[f 108] Soft Lock collecting: 8/8
+[f 108] SOFT LOCK PASS (soft=0.985 >= 0.300) -> duoc tinh HARD LOCK
+[f 108] HARD LOCK collecting: 1/8 (moi 4 frame)
+[f 109] T2_SEARCH: vang 1/2 -> BO QUA, giu 8/8 feature
+[f 110] T2_SEARCH: vang 2/2 -> BO QUA, giu 8/8 feature
+[f 111] T2_SEARCH -> T1_LOST (vang qua gap_tolerance)
+[f 122] T1_LOST -> T2_SEARCH (UAV tai xuat theo GT)
+[f 123] Soft Lock collecting: 1/8 (coarse=0.969)
+[f 124] Soft Lock collecting: 2/8
+[f 125] Soft Lock collecting: 3/8
+[f 126] Soft Lock collecting: 4/8
+[f 127] Soft Lock collecting: 5/8
+[f 128] Soft Lock collecting: 6/8
+[f 129] Soft Lock collecting: 7/8
+[f 130] Soft Lock collecting: 8/8
+[f 130] SOFT LOCK PASS (soft=0.987 >= 0.300) -> duoc tinh HARD LOCK
+[f 130] HARD LOCK collecting: 1/8 (moi 4 frame)
+[f 134] HARD LOCK collecting: 2/8 (moi 4 frame)
+[f 138] HARD LOCK collecting: 3/8 (moi 4 frame)
+[f 142] HARD LOCK collecting: 4/8 (moi 4 frame)
+[f 146] HARD LOCK collecting: 5/8 (moi 4 frame)
+[f 150] HARD LOCK collecting: 6/8 (moi 4 frame)
+[f 154] HARD LOCK collecting: 7/8 (moi 4 frame)
+[f 158] HARD LOCK collecting: 8/8 (moi 4 frame)
+[f 158] HARD LOCK! (fine=0.758 >= 0.750) latency=36 frames
+[f 209] Last-moment Memory Bank update before LOST. Bank: Anchor: 4/5 | Recent: 0/15
+[f 209] T3_VERIFIED -> T1_LOST (target vang mat)
+[f 214] T1_LOST -> T2_SEARCH (UAV tai xuat theo GT)
+[f 215] Soft Lock collecting: 1/8 (coarse=0.975)
+[f 216] Soft Lock collecting: 2/8
+[f 217] Soft Lock collecting: 3/8
+[f 218] Soft Lock collecting: 4/8
+[f 219] Soft Lock collecting: 5/8
+[f 220] Soft Lock collecting: 6/8
+[f 221] Soft Lock collecting: 7/8
+[f 222] Soft Lock collecting: 8/8
+[f 222] SOFT LOCK PASS (soft=0.988 >= 0.300) -> duoc tinh HARD LOCK
+[f 222] HARD LOCK collecting: 1/8 (moi 4 frame)
+[f 226] HARD LOCK collecting: 2/8 (moi 4 frame)
+[f 228] T2_SEARCH: vang 1/2 -> BO QUA, giu 8/8 feature
+[f 231] HARD LOCK collecting: 3/8 (moi 4 frame)
+[f 235] HARD LOCK collecting: 4/8 (moi 4 frame)
+[f 236] T2_SEARCH: vang 1/2 -> BO QUA, giu 8/8 feature
+[f 240] HARD LOCK collecting: 5/8 (moi 4 frame)
+[f 244] T2_SEARCH: vang 1/2 -> BO QUA, giu 8/8 feature
+[f 245] T2_SEARCH: vang 2/2 -> BO QUA, giu 8/8 feature
+[f 246] T2_SEARCH -> T1_LOST (vang qua gap_tolerance)
+[f 250] T1_LOST -> T2_SEARCH (UAV tai xuat theo GT)
+[f 251] Soft Lock collecting: 1/8 (coarse=0.974)
+[f 252] Soft Lock collecting: 2/8
+[f 253] Soft Lock collecting: 3/8
+[f 254] Soft Lock collecting: 4/8
+[f 255] Soft Lock collecting: 5/8
+[f 256] Soft Lock collecting: 6/8
+[f 257] Soft Lock collecting: 7/8
+[f 258] Soft Lock collecting: 8/8
+[f 258] SOFT LOCK PASS (soft=0.986 >= 0.300) -> duoc tinh HARD LOCK
+[f 258] HARD LOCK collecting: 1/8 (moi 4 frame)
+[f 261] T2_SEARCH: vang 1/2 -> BO QUA, giu 8/8 feature
+[f 262] T2_SEARCH: vang 2/2 -> BO QUA, giu 8/8 feature
+[f 263] T2_SEARCH -> T1_LOST (vang qua gap_tolerance)
+[f 533] T1_LOST -> T2_SEARCH (UAV tai xuat theo GT)
+[f 534] Soft Lock collecting: 1/8 (coarse=0.979)
+[f 535] Soft Lock collecting: 2/8
+[f 536] Soft Lock collecting: 3/8
+[f 537] Soft Lock collecting: 4/8
+[f 538] Soft Lock collecting: 5/8
+[f 539] Soft Lock collecting: 6/8
+[f 540] Soft Lock collecting: 7/8
+[f 541] Soft Lock collecting: 8/8
+[f 541] SOFT LOCK PASS (soft=0.988 >= 0.300) -> duoc tinh HARD LOCK
+[f 541] HARD LOCK collecting: 1/8 (moi 4 frame)
+[f 545] HARD LOCK collecting: 2/8 (moi 4 frame)
+[f 549] HARD LOCK collecting: 3/8 (moi 4 frame)
+[f 553] HARD LOCK collecting: 4/8 (moi 4 frame)
+[f 557] HARD LOCK collecting: 5/8 (moi 4 frame)
+[f 561] HARD LOCK collecting: 6/8 (moi 4 frame)
+[f 565] HARD LOCK collecting: 7/8 (moi 4 frame)
+[f 569] HARD LOCK collecting: 8/8 (moi 4 frame)
+[f 569] HARD LOCK! (fine=0.819 >= 0.750) latency=36 frames
+[f 629] Anti-Hijack check #1: fused=0.824
+[f 629] bank update. Anchor: 5/5 | Recent: 1/15
+[f 669] Last-moment Memory Bank update before LOST. Bank: Anchor: 5/5 | Recent: 2/15
+[f 669] T3_VERIFIED -> T1_LOST (target vang mat)
+[f 670] T1_LOST -> T2_SEARCH (UAV tai xuat theo GT)
+[f 671] Soft Lock collecting: 1/8 (coarse=0.982)
+[f 672] Soft Lock collecting: 2/8
+[f 673] Soft Lock collecting: 3/8
+[f 674] Soft Lock collecting: 4/8
+[f 675] Soft Lock collecting: 5/8
+[f 676] Soft Lock collecting: 6/8
+[f 677] Soft Lock collecting: 7/8
+[f 678] Soft Lock collecting: 8/8
+[f 678] SOFT LOCK PASS (soft=0.994 >= 0.300) -> duoc tinh HARD LOCK
+[f 678] HARD LOCK collecting: 1/8 (moi 4 frame)
+[f 682] HARD LOCK collecting: 2/8 (moi 4 frame)
+[f 686] HARD LOCK collecting: 3/8 (moi 4 frame)
+[f 690] HARD LOCK collecting: 4/8 (moi 4 frame)
+[f 694] HARD LOCK collecting: 5/8 (moi 4 frame)
+[f 698] HARD LOCK collecting: 6/8 (moi 4 frame)
+[f 699] T2_SEARCH: vang 1/2 -> BO QUA, giu 8/8 feature
+[f 700] T2_SEARCH: vang 2/2 -> BO QUA, giu 8/8 feature
+[f 701] T2_SEARCH -> T1_LOST (vang qua gap_tolerance)

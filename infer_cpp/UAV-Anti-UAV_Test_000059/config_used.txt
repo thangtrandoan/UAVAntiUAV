@@ -1,0 +1,14 @@
+seq_dir            : data/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+backbone_engine    : v1_backbone.engine
+temporal_engine    : v1_n8_temporal.engine
+num_frames         : 8 (0 = tu engine)
+stride             : 4
+bbox_padding       : 0.2
+soft_lock_threshold: 0.3
+reid_threshold     : 0.75
+hijack_threshold   : 0.4
+hijack_check_count : 5
+gap_tolerance      : 2
+update_interval_sec: 2
+max_anchor/recent  : 5 / 15
+fine_space         : fused
