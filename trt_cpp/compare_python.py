@@ -118,7 +118,10 @@ def main() -> int:
     model.cuda().eval()
 
     # Đúng chuỗi của evaluate_reid.py:283-288.
+    # `ToPILImage` là bắt buộc: crop lấy ra là numpy ndarray, mà torchvision.Resize
+    # chỉ nhận PIL Image hoặc tensor (thiếu bước này sẽ TypeError).
     tf = transforms.Compose([
+        transforms.ToPILImage(),
         transforms.Resize((256, 256)),
         transforms.CenterCrop((224, 224)),
         transforms.ToTensor(),
@@ -163,6 +166,14 @@ def main() -> int:
         print(f"  CẢNH BÁO: chỉ có {len(crops)} frame < N={n_win}; "
               "sẽ lặp frame cuối (cùng quy ước hai bên)")
 
+    ch, cw = crops[0].shape[:2]
+    if cw == 256 and ch == 256:
+        print(f"  crop {cw}x{ch}: engine đi ĐƯỜNG NHANH (copy, không resize)"
+              " -> phép so này kiểm MODEL, không kiểm resize")
+    else:
+        print(f"  crop {cw}x{ch}: engine đi đường RESIZE "
+              f"(phóng {256.0/cw:.1f}x x {256.0/ch:.1f}x) -> kiểm cả preprocess")
+
     def cos(a, b):
         return float(np.dot(a.ravel(), b.ravel()) /
                      (np.linalg.norm(a) * np.linalg.norm(b) + 1e-12))
@@ -190,20 +201,32 @@ def main() -> int:
     while len(pad) < n_win:
         pad.append(pad[-1])
 
-    py_seq = torch.from_numpy(np.stack(py_feats)).unsqueeze(0).cuda()
-    if py_seq.shape[1] < n_win:
-        k = n_win - py_seq.shape[1]
-        py_seq = torch.cat([py_seq, py_seq[:, -1:].repeat(1, k, 1)], dim=1)
+    # `UAVReIDNet.forward` nhận clip ảnh (B,N,C,H,W), KHÔNG nhận chuỗi feature.
+    # Đi đúng đường của infer.py:compute_fused_vector (:134-145):
+    #   temporal_token <- temporal_encoder(seq);  bn_feat <- head(mean(seq), token)
+    py_stack = np.stack(py_feats)
+    if py_stack.shape[0] < n_win:
+        py_stack = np.concatenate(
+            [py_stack, np.repeat(py_stack[-1:], n_win - py_stack.shape[0], 0)], 0)
     with torch.no_grad():
-        py_fused = F.normalize(model(py_seq), p=2, dim=1).squeeze(0).cpu().numpy()
+        seq_t = torch.from_numpy(py_stack).unsqueeze(0).cuda()
+        tok, _ = model.temporal_encoder(seq_t)
+        py_fused = F.normalize(model.head(seq_t.mean(dim=1), tok), p=2, dim=1)
+        py_fused = py_fused.squeeze(0).cpu().numpy()
 
     cpp_fused = eng.temporal(np.stack(pad))
-    print("\n  [2] FUSED (3072)")
-    print(f"      cosine = {cos(py_fused, cpp_fused):.6f}   "
-          f"(>= 0.999 là đạt)")
-    print(f"      |diff| max = {float(np.max(np.abs(py_fused - cpp_fused))):.4e}")
+    # [2a] CHỈ temporal: hai bên nhận CÙNG chuỗi feature (của PyTorch).
+    #       Tách được lỗi temporal khỏi lỗi backbone ở [1].
+    # [2b] đầu-cuối: chuỗi feature do chính C++ tính -> dính lỗi [1].
+    cpp_fused_same = eng.temporal(np.stack(py_stack))
+    cpp_fused_e2e = eng.temporal(np.stack(pad))
+    print("\n  [2a] FUSED — chỉ temporal, cùng đầu vào (3072)")
+    print(f"      cosine = {cos(py_fused, cpp_fused_same):.6f}   (>= 0.999 là đạt)")
     print(f"      |py| = {np.linalg.norm(py_fused):.6f}   "
-          f"|cpp| = {np.linalg.norm(cpp_fused):.6f}  (phải = 1.0)")
+          f"|cpp| = {np.linalg.norm(cpp_fused_same):.6f}  (phải = 1.0)")
+    print("\n  [2b] FUSED — đầu-cuối, C++ tự tính feature (dính lỗi [1] nếu có)")
+    print(f"      cosine = {cos(py_fused, cpp_fused_e2e):.6f}")
+    cpp_fused = cpp_fused_e2e
 
     # ---- 3. Impostor: cùng clip nhưng vật khác ----
     if args.other:

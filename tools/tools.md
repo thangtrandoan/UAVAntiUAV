@@ -85,3 +85,26 @@ Thư mục `_ec/` cũ đã bỏ (27/10): ba script ở trên được chuyển s
 `cspconvnext.py` đã xoá — đó là bản copy code **PaddlePaddle** của paper, không
 import được trong repo PyTorch này (`import paddle`, `from .convnext import ...`).
 Bản gốc nằm ở PaddleClas; bản trong repo vẫn lấy lại được từ git history.
+
+## `diff_infer.py` — so QUYẾT ĐỊNH giữa bản Python và bản C++
+
+So hai bản chạy cùng một sequence, nhưng **không so vector đặc trưng** (đã biết lệch
+~0.97 ở nhánh resize — xem `trt_cpp/README.md`); chỉ so những gì thực sự quyết định
+kết quả:
+
+| Nhóm | So cái gì |
+|---|---|
+| Sự kiện | frame nào LOST, tại xuất, SOFT PASS/FAIL, HARD LOCK, false alarm, hijack, cập nhật bank |
+| HARD LOCK | từng lần: frame, `fine`, `latency` — hai bên đặt cạnh nhau |
+| Tổng hợp | số lần HARD LOCK, số false alarm, số lần chạy temporal (`n=`), latency trung bình |
+
+Đọc `metrics.txt` (Python, mọi dòng `[frame] ...`) và `events.txt` + `summary.txt` (C++).
+Dòng nào không phân loại được thì **in ra** thay vì bỏ im lặng — để biết khi hai bản
+dùng câu chữ khác nhau mà thêm luật.
+
+```
+python tools/diff_infer.py --py-dir infer_output/resnet50_ibn_20thg10 \
+                           --cpp-dir infer_cpp/UAV-Anti-UAV_Test_000059
+```
+
+`exit 0` = khớp sự kiện; `exit 1` = có lệch (in rõ loại nào, frame nào).

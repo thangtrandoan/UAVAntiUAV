@@ -190,8 +190,21 @@ print('cos =', float(a@b/np.linalg.norm(a)/np.linalg.norm(b)))
 PY
 ```
 
-`cos > 0.999` là đạt. Lệch nhiều hơn thì kiểm lại `--order` và việc ảnh có đúng
-`processed/` (đã crop bbox, 256×256) hay không.
+> Trên máy này `trtexec` **không nằm trong PATH**; binary ở
+> `/usr/src/tensorrt/bin/trtexec`. Thêm tạm: `export PATH=$PATH:/usr/src/tensorrt/bin`.
+
+`cos > 0.999` là đạt **chỉ khi engine build fp32**. Kiểm tra bằng cỡ file: số tham số
+của `v1_backbone.onnx` là 45.04 M → fp32 tốn 180 MB, fp16 tốn 90 MB. Engine 95 MB nghĩa
+là **fp16**, và khi đó `cos` kỳ vọng chỉ **0.97–0.98** — đây là mất mát lượng tử hoá,
+không phải lỗi code. Muốn so công bằng thì build thêm một engine fp32 để đối chứng:
+
+```bash
+/usr/src/tensorrt/bin/trtexec --onnx=v1_backbone.onnx \
+    --saveEngine=v1_backbone_fp32.engine   # bỏ --fp16
+```
+
+Lệch nhiều hơn cả mức đó thì mới kiểm lại `--order` và việc ảnh có đúng `processed/`
+(đã crop bbox, 256×256) hay không.
 
 ---
 
@@ -392,7 +405,8 @@ lệch, ngưỡng đã calibrate mất hiệu lực.
 Build engine:
 
 ```bash
-trtexec --onnx=v1_temporal.onnx --saveEngine=v1_temporal.engine --fp16 \
+/usr/src/tensorrt/bin/trtexec --onnx=v1_temporal.onnx \
+    --saveEngine=v1_temporal.engine --fp16 \
   --minShapes=seq_feats:1x8x2560 --optShapes=seq_feats:1x8x2560 \
   --maxShapes=seq_feats:12x8x2560
 ```
@@ -503,3 +517,83 @@ này.
 
 `uav_reid_trt` là CLI đo tốc độ thuần engine (batch, manifest, so khớp). Công cụ này là
 đường chạy đầy đủ có trạng thái + video. Hai mục đích khác nhau, giữ riêng.
+
+---
+
+## 11. Đo tốc độ nhiều lần, nhiều input (`bench_multi.py`)
+
+Một lần chạy trên một sequence **không** đủ để báo cáo: nhiệt độ, xung nhịp,
+page cache gây sai số 10–20%, và FPS cả video phụ thuộc **tỉ lệ frame vắng**
+của sequence đó nên không đại diện được.
+
+```bash
+# 1. Khoá xung — bắt buộc, nếu không số sẽ thấp và dao động
+sudo nvpmodel -m 0 && sudo jetson_clocks
+
+# 2. Chạy
+python trt_cpp/bench_multi.py \
+    --config configs/config_resnet50_ibn.yaml \
+    --backbone v1_backbone.engine --temporal v1_n8_temporal.engine \
+    --impl both --nseq 5 --reps 3
+```
+
+Cách làm: chọn K sequence dài (≥400 frame) trải đều theo cỡ bbox, chạy R lần mỗi
+sequence, **bỏ lần đầu** (page cache + TRT lazy init), báo cáo **trung vị ± độ
+lệch chuẩn [min–max]**, và cảnh báo nếu lần cuối chậm hơn lần đầu > 5% (trôi nhiệt).
+
+| Cờ | Ý nghĩa |
+|---|---|
+| `--nseq` | số sequence chọn tự động (trải đều theo diện tích bbox) |
+| `--reps` | số lần chạy hợp lệ mỗi sequence |
+| `--warmup-runs` | số lần chạy bị bỏ (mặc định 1) |
+| `--no-video-out` | bản C++ không ghi video → đo riêng model |
+| `--min-bbox` | bỏ sequence có bbox suy biến (w hoặc h = 0) |
+| `--dry-run` | chỉ in danh sách sequence sẽ chạy |
+
+### Đo cả độ chính xác, không chỉ tốc độ
+
+Cùng một lượt chạy, nó so **cả hai** mặt và in dạng `C++ / Python / chênh lệch`:
+
+```
+  => backbone             C++ 10.25 ms  vs  Python 10.98 ms   (-0.73 ms, -6.7%)
+  => temporal             C++ 1.01 ms  vs  Python 4.14 ms   (-3.13 ms, -75.6%)
+  => throughput           C++ 322.8 FPS  vs  Python 253.3 FPS   (+69.5 FPS, +27.5%)   = 1.27x
+  => throughput+ghi video C++ 90.7 FPS  vs  Python 84.7 FPS   (+6.0 FPS, +7.1%)   = 1.07x
+
+  CHINH XAC            HARD LOCK      latency (frame)   false alarm   %verified
+  cpp                  2.0±0.0        36.0±0.0          0.0±0.0       21.4±0.0
+  py                   2.0±0.0        36.0±0.0          0.0±0.0       21.4±0.0
+  => chenh lech (C++ - Python): HARD LOCK +0.0, latency +0.0, false alarm +0.0, %verified +0.0 diem
+```
+
+Bốn chỉ số độ chính xác, lấy từ chính lượt chạy (không cần bước riêng):
+
+| Chỉ số | Lấy từ đâu |
+|---|---|
+| số lần HARD LOCK | `summary.txt` (C++) / đếm dòng `HARD LOCK!` trong `metrics.txt` (Python) |
+| latency trung bình | dòng `Re-acquisition latency` (C++) / `Re-acquisition Latency` (Python) |
+| false alarm | `False alarm (fine fail)` (C++) / `False Alarms (Fine Fails)` (Python) |
+| **% frame đang VERIFIED** | đếm cột `state` trong `frames.csv` (C++) / **dựng lại** từ log (Python) |
+
+`%verified` là chỉ số gộp: bám mục tiêu được bao nhiêu phần trăm video. Nó bắt được
+khác biệt mà 3 chỉ số kia bỏ sót (ví dụ lệch độ dài từng đoạn bám).
+
+**Vì sao chạy nhiều lần mà độ chính xác không đổi:** pipeline tất định — cùng video,
+cùng GT, cùng engine thì ra cùng kết quả. Công cụ chạy lặp lại **để kiểm chính điều
+đó**: nếu các lần chạy ra kết quả khác nhau thì có gì không tất định, và nó cảnh báo.
+
+### Đọc lại kết quả cũ mà không chạy lại
+
+`--reuse` đọc thẳng `<out-root>/<impl>/<seq>/r<rep>` đã có — hữu ích khi muốn đổi cách
+tổng hợp mà không tốn 20 phút chạy lại.
+
+Ghi `bench_multi.csv` (15 cột) để vẽ biểu đồ hoặc lưu vào `md/`.
+
+**Ba điều cần nhớ khi đọc số:**
+
+1. `fps` ở đây là throughput của **model + UI**, KHÔNG gồm giải mã video — cả hai
+   bản đều đo như vậy nên so được với nhau, nhưng không phải FPS thời gian thực.
+2. `n_bb` (số lần chạy backbone) phụ thuộc tỉ lệ frame vắng của sequence. Hai bản
+   phải ra **cùng `n_bb`**, nếu không là đang so hai khối lượng khác nhau.
+3. Ghi video tốn ~8 ms/frame, gấp đôi model. Muốn đo riêng model thì dùng
+   `--no-video-out` cho bản C++.

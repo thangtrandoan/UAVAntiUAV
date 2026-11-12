@@ -4,10 +4,10 @@ N / stride             : 8 / 4
 HARD LOCK can          : 29 frame
 
 --- THOI GIAN ---
-backbone (prep+TRT)    : 9.919443 ms  (n=201)
-temporal (H2D+TRT)     : 1.040722 ms  (n=7)
-throughput (model+UI)  : 333.163426 FPS
-throughput (+ghi video): 91.700311 FPS  (ghi 7.903558 ms/frame)
+backbone (prep+TRT)    : 10.245727 ms  (n=201)
+temporal (H2D+TRT)     : 1.009279 ms  (n=7)
+throughput (model+UI)  : 322.848260 FPS
+throughput (+ghi video): 90.696610 FPS  (ghi 7.928340 ms/frame)
 
 --- KET QUA REID ---
 HARD LOCK              : 2 lan
