@@ -18,20 +18,26 @@ if gasnet_path not in sys.path:
     sys.path.append(gasnet_path)
 
 try:
-    from train import GASNet
+    from train import GASNet, infer_backbone_name, infer_econvnext
+    from bcgg import infer_gate_config
     HAS_GASNET = True
 except ImportError:
     HAS_GASNET = False
+    infer_gate_config = None
+    infer_backbone_name = None
+    infer_econvnext = None
     print("Warning: Không thể import GASNet từ train.py. Sẽ sử dụng Dummy Network.")
 
 
 class UAVReIDNet(nn.Module):
     def __init__(self, gasnet_weights_path=None, num_identities=1000, freeze_backbone=True,
                  backbone='resnet50_ibn', temporal_pool='attn', temporal_pe=True,
-                 temporal_type='mamba', econvnext=False):
+                 temporal_type='mamba', econvnext=False, gate=None,
+                 gate_hidden=None, gate_groups=None, gate_kernel=None,
+                 gate_channel_kernel=None, gate_inject_value=None):
         super().__init__()
         
-        self.temporal_type = temporal_type
+        self.temporal_type = (temporal_type or 'mamba').lower()
         
         # Tự động trỏ path mặc định nếu không truyền
         if gasnet_weights_path is None:
@@ -40,15 +46,90 @@ class UAVReIDNet(nn.Module):
             
         # 1. Visual Backbone
         if HAS_GASNET:
-            self.backbone = GASNet(num_classes=num_identities, backbone=backbone, use_gem=True,
-                                   econvnext=econvnext)
-            if os.path.exists(gasnet_weights_path):
-                state_dict = torch.load(gasnet_weights_path, map_location='cpu')
+            state_dict = None
+            has_gasnet_ckpt = bool(gasnet_weights_path and os.path.exists(gasnet_weights_path))
+            if has_gasnet_ckpt:
+                raw_ckpt = torch.load(gasnet_weights_path, map_location='cpu')
+                if isinstance(raw_ckpt, dict) and 'model_state_dict' in raw_ckpt:
+                    raw_ckpt = raw_ckpt['model_state_dict']
                 # torch.compile lưu state_dict với prefix _orig_mod. — phải strip trước khi load
                 state_dict = {
                     (k[len('_orig_mod.'):] if k.startswith('_orig_mod.') else k): v
-                    for k, v in state_dict.items()
+                    for k, v in raw_ckpt.items()
                 }
+
+            inferred_gate = (
+                infer_gate_config(state_dict or {}, default_kind=(gate or "rga").lower())
+                if infer_gate_config is not None
+                else {
+                    "gate": (gate or "rga").lower(),
+                    "gate_hidden": 16,
+                    "gate_groups": 4,
+                    "gate_kernel": 7,
+                    "gate_channel_kernel": 5,
+                    "gate_inject_value": False,
+                }
+            )
+            effective_gate = (gate or inferred_gate["gate"] or "rga").lower()
+            if state_dict is not None and gate is not None and inferred_gate["gate"] != effective_gate:
+                print(
+                    f" ⚠️ Config đặt gate={effective_gate!r} nhưng gasnet_weights ({os.path.basename(gasnet_weights_path)}) "
+                    f"được train với gate={inferred_gate['gate']!r}. Các tầng ga1..ga4 sẽ khởi tạo mới theo {effective_gate!r}."
+                )
+
+            eff_hidden = int(gate_hidden if gate_hidden is not None else inferred_gate["gate_hidden"])
+            eff_groups = int(gate_groups if gate_groups is not None else inferred_gate["gate_groups"])
+            eff_kernel = int(gate_kernel if gate_kernel is not None else inferred_gate["gate_kernel"])
+            eff_ch_kernel = int(
+                gate_channel_kernel if gate_channel_kernel is not None else inferred_gate["gate_channel_kernel"]
+            )
+            eff_inject = bool(
+                gate_inject_value if gate_inject_value is not None else inferred_gate["gate_inject_value"]
+            )
+            self.gate = effective_gate
+
+            print(
+                f"  GASNet stage gate: {effective_gate.upper()}"
+                + (
+                    f" (d={eff_hidden}, G={eff_groups}, k={eff_kernel}, kc={eff_ch_kernel}, value={eff_inject})"
+                    if effective_gate == "bcgg"
+                    else ""
+                )
+            )
+            try:
+                self.backbone = GASNet(
+                    num_classes=num_identities,
+                    use_pretrained=(not has_gasnet_ckpt),
+                    backbone=backbone,
+                    use_gem=True,
+                    econvnext=econvnext,
+                    gate=effective_gate,
+                    gate_hidden=eff_hidden,
+                    gate_groups=eff_groups,
+                    gate_kernel=eff_kernel,
+                    gate_channel_kernel=eff_ch_kernel,
+                    gate_inject_value=eff_inject,
+                )
+            except Exception as e:
+                if not has_gasnet_ckpt:
+                    print(f" ⚠️ Không tải được pretrained backbone online ({e}); khởi tạo kiến trúc với use_pretrained=False.")
+                    self.backbone = GASNet(
+                        num_classes=num_identities,
+                        use_pretrained=False,
+                        backbone=backbone,
+                        use_gem=True,
+                        econvnext=econvnext,
+                        gate=effective_gate,
+                        gate_hidden=eff_hidden,
+                        gate_groups=eff_groups,
+                        gate_kernel=eff_kernel,
+                        gate_channel_kernel=eff_ch_kernel,
+                        gate_inject_value=eff_inject,
+                    )
+                else:
+                    raise
+
+            if state_dict is not None:
                 # load_state_dict(strict=False) VẪN throw RuntimeError nếu shape mismatch
                 # (vd: classifier_global của VRU có num_classes khác num_identities UAV)
                 # lọc trước chỉ giữ key có shape khớp chính xác.
@@ -78,6 +159,7 @@ class UAVReIDNet(nn.Module):
                 print(f" Cảnh báo: Không tìm thấy pre-trained weights tại {gasnet_weights_path}")
             self.backbone.return_raw_features_eval = True
         else:
+            self.gate = (gate or 'rga').lower()
             # Dummy cho mục đích debugging nếu mất mã nguồn GASNet
             class DummyGASNet(nn.Module):
                 def __init__(self):
@@ -99,20 +181,27 @@ class UAVReIDNet(nn.Module):
             visual_dim = 960  # 768 (Global) + 192 (FS)
         else:
             visual_dim = 2560 # 2048 (Global) + 512 (FS)
+
+        is_no_temporal = self.temporal_type in ('none', 'identity', 'visual_only')
+        temporal_d_out = 0 if is_no_temporal else 512
         
         # Chọn temporal encoder qua registry (model/registry.py).
         # Thêm encoder mới: tạo file trong model/, gắn @register_temporal, rồi đặt
         # `train.temporal_type` trong config bằng tên đã đăng ký.
         self.temporal_encoder = build_temporal_encoder(
-            temporal_type, d_in=visual_dim, d_model=512, d_out=512, max_seq_len=64,
+            self.temporal_type, d_in=visual_dim, d_model=temporal_d_out, d_out=temporal_d_out, max_seq_len=64,
             num_layers=2, num_heads=8, dropout=0.1, pool=temporal_pool, use_pe=temporal_pe,
         )
         print(f"  Temporal encoder: {type(self.temporal_encoder).__name__}"
-              + ("" if temporal_type != 'mamba' else
-                 f" ({'mamba_ssm' if HAS_MAMBA else 'SimpleS6Block fallback'})"))
+              + (" (Visual-Only / Không dùng nhánh thời gian)" if is_no_temporal else
+                 ("" if self.temporal_type != 'mamba' else
+                  f" ({'mamba_ssm' if HAS_MAMBA else 'SimpleS6Block fallback'})")))
         
         # 3. ReID Head
-        self.head = ReIDHead(in_dim=visual_dim + 512, num_identities=num_identities)
+        self.visual_dim = visual_dim
+        self.temporal_d_out = temporal_d_out
+        self.feat_dim = visual_dim + temporal_d_out
+        self.head = ReIDHead(in_dim=self.feat_dim, num_identities=num_identities)
         
     def freeze_backbone(self):
         """Đóng băng trọng số của Visual Backbone."""

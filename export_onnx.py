@@ -76,9 +76,10 @@ if __name__ == '__main__':
     parser.add_argument('--num-frames', default=16, type=int)
     parser.add_argument('--img-size', default=224, type=int)
     parser.add_argument('--opset', default=17, type=int)
-    parser.add_argument('--temporal-type', default='mamba', type=str, choices=['mamba', 'attention'])
+    parser.add_argument('--temporal-type', default='mamba', type=str, choices=['mamba', 'attention', 'none'])
     parser.add_argument('--temporal-pool', default='mean', type=str, choices=['mean', 'attn'])
     parser.add_argument('--backbone', default=None, type=str, help="Override backbone from config")
+    parser.add_argument('--gate', default=None, type=str, choices=['bcgg', 'rga'], help="Override stage gate from config ('bcgg' or 'rga')")
     parser.add_argument('--econvnext', action='store_true', help="Use econvnext backbone")
     parser.add_argument('--prefix', default='uav_reid_', type=str)
     args = parser.parse_args()
@@ -88,9 +89,11 @@ if __name__ == '__main__':
 
     train_cfg = cfg.get('train', {})
     backbone = args.backbone if args.backbone else train_cfg.get('backbone', 'dinov3_convnext')
+    gate = args.gate if args.gate else train_cfg.get('gate', None)
     
-    print(f"Loading UAVReIDNet (Backbone: {backbone}, Temporal: {args.temporal_type}, Pool: {args.temporal_pool})...")
-    model = UAVReIDNet(freeze_backbone=False, backbone=backbone, temporal_type=args.temporal_type, temporal_pool=args.temporal_pool, econvnext=args.econvnext)
+    print(f"Loading UAVReIDNet (Backbone: {backbone}, Gate: {gate or 'auto/rga'}, Temporal: {args.temporal_type}, Pool: {args.temporal_pool})...")
+    model = UAVReIDNet(freeze_backbone=False, backbone=backbone, temporal_type=args.temporal_type,
+                       temporal_pool=args.temporal_pool, econvnext=args.econvnext, gate=gate)
 
     if os.path.exists(args.checkpoint):
         load_checkpoint_verbose(model, args.checkpoint, tag="export")

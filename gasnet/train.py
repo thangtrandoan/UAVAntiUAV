@@ -21,6 +21,7 @@ from torchvision import models, transforms
 from dataset import VRUDataset, build_query_gallery, read_split_file
 from evaluation import print_eval_report, run_eval
 from utils import choose_amp_dtype, configure_cuda_for_speed, set_seed
+from bcgg import BottleneckContextGroupGate, infer_gate_config
 
 
 BEST_METRIC_SPLIT_PRIORITY = {
@@ -209,6 +210,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--num-attention-heads", type=int, default=4, help="Number of attention maps for local branch (1 or 4 for ablation)")
     parser.add_argument("--attn-diversity-weight", type=float, default=0.0, help="Weight for diversity loss between attention heads (0=off)")
     parser.add_argument("--attn-vis-dir", type=Path, default=None, help="Directory to save attention map visualizations")
+    parser.add_argument(
+        "--gate",
+        choices=("bcgg", "rga"),
+        default="bcgg",
+        help="Stage gate block between backbone stages (default: bcgg; use rga for the legacy quadratic gate)",
+    )
+    parser.add_argument("--gate-hidden", type=int, default=16, help="BCGG spatial bottleneck width d")
+    parser.add_argument("--gate-groups", type=int, default=4, help="BCGG channel group count G")
+    parser.add_argument("--gate-kernel", type=int, default=7, help="BCGG depthwise context kernel size k")
+    parser.add_argument("--gate-channel-kernel", type=int, default=5, help="BCGG 1D channel conv kernel size")
+    parser.add_argument("--gate-inject-value", action="store_true", help="Enable the additive value refinement branch in BCGG")
     return parser.parse_args()
 
 
@@ -357,10 +369,58 @@ class RGABlock(nn.Module):
             channel_reduction=channel_reduction,
         )
 
+    @property
+    def last_attention(self) -> torch.Tensor | None:
+        return self.rga_s.last_attention
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.rga_s(x)
         x = self.rga_c(x)
         return x
+
+
+def _make_gate_block(
+    kind: str,
+    channels: int,
+    spatial_size: tuple[int, int],
+    hidden: int = 16,
+    groups: int = 4,
+    kernel_size: int = 7,
+    channel_kernel: int = 5,
+    inject_value: bool = False,
+) -> nn.Module:
+    kind = (kind or "rga").lower()
+    if kind == "rga":
+        return RGABlock(channels, spatial_size=spatial_size)
+    if kind == "bcgg":
+        return BottleneckContextGroupGate(
+            channels=channels,
+            hidden=hidden,
+            groups=groups,
+            kernel_size=kernel_size,
+            channel_kernel=channel_kernel,
+            inject_value=inject_value,
+        )
+    raise ValueError(f"Unsupported gate kind: {kind!r} (expected 'bcgg' or 'rga')")
+
+
+def infer_backbone_name(state_dict: dict, default: str = "resnet50") -> str:
+    keys = state_dict.keys()
+    if any("convnext_backbone." in k for k in keys):
+        return "dinov3_convnext"
+    if any("swin_backbone." in k for k in keys):
+        return "swin_t"
+    if any(".bn1.in_norm." in k for k in keys):
+        return "resnet50_ibn"
+    if any(k.startswith("layer1.") or k.startswith("backbone.layer1.") for k in keys):
+        return "resnet50"
+    return default
+
+
+def infer_econvnext(state_dict: dict) -> bool:
+    """Detect whether a DINOv3 ConvNeXt checkpoint uses the E-ConvNeXt variant."""
+    keys = state_dict.keys()
+    return any("convnext_backbone.stage1.blocks." in k or "convnext_backbone.stem.conv1." in k for k in keys)
 
 
 class Lite3x3(nn.Module):
@@ -993,6 +1053,21 @@ class DINOv3ConvNeXtBackbone(nn.Module):
 
     def __init__(self, pretrained: bool = True, econvnext: bool = False):
         super().__init__()
+        self.econvnext = bool(econvnext)
+
+        if self.econvnext and not pretrained:
+            self.stem = EConvNeXtStem(out_channels=64)
+            self.stage1 = CSPStage(
+                64, 96, num_blocks=3, stride=2, use_ese=True, sigma_b=SIGMA_B[0]
+            )
+            self.stage2 = CSPStage(
+                96, 192, num_blocks=3, stride=2, use_ese=True, sigma_b=SIGMA_B[1]
+            )
+            self.stage3 = EConvNeXtStage(192, 384, num_blocks=27, use_ese=False)
+            self.stage4 = EConvNeXtStage(384, 768, num_blocks=3, use_ese=False)
+            print("  E-ConvNeXt backbone ready (uninitialized, expecting checkpoint load)")
+            return
+
         from transformers import AutoModel, AutoConfig
         from huggingface_hub import get_token
         import transformers
@@ -1012,10 +1087,15 @@ class DINOv3ConvNeXtBackbone(nn.Module):
             print(f"Loading pretrained ConvNeXt from HuggingFace: {model_name}...")
             full_model = AutoModel.from_pretrained(model_name, **kwargs)
         else:
-            config = AutoConfig.from_pretrained(model_name, **kwargs)
+            try:
+                config = AutoConfig.from_pretrained(model_name, **kwargs)
+            except Exception:
+                from transformers import DINOv3ConvNextConfig
+                config = DINOv3ConvNextConfig(
+                    depths=[3, 3, 27, 3],
+                    hidden_sizes=[96, 192, 384, 768],
+                )
             full_model = AutoModel.from_config(config)
-
-        self.econvnext = bool(econvnext)
 
         if not self.econvnext:
             # Duong cu: giu nguyen kien truc DINOv3 goc
@@ -1116,6 +1196,12 @@ class GASNet(nn.Module):
         use_attention_local: bool = False,
         num_attention_heads: int = 4,
         econvnext: bool = False,
+        gate: str = "rga",
+        gate_hidden: int = 16,
+        gate_groups: int = 4,
+        gate_kernel: int = 7,
+        gate_channel_kernel: int = 5,
+        gate_inject_value: bool = False,
     ):
         super().__init__()
         if num_parts < 1:
@@ -1124,6 +1210,7 @@ class GASNet(nn.Module):
         self.use_attention_local = use_attention_local
         self.num_parts = num_parts
         self.backbone_type = backbone
+        self.gate_type = (gate or "rga").lower()
         self._is_convnext = backbone == "dinov3_convnext"
 
         if backbone == "swin_t":
@@ -1150,23 +1237,31 @@ class GASNet(nn.Module):
             c1, c2, c3, c4 = 256, 512, 1024, 2048
             dim_fs = 512
 
+        gate_kwargs = dict(
+            hidden=gate_hidden,
+            groups=gate_groups,
+            kernel_size=gate_kernel,
+            channel_kernel=gate_channel_kernel,
+            inject_value=gate_inject_value,
+        )
+
         if backbone not in ("swin_t",) and not self._is_convnext:
             self.stem = nn.Sequential(base.conv1, base.bn1, base.relu, base.maxpool)
             self.layer1 = base.layer1
             self.layer2 = base.layer2
             self.layer3 = base.layer3
             self.layer4 = base.layer4
-            self.ga1 = RGABlock(c1, spatial_size=(56, 56))
-            self.ga2 = RGABlock(c2, spatial_size=(28, 28))
-            self.ga3 = RGABlock(c3, spatial_size=(14, 14))
-            self.ga4 = RGABlock(c4, spatial_size=(7, 7))
+            self.ga1 = _make_gate_block(self.gate_type, c1, spatial_size=(56, 56), **gate_kwargs)
+            self.ga2 = _make_gate_block(self.gate_type, c2, spatial_size=(28, 28), **gate_kwargs)
+            self.ga3 = _make_gate_block(self.gate_type, c3, spatial_size=(14, 14), **gate_kwargs)
+            self.ga4 = _make_gate_block(self.gate_type, c4, spatial_size=(7, 7), **gate_kwargs)
 
-        # ConvNeXt: keep all 4 RGA blocks, identical flow to ResNet
+        # ConvNeXt: keep all 4 gate blocks (BCGG or RGA), identical flow to ResNet
         if self._is_convnext:
-            self.ga1 = RGABlock(c1, spatial_size=(56, 56))
-            self.ga2 = RGABlock(c2, spatial_size=(28, 28))
-            self.ga3 = RGABlock(c3, spatial_size=(14, 14))
-            self.ga4 = RGABlock(c4, spatial_size=(7, 7))
+            self.ga1 = _make_gate_block(self.gate_type, c1, spatial_size=(56, 56), **gate_kwargs)
+            self.ga2 = _make_gate_block(self.gate_type, c2, spatial_size=(28, 28), **gate_kwargs)
+            self.ga3 = _make_gate_block(self.gate_type, c3, spatial_size=(14, 14), **gate_kwargs)
+            self.ga4 = _make_gate_block(self.gate_type, c4, spatial_size=(7, 7), **gate_kwargs)
 
         self.fs1 = OSBlockFS(c3, dim_fs)
         self.fs2 = OSBlockFS(dim_fs, dim_fs)
@@ -1211,17 +1306,40 @@ class GASNet(nn.Module):
         pooled = [self.gap(stripe).flatten(1) for stripe in stripes]
         return self.part_reduce(torch.cat(pooled, dim=1))
 
+    def set_attention_capture(self, enabled: bool) -> None:
+        if self.backbone_type == "swin_t":
+            return
+        for block in (self.ga1, self.ga2, self.ga3, self.ga4):
+            if hasattr(block, "capture_attention"):
+                block.capture_attention = bool(enabled)
+                if not enabled:
+                    block.last_attention = None
+
+    @torch.no_grad()
+    def to_deploy(self) -> "GASNet":
+        if self.training:
+            raise ValueError("Call eval() before to_deploy()")
+        self.set_attention_capture(False)
+        import copy
+        deployed = copy.deepcopy(self).eval()
+        if deployed.backbone_type != "swin_t":
+            for name in ("ga1", "ga2", "ga3", "ga4"):
+                block = getattr(deployed, name, None)
+                if block is not None and hasattr(block, "to_deploy"):
+                    setattr(deployed, name, block.to_deploy())
+        return deployed.eval()
+
     def attention_regularization_loss(
         self,
         target_mean: float = 0.55,
         std_margin: float = 0.08,
     ) -> torch.Tensor:
-        # Swin backbone does not use RGA blocks
+        # Swin backbone does not use stage gate blocks
         if self.backbone_type == "swin_t":
             return next(self.parameters()).sum() * 0.0
         losses = []
         for block in (self.ga1, self.ga2, self.ga3, self.ga4):
-            attn = block.rga_s.last_attention
+            attn = getattr(block, "last_attention", None)
             if attn is None:
                 continue
             flat = attn.flatten(1)
@@ -1776,7 +1894,15 @@ def main() -> None:
         use_attention_local=args.use_attention_local,
         num_attention_heads=args.num_attention_heads,
         econvnext=args.econvnext,
+        gate=args.gate,
+        gate_hidden=args.gate_hidden,
+        gate_groups=args.gate_groups,
+        gate_kernel=args.gate_kernel,
+        gate_channel_kernel=args.gate_channel_kernel,
+        gate_inject_value=args.gate_inject_value,
     ).to(device)
+    if args.attention_reg_weight > 0:
+        model.set_attention_capture(True)
     if use_channels_last:
         model = model.to(memory_format=torch.channels_last)
 

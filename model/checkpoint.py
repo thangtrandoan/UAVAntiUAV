@@ -145,9 +145,19 @@ def load_checkpoint_verbose(model, checkpoint_path, tag="checkpoint", log=print)
     # chúng là BÌNH THƯỜNG — trước đây khối này báo ℹ kèm câu "checkpoint có thể thiếu cả nhánh
     # temporal" (gây hoang mang SAI) và đặt `temporal_arch_ok = False`.
     # Với ATTENTION, tiêu chí đúng là: `temporal_encoder.*` có được nạp ĐỦ hay không.
-    _attn_enc = type(getattr(model, 'temporal_encoder', None)).__name__ == 'TemporalAttentionEncoder'
+    _enc_cls = type(getattr(model, 'temporal_encoder', None)).__name__
+    _attn_enc = _enc_cls == 'TemporalAttentionEncoder'
+    _none_enc = _enc_cls == 'TemporalNoneEncoder'
 
-    if _attn_enc:
+    if _none_enc:
+        temporal_arch_ok = (len(temporal_missing) == 0 and len(temporal_unexpected) == 0)
+        if temporal_arch_ok:
+            log(f"  [{tag}] ℹ️ Temporal encoder: **NONE (Visual-Only)** — không sử dụng nhánh temporal "
+                f"(0 keys `temporal_encoder.*`).")
+        else:
+            log(f"  [{tag}] ❌ Temporal encoder: model đang đặt `temporal_type='none'` nhưng checkpoint "
+                f"có {len(temporal_unexpected)} keys `temporal_encoder.*` → lệch kiến trúc!")
+    elif _attn_enc:
         temporal_arch_ok = (len(temporal_missing) == 0 and len(temporal_unexpected) == 0)
         if temporal_arch_ok:
             _n_tc = len([k for k in model_state if k.startswith('temporal_encoder.')])

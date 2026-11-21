@@ -635,8 +635,9 @@ def main():
     print(f"  Temporal encoder: type={temporal_type}, pool={temporal_pool}, pe={temporal_pe}")
     # (1/10) Kien truc phai khop luc train (giong temporal_pool/temporal_pe).
     _econvnext = bool(cfg.get('train', {}).get('econvnext', False))
+    _gate = cfg.get('train', {}).get('gate', None)
     model = UAVReIDNet(econvnext=_econvnext, freeze_backbone=False, backbone=backbone, temporal_type=temporal_type,
-                       temporal_pool=temporal_pool, temporal_pe=temporal_pe)
+                       temporal_pool=temporal_pool, temporal_pe=temporal_pe, gate=_gate)
     if not backbone_only and os.path.exists(model_path):
         # (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch (xem model.load_checkpoint_verbose)
         load_checkpoint_verbose(model, model_path, tag="calibrate")
@@ -660,7 +661,13 @@ def main():
     # "BatchNorm1d trong ReIDHead có thật sự làm mất khả năng phân biệt không?"
     # fused  = qua head (BatchNorm1d) — pipeline hiện tại
     # pre_bn = cat(visual, temporal)  — đầu vào bnneck (raw)
-    spaces = ['backbone'] if backbone_only else ['fused', 'pre_bn', 'visual', 'temporal']
+    _no_temporal = str(temporal_type).lower() in ('none', 'identity', 'visual_only')
+    if backbone_only:
+        spaces = ['backbone']
+    elif _no_temporal:
+        spaces = ['fused', 'pre_bn', 'visual']
+    else:
+        spaces = ['fused', 'pre_bn', 'visual', 'temporal']
     print("\n[3/5] Extracting features...")
     print(f"  Spaces    : {', '.join(spaces)}")
     print(f"  -> Cal split ({len(cal_seqs)} sequences)...")

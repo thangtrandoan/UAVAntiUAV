@@ -71,7 +71,8 @@ train:
   # lai bien random-N va pha so sanh.
 
   # ---- MODEL (bien tu do) ----
-  temporal_type: "mamba"
+  gate: "rga"                     # "bcgg" | "rga"
+  temporal_type: "mamba"          # "mamba" | "attention" | "none"
   temporal_pool: attn             # "attn" | "mean"
   temporal_pe: true
   # ---------------------------

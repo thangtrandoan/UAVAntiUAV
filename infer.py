@@ -158,7 +158,7 @@ class TwoTierMemoryBank:
                     visual_plain=None, raw_feat=None):
         """Lưu đủ 5 tầng vector để debug: coarse(weighted) / plain / temporal / PRE-BN / POST-BN."""
         def _norm(t):
-            return F.normalize(t, p=2, dim=1) if t is not None else None
+            return F.normalize(t, p=2, dim=1) if (t is not None and t.numel() > 0) else None
         return {
             "visual": _norm(visual_feat),
             "visual_plain": _norm(visual_plain),
@@ -184,6 +184,8 @@ class TwoTierMemoryBank:
     
     def _max_sim(self, query_feat: torch.Tensor, key: str) -> float:
         """Cosine similarity lớn nhất giữa query và mọi entry có trường `key`."""
+        if query_feat is None or query_feat.numel() == 0:
+            return 0.0
         query = F.normalize(query_feat, p=2, dim=1)
         max_sim = 0.0
         for entry in self.anchor_bank + self.recent_bank:
@@ -894,8 +896,9 @@ def main():
     print(f"Temporal encoder: type={temporal_type}, pool={temporal_pool}, pe={temporal_pe}")
     # (1/10) Kien truc phai khop luc train (giong temporal_pool/temporal_pe).
     _econvnext = bool(cfg.get('train', {}).get('econvnext', False))
+    _gate = inf_cfg.get('gate', cfg.get('train', {}).get('gate', None))
     model = UAVReIDNet(econvnext=_econvnext, backbone=backbone_type, temporal_type=temporal_type,
-                       temporal_pool=temporal_pool, temporal_pe=temporal_pe)
+                       temporal_pool=temporal_pool, temporal_pe=temporal_pe, gate=_gate)
     model_path = args.checkpoint or inf_cfg.get('model_path', './best_model.pth')
     if os.path.exists(model_path):
         # (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch thay vì "Loaded" mù quáng.

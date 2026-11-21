@@ -447,6 +447,7 @@ def main():
     # chục giây tới vài phút). `dynamic=True` xử lý shape thay đổi mà không biên dịch lại.
     args.compile_dynamic = bool(tc.get('compile_dynamic', True))
     args.backbone       = tc.get('backbone', 'resnet50_ibn')
+    args.gate           = tc.get('gate', None)
 
     
     args.epochs_stage1      = tc.get('stage1', {}).get('epochs', 30)
@@ -582,7 +583,8 @@ def main():
     # `infer.py`/`evaluate_reid_robustness.py` tạo model bằng DEFAULT nên PHẢI khớp.
     # (1/10) Kien truc backbone phai khop luc train. Opt-in: thieu key = DINOv3 goc.
     _econvnext = bool(tc.get('econvnext', False))
-    print(f"  Kien truc backbone: {'E-ConvNeXt (II)' if _econvnext else 'DINOv3 goc'}")
+    _gate = tc.get('gate', None)
+    print(f"  Kien truc backbone: {'E-ConvNeXt (II)' if _econvnext else 'DINOv3 goc'} | Gate: {(_gate or 'auto/rga').upper()}")
     model = UAVReIDNet(
         econvnext=_econvnext,
         gasnet_weights_path=args.gasnet_weights or None,
@@ -591,7 +593,8 @@ def main():
         backbone=args.backbone,
         temporal_pool=tc.get('temporal_pool', 'attn'),
         temporal_pe=bool(tc.get('temporal_pe', True)),
-        temporal_type=tc.get('temporal_type', 'mamba')
+        temporal_type=tc.get('temporal_type', 'mamba'),
+        gate=_gate,
     )
     print(f" Temporal encoder: type={tc.get('temporal_type', 'mamba')}, pool={tc.get('temporal_pool', 'attn')}, pe={bool(tc.get('temporal_pe', True))}")
     model.cuda()
@@ -626,7 +629,8 @@ def main():
     # yaml nhưng code HARDCODE, sửa yaml không có tác dụng (bẫy âm thầm).
     criterion_id = LabelSmoothCrossEntropy(epsilon=float(lc.get('label_smooth', 0.1)))
     criterion_triplet = HardTripletLoss(margin=float(lc.get('triplet_margin', 0.3)))
-    feat_dim = 1472 if args.backbone == "dinov3_convnext" else 3072
+    _base_model = getattr(model, '_orig_mod', model)
+    feat_dim = int(_base_model.head.bnneck.num_features)
     criterion_center = CenterLoss(num_classes=num_identities, feat_dim=feat_dim).cuda()
     criterion_temporal = TemporalConsistencyLoss()
 
@@ -928,13 +932,15 @@ def main():
               f"module mới {len(new_module_params)} tensor ({_n_new/1e6:.3f} M = "
               f"{100*_n_new/_n_all:.2f}% backbone), random {len(random_params)} tensor")
 
+        temporal_params = list(model.temporal_encoder.parameters())
         param_groups = [
             {'params': pretrained_params, 'lr': args.lr_stage2_backbone},              # 1e-5
             {'params': new_module_params, 'lr': args.lr_stage2_temporal},              # 1e-4
             {'params': random_params, 'lr': args.lr_stage2_temporal},                  # 1e-4 (dùng chung mức LR to)
-            {'params': model.temporal_encoder.parameters(), 'lr': args.lr_stage2_temporal}, # 1e-4
-            {'params': model.head.parameters(), 'lr': args.lr_stage2_head}             # 1e-4
         ]
+        if temporal_params:
+            param_groups.append({'params': temporal_params, 'lr': args.lr_stage2_temporal}) # 1e-4
+        param_groups.append({'params': model.head.parameters(), 'lr': args.lr_stage2_head}) # 1e-4
         # (22/9) Trước đây hardcode 5e-4 -> key `stage2.weight_decay` trong yaml VÔ HIỆU.
         _wd2 = float(tc.get('stage2', {}).get('weight_decay', 5e-4))
         optimizer2 = torch.optim.AdamW(param_groups, weight_decay=_wd2)

@@ -564,8 +564,9 @@ def main():
           f"temporal={temporal_type}, pool={temporal_pool}, pe={temporal_pe}...")
     # (1/10) Kien truc phai khop luc train (giong temporal_pool/temporal_pe).
     _econvnext = bool(cfg.get('train', {}).get('econvnext', False))
+    _gate = inf_cfg.get('gate', cfg.get('train', {}).get('gate', None))
     model = UAVReIDNet(econvnext=_econvnext, backbone=backbone_type, temporal_type=temporal_type,
-                       temporal_pool=temporal_pool, temporal_pe=temporal_pe)
+                       temporal_pool=temporal_pool, temporal_pe=temporal_pe, gate=_gate)
     model_path = inf_cfg.get('model_path', './best_model.pth')
     if os.path.exists(model_path):
         checkpoint = torch.load(model_path, map_location='cpu')

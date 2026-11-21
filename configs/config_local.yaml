@@ -41,7 +41,8 @@ train:
   num_instances: 4
 
   # ---- model (phai khop checkpoint dang nap) ----
-  temporal_type: "attention"      # "mamba" | "attention"
+  gate: "rga"                     # "bcgg" | "rga"
+  temporal_type: "attention"      # "mamba" | "attention" | "none"
   temporal_pool: attn
   temporal_pe: true
   # ---------------------------------------------

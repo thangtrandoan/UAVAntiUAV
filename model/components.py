@@ -81,8 +81,11 @@ class ReIDHead(nn.Module):
         self.classifier = nn.Linear(in_dim, num_identities, bias=False)
         self.classifier.apply(weights_init_classifier)
         
-    def forward(self, visual_feat, temporal_token):
-        feat = torch.cat([visual_feat, temporal_token], dim=-1) # [B, 2816]
+    def forward(self, visual_feat, temporal_token=None):
+        if temporal_token is None or temporal_token.size(-1) == 0:
+            feat = visual_feat
+        else:
+            feat = torch.cat([visual_feat, temporal_token], dim=-1)
         bn_feat = self.bnneck(feat)
         
         # Eval mode: return normalization feature cho matching

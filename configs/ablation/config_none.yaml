@@ -1,0 +1,173 @@
+# ============================================================================
+# ABLATION CO KIEM SOAT - none (Visual-Only / Khong dung temporal encoder)
+# ============================================================================
+# Khac configs/ablation/config_mamba.yaml DUNG 5 dong:
+#   1. train.temporal_type      = "none"       <- bien can do (kiem chung voi mamba)
+#   2. paths.checkpoint_dir     -> ablation_none
+#   3. paths.log_dir            -> ablation_none
+#   4. eval.output_dir          -> ablation_none
+#   5. infer.out_dir            -> ablation_none
+# Co the doi `train.gate: "bcgg"` hoac `train.gate: "rga"` de thu nghiem BCGG vs RGA.
+# ============================================================================
+
+device:
+  platform: colab
+  gpu_jetson: false
+
+paths:
+  raw_data_dir: /content/UAV-Anti-UAV
+  gasnet_weights: /content/drive/MyDrive/output/gasnet_convnext_v0.best.pth
+  gasnet_dir: /content/UAVAntiUAV/gasnet
+  data_dir: /content/processed
+  checkpoint_dir: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/ablation_none
+  log_dir: /content/drive/MyDrive/UAV_Anti_UAV/logs/ablation_none
+
+data_pipeline:
+  frame_stride: 4
+  num_before_frames: 16
+  num_after_frames: 16
+  bbox_padding: 0.2
+  crop_size: 256
+  num_workers: 8
+  uav_anti_uav_dir: /content/UAV-Anti-UAV
+  output_dir: /content/processed
+
+train:
+  resume: ""
+  resume_best_rank1: -1.0
+  backbone: "dinov3_convnext"     # dinov3: D_vis=960 (temporal_type="none" -> head in_dim=960)
+
+  batch_size: 12
+  num_instances: 3
+  num_frames: 12
+
+  # ---- MODEL (bien tu do) ----
+  gate: "rga"                     # "bcgg" | "rga"
+  temporal_type: "none"           # "mamba" | "attention" | "none"
+  temporal_pool: attn             # "attn" | "mean"
+  temporal_pe: true
+  # ---------------------------
+
+  num_workers: 8
+  use_amp: true
+  pin_memory: true
+  use_compile: true
+  compile_dynamic: false
+
+  val_freq: 5
+  val_n_list: [8, 12, 16]
+
+  stop_on_target: false
+  early_stop_patience: 0
+  early_stop_min_delta: 1.0e-4
+  target_rank1: 0.85
+  target_spread: 0.05
+
+  stage1:
+    epochs: 30
+    lr: 3.5e-4
+    weight_decay: 5.0e-4
+
+  stage2:
+    epochs: 30
+    lr_backbone: 1.0e-5
+    lr_temporal: 1.0e-4
+    lr_head: 1.0e-4
+    weight_decay: 5.0e-4
+
+  loss:
+    lam1: 1.0
+    lam2: 0.0
+    lam3: 0.001
+    lr_center: 0.5
+    triplet_margin: 0.3
+    label_smooth: 0.1
+
+eval:
+  model_path: /content/best_model.pth
+  query_json: /content/processed/query_test.json
+  gallery_json: /content/processed/gallery_test.json
+  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results/ablation_none
+  batch_size: 32
+  num_workers: 8
+  backbone: "dinov3_convnext"
+  backbone_only: false
+  reid_threshold: 0.7
+  intra_sequence: false
+  space: fused
+  max_correct_vis: 0
+  threshold_file: /content/drive/MyDrive/UAV_Anti_UAV/calib_results/calibrated_threshold.json
+
+calibration:
+  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/calib_results/v3.8
+  cal_ratio: 0.4
+  far_target: 0.001
+  seed: 42
+
+infer:
+  backbone: dinov3_convnext
+  seq_dir: all
+  model_path: /content/best_model.pth
+  output_video: output_reid.mp4
+  out_dir: ./infer_output/ablation_none
+
+  stride: 4
+  num_frames: 12
+  bbox_padding: 0.2
+
+  max_anchor_size: 5
+  max_recent_size: 15
+  update_interval_sec: 2.0
+  time_source: video
+
+  soft_lock_threshold: 0.0
+  reid_threshold: 0.75
+  fine_space: fused
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  t2_search_gap_tolerance: 2
+  debug_sim: true
+
+infer_realworld:
+  backbone: dinov3_convnext
+  video: ''
+  query_img: ''
+  start_sec: 0.0
+  yolo_model: yolov8n.pt
+  detector_conf: 0.1
+  detector_imgsz: 1088
+  detector_classes: [4]
+  lost_threshold: 10
+  model_path: /content/best_model.pth
+  output_video: output_realworld.mp4
+  out_dir: ./infer_output/infer_realworld
+
+  stride: 4
+  num_frames: 12
+  bbox_padding: 0.2
+
+  max_anchor_size: 5
+  max_recent_size: 15
+  update_interval_sec: 2.0
+  time_source: video
+
+  soft_lock_threshold: 0.0
+  reid_threshold: 0.75
+  fine_space: fused
+  hijack_threshold: 0.40
+  hijack_check_count: 5
+  t2_search_gap_tolerance: 2
+
+infer_robustness:
+  seq_dir: /content/UAV-Anti-UAV/Test/UAV-Anti-UAV_Test_000059
+  data_root: /content/UAV-Anti-UAV/Test
+  model_path: /content/best_model.pth
+  output_video: output_robustness.mp4
+  backbone: "dinov3_convnext"
+  reid_threshold: 0.7
+  stride: 4
+  num_frames: 12
+  bbox_padding: 0.2
+  num_imposters: 10
+  time_source: video
+  t2_search_gap_tolerance: 2

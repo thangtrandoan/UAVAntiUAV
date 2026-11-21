@@ -24,11 +24,17 @@ SOURCES = {
     'num_frames':    ('train',         'num_frames'),
     'stride':        ('data_pipeline', 'frame_stride'),
     'backbone':      ('train',         'backbone'),
+    'gate':          ('train',         'gate'),
     'bbox_padding':  ('data_pipeline', 'bbox_padding'),
     # Nhận dạng model: phải khớp giữa lúc train và mọi khâu nạp checkpoint.
     'temporal_type': ('train', 'temporal_type'),
     'temporal_pool': ('train', 'temporal_pool'),
     'temporal_pe':   ('train', 'temporal_pe'),
+}
+
+# Giá trị mặc định cho các key tùy chọn (tương thích ngược với config cũ chưa khai báo).
+OPTIONAL_DEFAULTS = {
+    'gate': 'rga',
 }
 
 # Key được phép TỰ CHỌN theo từng section: section có giá trị riêng thì dùng,
@@ -78,6 +84,11 @@ def resolve_pipeline(cfg, section, script='', verbose=True):
             continue
 
         if source is None:
+            if key in OPTIONAL_DEFAULTS:
+                default_val = own if own is not None else OPTIONAL_DEFAULTS[key]
+                sec[key] = default_val
+                resolved[key] = (default_val, own, f'{src_label} (default={OPTIONAL_DEFAULTS[key]!r})')
+                continue
             if own is None:
                 warnings.append(f"thiếu nguồn {blk}.{src_key} và {section}.{key} "
                                 f"cũng không có -> không xác định được giá trị")
@@ -195,6 +206,7 @@ def provenance(cfg):
         'temporal_pool':  tr.get('temporal_pool'),
         'temporal_pe':    tr.get('temporal_pe'),
         'backbone':       tr.get('backbone'),
+        'gate':           tr.get('gate', 'rga'),
         'n_frames_train': tr.get('n_frames_choices', 'fixed'),   # 'fixed' = N cố định
         'pipeline_lock':  'md/pipeline.md',
     }
@@ -215,7 +227,9 @@ def assert_frozen(cfg):
                    "mở lại biến này phá so sánh giữa các model")
     if not tr.get('temporal_type'):
         out.append("thiếu train.temporal_type; code sẽ im lặng rơi về 'mamba'. "
-                   "Ghi rõ 'mamba' hoặc 'attention'")
+                   "Ghi rõ 'mamba', 'attention' hoặc 'none'")
+    if tr.get('gate') is not None and str(tr.get('gate')).lower() not in ('bcgg', 'rga'):
+        out.append(f"train.gate = {tr.get('gate')!r} không hợp lệ (chỉ hỗ trợ 'bcgg' hoặc 'rga')")
     if tr.get('num_frames') != 12:
         out.append(f"train.num_frames = {tr.get('num_frames')} != 12 (hằng số đã chốt)")
     if tr.get('batch_size') != 12:

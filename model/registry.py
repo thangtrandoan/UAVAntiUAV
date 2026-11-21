@@ -22,11 +22,15 @@ import inspect
 
 from .temporal_attention import TemporalAttentionEncoder
 from .temporal_mamba import TemporalMambaEncoder
+from .temporal_none import TemporalNoneEncoder
 
 
 TEMPORAL_ENCODERS = {
-    'mamba':     TemporalMambaEncoder,
-    'attention': TemporalAttentionEncoder,
+    'mamba':       TemporalMambaEncoder,
+    'attention':   TemporalAttentionEncoder,
+    'none':        TemporalNoneEncoder,
+    'identity':    TemporalNoneEncoder,
+    'visual_only': TemporalNoneEncoder,
 }
 
 

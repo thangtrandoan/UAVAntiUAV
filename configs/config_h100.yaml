@@ -26,6 +26,8 @@ data_pipeline:
 # --- Training ---
 train:
   backbone: dinov3_convnext
+  gate: "rga"                 # "bcgg" | "rga"
+  temporal_type: "mamba"      # "mamba" | "attention" | "none"
   resume: ""
   batch_size: 128
   num_instances: 8

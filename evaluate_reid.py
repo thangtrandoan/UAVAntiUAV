@@ -311,8 +311,9 @@ def main():
     print(f"Temporal encoder: type={temporal_type}, pool={temporal_pool}, pe={temporal_pe}")
     # (1/10) Kien truc phai khop luc train (giong temporal_pool/temporal_pe).
     _econvnext = bool(cfg.get('train', {}).get('econvnext', False))
+    _gate = cfg.get('eval', {}).get('gate', cfg.get('train', {}).get('gate', None))
     model = UAVReIDNet(econvnext=_econvnext, freeze_backbone=False, backbone=args.backbone, temporal_type=temporal_type,
-                       temporal_pool=temporal_pool, temporal_pe=temporal_pe)
+                       temporal_pool=temporal_pool, temporal_pe=temporal_pe, gate=_gate)
     if not args.backbone_only:
         if os.path.exists(args.model_path):
             # (14/9): báo cáo đầy đủ missing/unexpected/shape-mismatch thay vì "Loaded" mù quáng.

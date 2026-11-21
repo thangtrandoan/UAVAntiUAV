@@ -39,6 +39,7 @@ from .registry import TEMPORAL_ENCODERS, build_temporal_encoder, register_tempor
 from .reidnet import HAS_GASNET, UAVReIDNet
 from .temporal_attention import TemporalAttentionEncoder
 from .temporal_mamba import HAS_MAMBA, SimpleS6Block, TemporalMambaEncoder
+from .temporal_none import TemporalNoneEncoder
 
 __all__ = [
     # model chính
@@ -46,6 +47,7 @@ __all__ = [
     # temporal encoder
     'TemporalAttentionEncoder',
     'TemporalMambaEncoder',
+    'TemporalNoneEncoder',
     'SimpleS6Block',
     'TEMPORAL_ENCODERS',
     'build_temporal_encoder',

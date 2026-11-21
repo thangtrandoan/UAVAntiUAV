@@ -57,7 +57,8 @@ train:
   # lai bien random-N va pha so sanh.
 
   # ---- MODEL (bien tu do) ----
-  temporal_type: "attention"      # "mamba" | "attention"
+  gate: "rga"                     # "bcgg" | "rga" (doi sang "bcgg" de dung Bottleneck Context Group Gate)
+  temporal_type: "attention"      # "mamba" | "attention" | "none"
   temporal_pool: attn             # "attn" | "mean"
   temporal_pe: true
   # ---------------------------
