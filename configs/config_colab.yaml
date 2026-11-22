@@ -16,12 +16,12 @@ device:
 
 paths:
   raw_data_dir: /content/UAV-Anti-UAV
-  gasnet_weights: /content/drive/MyDrive/output/gasnet_convnext_v0.best.pth
+  gasnet_weights: /content/gasnet.best.pth
   gasnet_dir: /content/UAVAntiUAV/gasnet
   data_dir: /content/processed
   # Checkpoint luu truc tiep len Drive de tranh mat khi Colab ngat.
-  checkpoint_dir: /content/drive/MyDrive/UAV_Anti_UAV/checkpoints/v3.9
-  log_dir: /content/drive/MyDrive/UAV_Anti_UAV/logs/v3.9
+  checkpoint_dir: /content/drive/MyDrive/kltn/weights/uavantiuav/convnext_bcgg_none
+  log_dir: /content/drive/MyDrive/kltn/outputs/uavantiuav/convnext_bcgg_none
 
 # ============================================================================
 # DATA PIPELINE
@@ -50,15 +50,16 @@ train:
   resume_best_rank1: -1.0
   backbone: "dinov3_convnext"     # dinov3: D_vis=960, fused=1472
 
-  batch_size: 12
-  num_instances: 3
-  num_frames: 12
+  batch_size: 16
+  num_instances: 4
+  num_frames: 8
   # Khong khai bao n_frames_choices: N co dinh = num_frames. Them key nay la mo
   # lai bien random-N va pha so sanh.
 
   # ---- MODEL (bien tu do) ----
-  temporal_type: "attention"      # "mamba" | "attention"
-  temporal_pool: attn             # "attn" | "mean"
+  gate: "bcgg"
+  temporal_type: "none"      # "mamba" | "attention"
+  temporal_pool: "attn"             # "attn" | "mean"
   temporal_pe: true
   # ---------------------------
 
@@ -70,7 +71,7 @@ train:
 
   val_freq: 5
   # Chi de do do ben theo N; khong anh huong train, khong dung de chon best.
-  val_n_list: [8, 12, 16]
+  val_n_list: 
 
   stop_on_target: false
   early_stop_patience: 0
@@ -79,12 +80,12 @@ train:
   target_spread: 0.05
 
   stage1:
-    epochs: 30
+    epochs: 50
     lr: 3.5e-4
     weight_decay: 5.0e-4
 
   stage2:
-    epochs: 30
+    epochs: 50
     lr_backbone: 1.0e-5
     lr_temporal: 1.0e-4
     lr_head: 1.0e-4
@@ -105,7 +106,7 @@ eval:
   model_path: /content/best_model.pth
   query_json: /content/processed/query_test.json
   gallery_json: /content/processed/gallery_test.json
-  output_dir: /content/drive/MyDrive/UAV_Anti_UAV/eval_results/v3.9
+  output_dir: /content/drive/MyDrive/kltn/outputs/uavantiuav/convnext_bcgg_none/eval
   batch_size: 32
   num_workers: 8
   backbone: "dinov3_convnext"     # phai trung train.backbone
