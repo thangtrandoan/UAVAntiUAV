@@ -740,6 +740,16 @@ def main():
         print(f"=> Loading checkpoint '{args.resume}'")
         checkpoint = torch.load(args.resume, map_location='cpu')
         model.load_state_dict(checkpoint['model_state_dict'])
+        if 'center_state_dict' in checkpoint:
+            try:
+                criterion_center.load_state_dict(checkpoint['center_state_dict'])
+            except Exception as e:
+                print(f"  ⚠️ Không nạp được center_state_dict khi resume: {e}")
+        if 'optimizer_center_state_dict' in checkpoint:
+            try:
+                optimizer_center.load_state_dict(checkpoint['optimizer_center_state_dict'])
+            except Exception as e:
+                print(f"  ⚠️ Không nạp được optimizer_center_state_dict khi resume: {e}")
         stage = checkpoint.get('stage', 2)
         if 'loss' in checkpoint:
             best_loss = checkpoint['loss']
@@ -790,6 +800,8 @@ def main():
                 'stage': 1,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
+                'center_state_dict': criterion_center.state_dict(),
+                'optimizer_center_state_dict': optimizer_center.state_dict(),
                 # (24/9) Lưu scheduler: nếu không, resume phải "đuổi" LR bằng cách gọi
                 # `scheduler.step()` N lần TRƯỚC `optimizer.step()` -> PyTorch cảnh báo
                 # "skipping the first value of the learning rate schedule" (lệch 1 epoch LR).
@@ -842,7 +854,45 @@ def main():
     if start_epoch_stage2 <= epochs_stage2:
         print("=== START STAGE 2: End-to-End Fine-tuning ===")
         import gc
+
+        # (24/9) NẠP LẠI `best_model.pth` LÀM ĐIỂM XUẤT PHÁT CHO STAGE 2.
+        # Đồng thời khôi phục trạng thái CenterLoss + bảo toàn bộ nhớ phương sai gradient
+        # (`exp_avg`, `exp_avg_sq`) của AdamW từ Stage 1 cho `temporal_encoder` và `head`
+        # để tránh cú sốc cold-start của AdamW phá vỡ Mamba vừa hội tụ ở Stage 1.
+        _best_path = os.path.join(args.checkpoint_dir, "best_model.pth")
+        _preserved_adam_state = {}
+        if os.path.isfile(_best_path):
+            _bst = torch.load(_best_path, map_location='cpu')
+            model.load_state_dict(_bst['model_state_dict'])
+            if 'center_state_dict' in _bst:
+                try:
+                    criterion_center.load_state_dict(_bst['center_state_dict'])
+                except Exception as e:
+                    print(f"  ⚠️ Không khôi phục được center_state_dict từ best_model.pth: {e}")
+            if 'optimizer_center_state_dict' in _bst:
+                try:
+                    optimizer_center.load_state_dict(_bst['optimizer_center_state_dict'])
+                except Exception as e:
+                    print(f"  ⚠️ Không khôi phục được optimizer_center_state_dict từ best_model.pth: {e}")
+            if 'optimizer' in locals() and _bst.get('stage') == 1 and 'optimizer_state_dict' in _bst:
+                try:
+                    optimizer.load_state_dict(_bst['optimizer_state_dict'])
+                except Exception as e:
+                    print(f"  ⚠️ Không nạp lại được optimizer_state_dict Stage 1: {e}")
+            print(f"  ↩️  Nạp lại best_model.pth làm điểm xuất phát Stage 2: "
+                  f"stage={_bst.get('stage')} epoch={_bst.get('epoch')} "
+                  f"best_val_rank1={_bst.get('best_val_rank1')}")
+        else:
+            print(f"  ⚠️ Không thấy {_best_path} -> Stage 2 tiếp tục từ trọng số CUỐI Stage 1 "
+                  f"(có thể TỆ HƠN best).")
+
         if 'optimizer' in locals():
+            for _p, _st in optimizer.state.items():
+                if isinstance(_st, dict) and 'exp_avg' in _st and 'exp_avg_sq' in _st:
+                    _preserved_adam_state[_p] = {
+                        _k: (_v.detach().clone().cuda() if isinstance(_v, torch.Tensor) else _v)
+                        for _k, _v in _st.items()
+                    }
             del optimizer
         if 'scheduler1' in locals():
             del scheduler1
@@ -850,10 +900,6 @@ def main():
         torch.cuda.empty_cache()
         
         # FIX NaN: GradScaler phải được TẠO MỚI ở Stage 2.
-        # - Scale factor cũ đã tích lũy qua 30 epoch Stage 1 (lớn dần ×2 mỗi 2000 steps),
-        # khiến gradient scaled của backbone (mạng sâu vừa unfreeze) bị overflow inf NaN.
-        # - State cũ của optimizer Stage 1 vẫn nằm trong scaler, làm scaler.update() hoạt động sai.
-        # - torch.compile cũng cần graph mới khi backbone chuyển requires_grad=True reset dynamo.
         scaler = torch.amp.GradScaler('cuda', enabled=args.use_amp)
         if args.use_compile and hasattr(torch, '_dynamo'):
             try:
@@ -861,28 +907,6 @@ def main():
                 print("  Đã reset torch._dynamo trước Stage 2 (graph cũ chứa backbone frozen).")
             except Exception as e:
                 print(f"  Cảnh báo: không reset được dynamo: {e}")
-        
-        # (24/9) NẠP LẠI `best_model.pth` LÀM ĐIỂM XUẤT PHÁT CHO STAGE 2.
-        # VÌ SAO — lỗi thật của run 24/9:
-        # Vòng Stage 1 kết thúc bằng EARLY STOP, nên `model` lúc này là epoch CUỐI
-        # (tệ nhất trong đợt), KHÔNG phải epoch TỐT NHẤT. Số liệu run 24/9:
-        # Stage 1 best : epoch 25 -> MIN = 63.46%   (đã lưu best_model.pth)
-        # Stage 1 cuối : epoch 45 -> MIN = 31.52%   (early stop)
-        # Stage 2 vì thế xuất phát từ 31.52% -> mất NGAY 31.94 điểm, và dù leo lên
-        # 54.11% (epoch 5) vẫn KHÔNG BAO GIỜ vượt 63.46% => kết luận "Stage 2 vô dụng"
-        # là SAI, nó chỉ bị xuất phát từ điểm hỏng.
-        # LƯU Ý: `model` đang là bản ĐÃ COMPILE, và checkpoint cũng lưu từ bản compile
-        # (key có tiền tố `_orig_mod.`) -> khớp trực tiếp, KHÔNG cần bóc tiền tố.
-        _best_path = os.path.join(args.checkpoint_dir, "best_model.pth")
-        if os.path.isfile(_best_path):
-            _bst = torch.load(_best_path, map_location='cpu')
-            model.load_state_dict(_bst['model_state_dict'])
-            print(f"  ↩️  Nạp lại best_model.pth làm điểm xuất phát Stage 2: "
-                  f"stage={_bst.get('stage')} epoch={_bst.get('epoch')} "
-                  f"best_val_rank1={_bst.get('best_val_rank1')}")
-        else:
-            print(f"  ⚠️ Không thấy {_best_path} -> Stage 2 tiếp tục từ trọng số CUỐI Stage 1 "
-                  f"(có thể TỆ HƠN best).")
         
         model.unfreeze_backbone()
 
@@ -916,6 +940,8 @@ def main():
         NEW_TAGS = (".stem.", ".down.", ".conv1.", ".conv2.", ".conv3.", ".attn.", ".ese.")
 
         for name, param in model.backbone.named_parameters():
+            if not param.requires_grad:
+                continue
             if "convnext_backbone" in name and any(t in name for t in NEW_TAGS):
                 new_module_params.append(param)
             # convnext_backbone + ga1-4 + fs1-2 đều có weights từ GASNet đã train VRU
@@ -932,18 +958,26 @@ def main():
               f"module mới {len(new_module_params)} tensor ({_n_new/1e6:.3f} M = "
               f"{100*_n_new/_n_all:.2f}% backbone), random {len(random_params)} tensor")
 
-        temporal_params = list(model.temporal_encoder.parameters())
+        temporal_params = [p for p in model.temporal_encoder.parameters() if p.requires_grad]
+        head_params = [p for p in model.head.parameters() if p.requires_grad]
         param_groups = [
             {'params': pretrained_params, 'lr': args.lr_stage2_backbone},              # 1e-5
-            {'params': new_module_params, 'lr': args.lr_stage2_temporal},              # 1e-4
-            {'params': random_params, 'lr': args.lr_stage2_temporal},                  # 1e-4 (dùng chung mức LR to)
+            {'params': new_module_params, 'lr': args.lr_stage2_temporal},              # 1e-4 / 2e-5
+            {'params': random_params, 'lr': args.lr_stage2_temporal},
         ]
         if temporal_params:
-            param_groups.append({'params': temporal_params, 'lr': args.lr_stage2_temporal}) # 1e-4
-        param_groups.append({'params': model.head.parameters(), 'lr': args.lr_stage2_head}) # 1e-4
+            param_groups.append({'params': temporal_params, 'lr': args.lr_stage2_temporal})
+        param_groups.append({'params': head_params, 'lr': args.lr_stage2_head})
         # (22/9) Trước đây hardcode 5e-4 -> key `stage2.weight_decay` trong yaml VÔ HIỆU.
         _wd2 = float(tc.get('stage2', {}).get('weight_decay', 5e-4))
         optimizer2 = torch.optim.AdamW(param_groups, weight_decay=_wd2)
+        if _preserved_adam_state:
+            _n_restored = 0
+            for _p, _st in _preserved_adam_state.items():
+                optimizer2.state[_p] = _st
+                _n_restored += 1
+            print(f"  ✅ Đã kế thừa trạng thái AdamW (exp_avg/exp_avg_sq) từ Stage 1 cho {_n_restored} tham số (temporal + head).")
+            del _preserved_adam_state
         scheduler2 = get_warmup_cosine_scheduler(optimizer2, warmup_epochs=5, total_epochs=epochs_stage2)
         
         if args.resume and os.path.isfile(args.resume) and checkpoint.get('stage', 2) == 2:
@@ -971,6 +1005,8 @@ def main():
                 'stage': 2,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer2.state_dict(),
+                'center_state_dict': criterion_center.state_dict(),
+                'optimizer_center_state_dict': optimizer_center.state_dict(),
                 'scheduler_state_dict': scheduler2.state_dict(),
                 'loss': avg_loss,
                 # Ghi lại protocol đã dùng (N, stride, temporal_type, backbone, pool).

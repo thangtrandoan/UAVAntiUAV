@@ -87,8 +87,8 @@ train:
   stage2:
     epochs: 50
     lr_backbone: 1.0e-5
-    lr_temporal: 1.0e-4
-    lr_head: 1.0e-4
+    lr_temporal: 2.0e-5
+    lr_head: 2.0e-5
     weight_decay: 5.0e-4
 
   loss:
@@ -139,7 +139,7 @@ infer:
   out_dir: ./infer_output/infer_pipeline_3.5
 
   stride: 4                       # ep = data_pipeline.frame_stride luc chay
-  num_frames: 12                  # ep = train.num_frames luc chay
+  num_frames: 8                   # dong bo voi train.num_frames = 8
   bbox_padding: 0.2
 
   # --- memory bank ---
@@ -177,7 +177,7 @@ infer_realworld:
   out_dir: ./infer_output/infer_realworld
 
   stride: 4                       # ep = data_pipeline.frame_stride luc chay
-  num_frames: 12                  # ep = train.num_frames luc chay
+  num_frames: 8                   # dong bo voi train.num_frames = 8
   bbox_padding: 0.2
 
   max_anchor_size: 5
@@ -203,7 +203,7 @@ infer_robustness:
   backbone: "dinov3_convnext"     # phai trung train.backbone
   reid_threshold: 0.7
   stride: 4                       # ep = data_pipeline.frame_stride luc chay
-  num_frames: 12                  # ep = train.num_frames luc chay
+  num_frames: 8                   # dong bo voi train.num_frames = 8
   bbox_padding: 0.2
   num_imposters: 10
   time_source: video
