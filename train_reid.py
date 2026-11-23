@@ -497,7 +497,13 @@ def main():
     batch_size = args.batch_size
     num_instances = args.num_instances
     sampler = ReIDBatchSampler(dataset, batch_size=batch_size, num_instances=num_instances, n_values=n_values)
-    dataloader = DataLoader(dataset, batch_sampler=sampler, num_workers=args.num_workers, pin_memory=args.pin_memory)
+    dataloader = DataLoader(
+        dataset,
+        batch_sampler=sampler,
+        num_workers=args.num_workers,
+        pin_memory=args.pin_memory,
+        persistent_workers=(args.num_workers > 0),
+    )
 
     # --- Setup Validation ---
     try:
@@ -522,7 +528,13 @@ def main():
         for _n in args.val_n_list:
             _ds = EvalDataset(test_dir, val_query_json, val_gallery_json,
                               transform=transform_test, num_frames=_n)
-            val_loaders[_n] = DataLoader(_ds, batch_size=args.batch_size, shuffle=False, num_workers=2)
+            val_loaders[_n] = DataLoader(
+                _ds,
+                batch_size=args.batch_size,
+                shuffle=False,
+                num_workers=2,
+                persistent_workers=True,
+            )
         has_val = True
         print(f" ✅ Validation đo {len(args.val_n_list)} N: {args.val_n_list}")
     except Exception as e:
