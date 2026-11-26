@@ -1,0 +1,35 @@
+{
+  "pytorch_fp16_vs_fp32": {
+    "query": {
+      "min_cosine_sim": 0.9998738765716553,
+      "mean_cosine_sim": 0.9999925494194031,
+      "p5_cosine_sim": 0.9999849915504455,
+      "mean_abs_diff": 6.208112608874217e-05,
+      "max_abs_diff": 0.005151938647031784
+    },
+    "gallery": {
+      "min_cosine_sim": 0.9998233914375305,
+      "mean_cosine_sim": 0.999992847442627,
+      "p5_cosine_sim": 0.9999861717224121,
+      "mean_abs_diff": 6.144920916995034e-05,
+      "max_abs_diff": 0.005193084478378296
+    }
+  },
+  "tensorrt_fp16_vs_fp32": {
+    "query": {
+      "min_cosine_sim": 0.9998408555984497,
+      "mean_cosine_sim": 0.9999538660049438,
+      "p5_cosine_sim": 0.9999285459518432,
+      "mean_abs_diff": 0.00014811096480116248,
+      "max_abs_diff": 0.007831253111362457
+    },
+    "gallery": {
+      "min_cosine_sim": 0.9995879530906677,
+      "mean_cosine_sim": 0.9999532699584961,
+      "p5_cosine_sim": 0.999927532672882,
+      "mean_abs_diff": 0.0001488261332269758,
+      "max_abs_diff": 0.005631007254123688
+    }
+  },
+  "tensorrt_mixed_fp32tp_vs_fp32": null
+}

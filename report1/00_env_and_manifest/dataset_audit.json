@@ -1,0 +1,134 @@
+{
+  "processed_dir": "/home/nvidia/thang/UAVAntiUAV/data/processed",
+  "raw_uav_dir": "/home/nvidia/thang/UAVAntiUAV/data/UAV-Anti-UAV",
+  "clean_protocol_note": "Identified 127 non-UAV-Anti-UAV sequences across train+test (Anti-UAV-RGBT YYYYMMDD_* + UAV123 named sequences). Primary clean benchmark excludes them for strict UAV-Anti-UAV single-source evaluation, while 01_eval_uav_accuracy also reports the full 2630 pool for reproduction.",
+  "train_test_sequence_overlap": 0,
+  "train_test_identity_overlap": 0,
+  "train_split": {
+    "total_pairs": 1575,
+    "total_sequences": 502,
+    "pairs_by_origin": {
+      "anti_uav_rgbt": 93,
+      "uav123": 51,
+      "uav_anti_uav": 1431
+    },
+    "sequences_by_origin": {
+      "anti_uav_rgbt": 60,
+      "uav123": 27,
+      "uav_anti_uav": 415
+    },
+    "non_uav_sequences_examples": {
+      "anti_uav_rgbt": [
+        "20190925_101846_1_1",
+        "20190925_130434_1_2",
+        "20190925_130434_1_3",
+        "20190925_130434_1_8",
+        "20190925_131530_1_7"
+      ],
+      "uav123": [
+        "bike2",
+        "car11",
+        "car12",
+        "car14",
+        "car1_2"
+      ]
+    }
+  },
+  "test_split": {
+    "total_pairs": 2630,
+    "total_sequences": 340,
+    "pairs_by_origin": {
+      "anti_uav_rgbt": 54,
+      "uav123": 11,
+      "uav_anti_uav": 2565
+    },
+    "sequences_by_origin": {
+      "anti_uav_rgbt": 34,
+      "uav123": 6,
+      "uav_anti_uav": 300
+    },
+    "non_uav_sequences_examples": {
+      "anti_uav_rgbt": [
+        "20190925_111757_1_2",
+        "20190925_111757_1_7",
+        "20190925_111757_1_9",
+        "20190925_124612_1_1",
+        "20190925_124612_1_2"
+      ],
+      "uav123": [
+        "bird1_1",
+        "bird1_2",
+        "bird1_3",
+        "car2",
+        "person8_1"
+      ]
+    }
+  },
+  "clean_test_gap_frames_stats": {
+    "count": 2565,
+    "mean": 25.4441,
+    "std": 119.0397,
+    "median": 4.0,
+    "min": 1.0,
+    "p90": 53.0,
+    "max": 4810.0
+  },
+  "clean_test_gap_seconds_stats": {
+    "count": 2565,
+    "mean": 0.8481,
+    "std": 3.968,
+    "median": 0.1333,
+    "min": 0.0333,
+    "p90": 1.7667,
+    "max": 160.3333
+  },
+  "clean_test_fps_stats": {
+    "count": 2565,
+    "mean": 30.0,
+    "std": 0.0,
+    "median": 30.0,
+    "min": 30.0,
+    "p90": 30.0,
+    "max": 30.0
+  },
+  "clean_test_video_fps_distribution_hz": {
+    "30.0": 300
+  },
+  "all_event_fps_distribution_hz": {
+    "30.0": 3996
+  },
+  "clean_test_short_clip_padding": {
+    "L=4": {
+      "query_padded_count": 142,
+      "query_padded_pct": 5.54,
+      "gallery_padded_count": 107,
+      "gallery_padded_pct": 4.17,
+      "either_padded_count": 241,
+      "either_padded_pct": 9.4
+    },
+    "L=8": {
+      "query_padded_count": 369,
+      "query_padded_pct": 14.39,
+      "gallery_padded_count": 355,
+      "gallery_padded_pct": 13.84,
+      "either_padded_count": 652,
+      "either_padded_pct": 25.42
+    },
+    "L=12": {
+      "query_padded_count": 727,
+      "query_padded_pct": 28.34,
+      "gallery_padded_count": 746,
+      "gallery_padded_pct": 29.08,
+      "either_padded_count": 1196,
+      "either_padded_pct": 46.63
+    },
+    "L=16": {
+      "query_padded_count": 1445,
+      "query_padded_pct": 56.34,
+      "gallery_padded_count": 1459,
+      "gallery_padded_pct": 56.88,
+      "either_padded_count": 1923,
+      "either_padded_pct": 74.97
+    }
+  }
+}

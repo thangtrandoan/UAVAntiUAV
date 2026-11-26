@@ -1,0 +1,41 @@
+[
+  {
+    "case_type": "success_oov_long_gap",
+    "sequence_id": "UAV-Anti-UAV_Test_000145",
+    "event_index": 52,
+    "identity_id": 125,
+    "gap_frames": 4810,
+    "model_a_r1": true,
+    "model_b_r1": false,
+    "gasnet_1f_r1": false,
+    "top1_score": 0.7777408361434937,
+    "png_path": "/home/nvidia/thang/UAVAntiUAV/report1/05_visualizations/uav_retrieval_examples/uav_retrieval_success_oov_long_gap_UAV-Anti-UAV_Test_000145_ev52.png",
+    "pdf_path": "/home/nvidia/thang/UAVAntiUAV/report1/05_visualizations/uav_retrieval_examples/uav_retrieval_success_oov_long_gap_UAV-Anti-UAV_Test_000145_ev52.pdf"
+  },
+  {
+    "case_type": "success_occlusion",
+    "sequence_id": "UAV-Anti-UAV_Test_000077",
+    "event_index": 0,
+    "identity_id": 67,
+    "gap_frames": 51,
+    "model_a_r1": true,
+    "model_b_r1": false,
+    "gasnet_1f_r1": false,
+    "top1_score": 0.48536309599876404,
+    "png_path": "/home/nvidia/thang/UAVAntiUAV/report1/05_visualizations/uav_retrieval_examples/uav_retrieval_success_occlusion_UAV-Anti-UAV_Test_000077_ev0.png",
+    "pdf_path": "/home/nvidia/thang/UAVAntiUAV/report1/05_visualizations/uav_retrieval_examples/uav_retrieval_success_occlusion_UAV-Anti-UAV_Test_000077_ev0.pdf"
+  },
+  {
+    "case_type": "failure_case_hard",
+    "sequence_id": "UAV-Anti-UAV_Test_000273",
+    "event_index": 2,
+    "identity_id": 229,
+    "gap_frames": 238,
+    "model_a_r1": false,
+    "model_b_r1": false,
+    "gasnet_1f_r1": false,
+    "top1_score": 0.5157631635665894,
+    "png_path": "/home/nvidia/thang/UAVAntiUAV/report1/05_visualizations/uav_retrieval_examples/uav_retrieval_failure_case_hard_UAV-Anti-UAV_Test_000273_ev2.png",
+    "pdf_path": "/home/nvidia/thang/UAVAntiUAV/report1/05_visualizations/uav_retrieval_examples/uav_retrieval_failure_case_hard_UAV-Anti-UAV_Test_000273_ev2.pdf"
+  }
+]

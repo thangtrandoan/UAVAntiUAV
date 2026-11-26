@@ -1,0 +1,5 @@
+seq_len,stride,median_fps,camera_wait_median_fps_ms,mean_fps,camera_wait_mean_fps_ms,orin_kstream_per_frame_ms,orin_kstream_final_step_ms,orin_kclip_total_ms,total_reacq_kstream_median_fps_ms,total_reacq_kstream_mean_fps_ms,compute_pct_of_budget
+4,4,30.00,400.00,30.00,400.00,6.404,7.887,13.302,407.89,407.89,1.93
+8,4,30.00,933.33,30.00,933.33,6.404,7.934,22.641,941.27,941.27,0.84
+12,4,30.00,1466.67,30.00,1466.67,6.404,7.875,32.309,1474.54,1474.54,0.53
+16,4,30.00,2000.00,30.00,2000.00,6.404,7.988,41.980,2007.99,2007.99,0.40

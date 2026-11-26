@@ -1,0 +1,51 @@
+# Centralized configuration for Stage 2 (UAVReIDNet) Jetson AGX Orin evaluation
+processed_dir: data/processed
+raw_uav_dir: data/UAV-Anti-UAV
+output_dir: report1
+
+checkpoints:
+  uavreid_convnext_bcgg_mamba: weights/uavantiuav/convnext_bcgg_mamba/best_model.pth
+  uavreid_convnext_bcgg_mean_head: weights/uavantiuav/convnext_bcgg_none/best_model.pth
+  uavreid_convnext_rga_mamba: best_model.pth
+  uavreid_convnext_bcgg_attn: weights/uavantiuav/convnext_bcgg_attn/best_model.pth
+  uavreid_convnext_bcgg_mamba_meanpool: weights/uavantiuav/convnext_bcgg_mamba_mean/best_model.pth
+
+preprocess:
+  img_size: 224
+  resize_size: 256
+  crop_mode: resize_256_center_crop_224
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+
+eval:
+  primary_num_frames: 8
+  frame_stride: 4
+  seq_lens: [4, 8, 12, 16]
+  batch_size: 16
+  num_workers: 4
+  bootstrap_iters: 10000
+  seed: 42
+
+efficiency:
+  batch_size: 1
+  seq_lens: [4, 8, 12, 16]
+  complexity_seq_lens: [8, 12]
+  precisions: [fp32, fp16]
+  warmup_runs: 50
+  measure_runs: 200
+  kstream_gallery_size: 2630
+  trt:
+    trtexec_bin: /usr/src/tensorrt/bin/trtexec
+    opset: 17
+    min_bs: 1
+    opt_bs: 1
+    max_bs_backbone: 16
+    max_bs_temporal: 32
+    builder_opt_level: 2
+    avg_timing: 2
+    warmup_runs: 50
+    measure_runs: 200
+
+visualizations:
+  dpi: 300
+  num_frames_visual: 8

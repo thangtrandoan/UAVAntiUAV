@@ -63,3 +63,12 @@ compile_commands.json
 *.timing
 demo*.mp4
 trt_demo*.mp4
+
+# Stage 2 evaluation heavy artifacts (report1/)
+**/engines/
+*.cache
+*.cache.lock
+*.engine.meta.json
+*.plan
+*.trt
+weights/

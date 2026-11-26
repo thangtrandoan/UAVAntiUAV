@@ -1,0 +1,94 @@
+[
+  {
+    "seq_len": 4,
+    "stride": 4,
+    "median_fps": 30.0,
+    "mean_fps": 30.0,
+    "camera_wait_median_fps_ms": 400.0,
+    "camera_wait_mean_fps_ms": 400.0,
+    "orin_kstream": {
+      "per_frame_prep_bb_p50_ms": 6.404020357877016,
+      "per_frame_backbone_p50_ms": 4.83165099285543,
+      "temporal_and_match_p50_ms": 1.2996010482311249,
+      "final_step_p50_ms": 7.886869600042701,
+      "final_step_p95_ms": 8.307976275682448
+    },
+    "orin_kclip": {
+      "backbone_p50_ms": 12.80347204208374,
+      "temporal_p50_ms": 0.4975360035896301,
+      "total_p50_ms": 13.301583766937256,
+      "total_p95_ms": 13.514672231674192
+    },
+    "total_reacq_kstream_median_fps_ms": 407.8868696000427,
+    "total_reacq_kstream_mean_fps_ms": 407.8868696000427
+  },
+  {
+    "seq_len": 8,
+    "stride": 4,
+    "median_fps": 30.0,
+    "mean_fps": 30.0,
+    "camera_wait_median_fps_ms": 933.3333333333334,
+    "camera_wait_mean_fps_ms": 933.3333333333334,
+    "orin_kstream": {
+      "per_frame_prep_bb_p50_ms": 6.404020357877016,
+      "per_frame_backbone_p50_ms": 4.83165099285543,
+      "temporal_and_match_p50_ms": 1.332032959908247,
+      "final_step_p50_ms": 7.933605462312698,
+      "final_step_p95_ms": 8.265841216780244
+    },
+    "orin_kclip": {
+      "backbone_p50_ms": 22.077216148376465,
+      "temporal_p50_ms": 0.5645120143890381,
+      "total_p50_ms": 22.640751838684082,
+      "total_p95_ms": 22.81054344177246
+    },
+    "total_reacq_kstream_median_fps_ms": 941.2669387956461,
+    "total_reacq_kstream_mean_fps_ms": 941.2669387956461
+  },
+  {
+    "seq_len": 12,
+    "stride": 4,
+    "median_fps": 30.0,
+    "mean_fps": 30.0,
+    "camera_wait_median_fps_ms": 1466.6666666666665,
+    "camera_wait_mean_fps_ms": 1466.6666666666665,
+    "orin_kstream": {
+      "per_frame_prep_bb_p50_ms": 6.404020357877016,
+      "per_frame_backbone_p50_ms": 4.83165099285543,
+      "temporal_and_match_p50_ms": 1.316256821155548,
+      "final_step_p50_ms": 7.874724688008428,
+      "final_step_p95_ms": 8.205794682726264
+    },
+    "orin_kclip": {
+      "backbone_p50_ms": 31.63822364807129,
+      "temporal_p50_ms": 0.6696160137653351,
+      "total_p50_ms": 32.30916786193848,
+      "total_p95_ms": 33.22487640380859
+    },
+    "total_reacq_kstream_median_fps_ms": 1474.541391354675,
+    "total_reacq_kstream_mean_fps_ms": 1474.541391354675
+  },
+  {
+    "seq_len": 16,
+    "stride": 4,
+    "median_fps": 30.0,
+    "mean_fps": 30.0,
+    "camera_wait_median_fps_ms": 2000.0,
+    "camera_wait_mean_fps_ms": 2000.0,
+    "orin_kstream": {
+      "per_frame_prep_bb_p50_ms": 6.404020357877016,
+      "per_frame_backbone_p50_ms": 4.83165099285543,
+      "temporal_and_match_p50_ms": 1.3321286533027887,
+      "final_step_p50_ms": 7.987764896824956,
+      "final_step_p95_ms": 8.352148858830333
+    },
+    "orin_kclip": {
+      "backbone_p50_ms": 41.28999900817871,
+      "temporal_p50_ms": 0.6893599927425385,
+      "total_p50_ms": 41.979936599731445,
+      "total_p95_ms": 43.34353790283201
+    },
+    "total_reacq_kstream_median_fps_ms": 2007.987764896825,
+    "total_reacq_kstream_mean_fps_ms": 2007.987764896825
+  }
+]

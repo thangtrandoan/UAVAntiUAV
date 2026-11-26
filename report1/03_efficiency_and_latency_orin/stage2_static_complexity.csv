@@ -1,0 +1,13 @@
+config,seq_len,backbone_params_M,temporal_head_params_M,total_params_M,backbone_GFLOPs,temporal_head_GFLOPs,total_GFLOPs
+convnext_rga_mamba,8,57.6593,4.7949,62.4542,286.6837,0.1170,286.8007
+convnext_rga_mamba,12,57.6593,4.7949,62.4542,430.0256,0.1752,430.2008
+convnext_bcgg_unfolded_mamba,8,50.9832,4.9265,55.9097,142.2579,0.1191,142.3770
+convnext_bcgg_unfolded_mamba,12,50.9832,4.9265,55.9097,213.3868,0.1784,213.5652
+convnext_bcgg_folded_mamba,8,50.9820,4.9265,55.9084,142.2430,0.1191,142.3621
+convnext_bcgg_folded_mamba,12,50.9820,4.9265,55.9084,213.3644,0.1784,213.5428
+convnext_bcgg_folded_none,8,50.9820,0.4838,51.4658,142.2430,0.0000,142.2430
+convnext_bcgg_folded_none,12,50.9820,0.4838,51.4658,213.3644,0.0000,213.3644
+convnext_bcgg_folded_attn,8,50.9820,7.9667,58.9487,142.2430,0.1114,142.3544
+convnext_bcgg_folded_attn,12,50.9820,7.9667,58.9487,213.3644,0.1671,213.5315
+convnext_bcgg_folded_mamba_mean,8,50.9820,4.7949,55.7768,142.2430,0.1170,142.3600
+convnext_bcgg_folded_mamba_mean,12,50.9820,4.7949,55.7768,213.3644,0.1752,213.5396

@@ -1,0 +1,75 @@
+{
+  "hook_verified": true,
+  "checkpoint_sha256": "74781113492e05671ecd34368dc136e044291900802fdd9ad481894a87f4db00",
+  "clips": [
+    {
+      "clip_tag": "padded_short_clip",
+      "sequence_id": "UAV-Anti-UAV_Test_000145",
+      "event_index": 22,
+      "valid_frames": 5,
+      "seq_len": 8,
+      "weights_sum": 1.0,
+      "valid_frame_mean_weight": 0.12118562310934067,
+      "padded_frame_mean_weight": 0.13135729730129242,
+      "alpha_min": 0.08494092524051666,
+      "alpha_max": 0.16066257655620575,
+      "alpha_weights": [
+        0.154878,
+        0.136215,
+        0.128416,
+        0.084941,
+        0.101479,
+        0.098864,
+        0.134545,
+        0.160663
+      ],
+      "hook_verified": true
+    },
+    {
+      "clip_tag": "full_blur_occlusion",
+      "sequence_id": "UAV-Anti-UAV_Test_000023",
+      "event_index": 0,
+      "valid_frames": 8,
+      "seq_len": 8,
+      "weights_sum": 1.0,
+      "valid_frame_mean_weight": 0.125,
+      "padded_frame_mean_weight": null,
+      "alpha_min": 0.08505900949239731,
+      "alpha_max": 0.16042789816856384,
+      "alpha_weights": [
+        0.154315,
+        0.136311,
+        0.128326,
+        0.085059,
+        0.10182,
+        0.099019,
+        0.134722,
+        0.160428
+      ],
+      "hook_verified": true
+    },
+    {
+      "clip_tag": "full_out_of_view",
+      "sequence_id": "UAV-Anti-UAV_Test_000002",
+      "event_index": 0,
+      "valid_frames": 8,
+      "seq_len": 8,
+      "weights_sum": 1.0,
+      "valid_frame_mean_weight": 0.125,
+      "padded_frame_mean_weight": null,
+      "alpha_min": 0.0846429243683815,
+      "alpha_max": 0.1608142852783203,
+      "alpha_weights": [
+        0.1546,
+        0.136407,
+        0.128488,
+        0.084643,
+        0.101317,
+        0.099175,
+        0.134556,
+        0.160814
+      ],
+      "hook_verified": true
+    }
+  ]
+}

@@ -1,0 +1,242 @@
+[
+  {
+    "padding_group": "Full_both_ge_8",
+    "model": "gasnet_1frame",
+    "query_count": 1913,
+    "mAP": 12.815928106575981,
+    "R1": 42.02822791427078,
+    "R5": 60.42864610559331,
+    "R10": 68.47882906429692,
+    "mINP": 2.7561188640336303
+  },
+  {
+    "padding_group": "Full_both_ge_8",
+    "model": "uavreid_convnext_bcgg_mean_head",
+    "query_count": 1913,
+    "mAP": 32.15601967172321,
+    "R1": 72.71301620491374,
+    "R5": 83.69053842132776,
+    "R10": 87.61108207004705,
+    "mINP": 7.066692387999053
+  },
+  {
+    "padding_group": "Full_both_ge_8",
+    "model": "uavreid_convnext_bcgg_mamba",
+    "query_count": 1913,
+    "mAP": 31.70778997715858,
+    "R1": 73.23575535807632,
+    "R5": 84.0041819132253,
+    "R10": 87.19289074751698,
+    "mINP": 7.066280249618294
+  },
+  {
+    "padding_group": "Full_both_ge_8",
+    "model": "uavreid_convnext_rga_mamba",
+    "query_count": 1913,
+    "mAP": 32.100041910145194,
+    "R1": 72.2948248823837,
+    "R5": 83.32462101411396,
+    "R10": 87.19289074751698,
+    "mINP": 7.120602201118331
+  },
+  {
+    "padding_group": "Full_both_ge_8",
+    "model": "uavreid_convnext_bcgg_attn",
+    "query_count": 1913,
+    "mAP": 33.14873747952585,
+    "R1": 72.76529012023,
+    "R5": 84.3700993204391,
+    "R10": 87.92472556194458,
+    "mINP": 7.099092716784821
+  },
+  {
+    "padding_group": "Full_both_ge_8",
+    "model": "uavreid_convnext_bcgg_mamba_meanpool",
+    "query_count": 1913,
+    "mAP": 32.64315445337633,
+    "R1": 72.0334553058024,
+    "R5": 84.16100365917407,
+    "R10": 87.66335598536331,
+    "mINP": 7.218093058880774
+  },
+  {
+    "padding_group": "Padded_either_lt_8",
+    "model": "gasnet_1frame",
+    "query_count": 652,
+    "mAP": 14.006891326736262,
+    "R1": 48.15950920245399,
+    "R5": 65.03067484662577,
+    "R10": 72.23926380368098,
+    "mINP": 2.999316933617872
+  },
+  {
+    "padding_group": "Padded_either_lt_8",
+    "model": "uavreid_convnext_bcgg_mean_head",
+    "query_count": 652,
+    "mAP": 31.124459117230977,
+    "R1": 71.31901840490798,
+    "R5": 81.28834355828221,
+    "R10": 84.50920245398773,
+    "mINP": 6.042805939244277
+  },
+  {
+    "padding_group": "Padded_either_lt_8",
+    "model": "uavreid_convnext_bcgg_mamba",
+    "query_count": 652,
+    "mAP": 30.32243795863984,
+    "R1": 71.0122699386503,
+    "R5": 81.59509202453988,
+    "R10": 84.04907975460122,
+    "mINP": 5.766276150716828
+  },
+  {
+    "padding_group": "Padded_either_lt_8",
+    "model": "uavreid_convnext_rga_mamba",
+    "query_count": 652,
+    "mAP": 31.090159246358578,
+    "R1": 70.39877300613497,
+    "R5": 81.59509202453988,
+    "R10": 85.12269938650307,
+    "mINP": 5.9344601929793
+  },
+  {
+    "padding_group": "Padded_either_lt_8",
+    "model": "uavreid_convnext_bcgg_attn",
+    "query_count": 652,
+    "mAP": 31.668176393426688,
+    "R1": 70.5521472392638,
+    "R5": 80.8282208588957,
+    "R10": 85.42944785276073,
+    "mINP": 5.517833984669534
+  },
+  {
+    "padding_group": "Padded_either_lt_8",
+    "model": "uavreid_convnext_bcgg_mamba_meanpool",
+    "query_count": 652,
+    "mAP": 31.94404441106147,
+    "R1": 69.93865030674847,
+    "R5": 81.44171779141104,
+    "R10": 84.20245398773007,
+    "mINP": 5.851576975530304
+  },
+  {
+    "padding_group": "Query_padded_lt_8",
+    "model": "gasnet_1frame",
+    "query_count": 369,
+    "mAP": 14.037592622759846,
+    "R1": 50.40650406504065,
+    "R5": 63.956639566395665,
+    "R10": 71.27371273712737,
+    "mINP": 2.5665522956422544
+  },
+  {
+    "padding_group": "Query_padded_lt_8",
+    "model": "uavreid_convnext_bcgg_mean_head",
+    "query_count": 369,
+    "mAP": 29.513188168349462,
+    "R1": 69.64769647696477,
+    "R5": 79.67479674796748,
+    "R10": 83.46883468834689,
+    "mINP": 5.467093129492143
+  },
+  {
+    "padding_group": "Query_padded_lt_8",
+    "model": "uavreid_convnext_bcgg_mamba",
+    "query_count": 369,
+    "mAP": 28.38963935803376,
+    "R1": 67.75067750677506,
+    "R5": 80.21680216802169,
+    "R10": 82.11382113821138,
+    "mINP": 5.112492086190399
+  },
+  {
+    "padding_group": "Query_padded_lt_8",
+    "model": "uavreid_convnext_rga_mamba",
+    "query_count": 369,
+    "mAP": 29.944396356152087,
+    "R1": 70.18970189701896,
+    "R5": 80.21680216802169,
+    "R10": 84.55284552845528,
+    "mINP": 5.354967089393209
+  },
+  {
+    "padding_group": "Query_padded_lt_8",
+    "model": "uavreid_convnext_bcgg_attn",
+    "query_count": 369,
+    "mAP": 29.8332310021071,
+    "R1": 69.10569105691057,
+    "R5": 79.94579945799458,
+    "R10": 84.28184281842819,
+    "mINP": 4.827323977462714
+  },
+  {
+    "padding_group": "Query_padded_lt_8",
+    "model": "uavreid_convnext_bcgg_mamba_meanpool",
+    "query_count": 369,
+    "mAP": 29.85677932460206,
+    "R1": 67.75067750677506,
+    "R5": 79.40379403794039,
+    "R10": 82.38482384823848,
+    "mINP": 4.883770622117748
+  },
+  {
+    "padding_group": "Gallery_padded_lt_8",
+    "model": "gasnet_1frame",
+    "query_count": 355,
+    "mAP": 13.560878090054779,
+    "R1": 46.19718309859155,
+    "R5": 65.63380281690141,
+    "R10": 73.80281690140845,
+    "mINP": 3.2297596679978775
+  },
+  {
+    "padding_group": "Gallery_padded_lt_8",
+    "model": "uavreid_convnext_bcgg_mean_head",
+    "query_count": 355,
+    "mAP": 31.9023951097035,
+    "R1": 73.52112676056338,
+    "R5": 82.53521126760563,
+    "R10": 84.78873239436619,
+    "mINP": 6.215125749049404
+  },
+  {
+    "padding_group": "Gallery_padded_lt_8",
+    "model": "uavreid_convnext_bcgg_mamba",
+    "query_count": 355,
+    "mAP": 31.452609936669383,
+    "R1": 73.80281690140845,
+    "R5": 81.97183098591549,
+    "R10": 85.63380281690141,
+    "mINP": 5.993507033021228
+  },
+  {
+    "padding_group": "Gallery_padded_lt_8",
+    "model": "uavreid_convnext_rga_mamba",
+    "query_count": 355,
+    "mAP": 31.781166572557474,
+    "R1": 71.26760563380282,
+    "R5": 82.8169014084507,
+    "R10": 85.91549295774648,
+    "mINP": 6.297886331009398
+  },
+  {
+    "padding_group": "Gallery_padded_lt_8",
+    "model": "uavreid_convnext_bcgg_attn",
+    "query_count": 355,
+    "mAP": 33.070358790446015,
+    "R1": 72.3943661971831,
+    "R5": 81.97183098591549,
+    "R10": 87.04225352112677,
+    "mINP": 5.776839322319001
+  },
+  {
+    "padding_group": "Gallery_padded_lt_8",
+    "model": "uavreid_convnext_bcgg_mamba_meanpool",
+    "query_count": 355,
+    "mAP": 33.61079482677188,
+    "R1": 72.67605633802818,
+    "R5": 83.66197183098592,
+    "R10": 86.19718309859155,
+    "mINP": 6.605009379492167
+  }
+]

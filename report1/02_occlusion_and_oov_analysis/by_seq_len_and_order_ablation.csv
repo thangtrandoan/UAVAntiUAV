@@ -1,0 +1,11 @@
+model,ablation,num_frames,order_mode,per_query_mAP,per_query_R1,per_query_R5,per_query_R10,per_query_mINP,per_video_mAP,per_video_R1
+uavreid_convnext_bcgg_mamba,seq_len_4,4,normal,23.26,63.98,78.60,82.85,4.53,27.04,46.31
+uavreid_convnext_bcgg_mamba,seq_len_8,8,normal,31.36,72.67,83.39,86.39,6.74,33.71,52.53
+uavreid_convnext_bcgg_mamba,seq_len_12,12,normal,30.84,72.98,83.51,87.02,5.91,31.22,50.97
+uavreid_convnext_bcgg_mamba,seq_len_16,16,normal,29.38,72.48,83.39,86.98,5.50,29.43,50.06
+uavreid_convnext_bcgg_mamba,order_shuffle,8,shuffle,30.75,71.15,83.16,86.63,6.51,33.34,52.09
+uavreid_convnext_bcgg_mamba,order_reverse,8,reverse,31.62,72.67,83.63,86.32,6.86,34.84,54.26
+uavreid_convnext_bcgg_mean_head,seq_len_4,4,normal,28.14,69.12,82.57,86.20,6.12,33.03,52.25
+uavreid_convnext_bcgg_mean_head,seq_len_8,8,normal,31.89,72.36,83.08,86.82,6.81,34.07,52.97
+uavreid_convnext_bcgg_mean_head,seq_len_12,12,normal,32.89,73.65,83.94,87.45,7.02,33.69,52.68
+uavreid_convnext_bcgg_mean_head,seq_len_16,16,normal,32.48,74.66,84.52,87.21,6.94,32.34,51.72

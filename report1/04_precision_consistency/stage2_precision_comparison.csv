@@ -1,0 +1,4 @@
+runtime,eval_mode,num_frames,mAP,R1,R5,R10,mINP,delta_mAP_vs_fp32,delta_R1_vs_fp32,min_cosine_sim_vs_fp32,mean_abs_diff_vs_fp32
+pytorch_fp32,clean_uav_anti_uav_2565,8,31.36,72.67,83.39,86.39,6.74,+0.00,+0.00,1.000000,0.000000e+00
+pytorch_fp16,clean_uav_anti_uav_2565,8,31.35,72.63,83.39,86.35,6.73,-0.01,-0.04,0.999874,6.208113e-05
+tensorrt_fp16,clean_uav_anti_uav_2565,8,31.34,72.63,83.24,86.35,6.73,-0.02,-0.04,0.999841,1.481110e-04

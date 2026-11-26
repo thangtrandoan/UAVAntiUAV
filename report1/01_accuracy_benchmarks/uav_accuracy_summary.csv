@@ -1,0 +1,16 @@
+model,eval_mode,num_frames,num_queries,num_videos,per_query_mAP,per_query_R1,per_query_R5,per_query_R10,per_query_mINP,per_video_mAP,per_video_R1,per_video_R5,per_video_R10,per_video_mINP
+gasnet_1frame,clean_uav_anti_uav_2565,1,2565,300,13.12,43.59,61.60,69.43,2.82,15.47,28.41,42.37,49.88,7.55
+gasnet_visual_mean_L8_no_bn,clean_uav_anti_uav_2565,8,2565,300,26.73,68.89,80.16,83.59,4.53,28.00,47.74,58.56,63.52,12.57
+uavreid_convnext_bcgg_mean_head,clean_uav_anti_uav_2565,8,2565,300,31.89,72.36,83.08,86.82,6.81,34.07,52.97,64.96,69.85,17.96
+uavreid_convnext_bcgg_mamba,clean_uav_anti_uav_2565,8,2565,300,31.36,72.67,83.39,86.39,6.74,33.71,52.53,65.89,69.57,17.66
+uavreid_convnext_rga_mamba,clean_uav_anti_uav_2565,8,2565,300,31.84,71.81,82.88,86.67,6.82,33.87,52.01,65.53,70.57,18.24
+uavreid_convnext_bcgg_attn,clean_uav_anti_uav_2565,8,2565,300,32.77,72.20,83.47,87.29,6.70,35.07,54.20,66.36,71.79,18.38
+uavreid_convnext_bcgg_mamba_meanpool,clean_uav_anti_uav_2565,8,2565,300,32.47,71.50,83.47,86.78,6.87,35.27,53.71,67.74,71.22,19.22
+model_a_temporal_token_512,clean_uav_anti_uav_2565,8,2565,300,22.68,59.18,75.09,80.62,4.39,23.18,39.06,53.43,59.18,10.47
+model_a_pre_bn_1472,clean_uav_anti_uav_2565,8,2565,300,22.91,60.47,76.10,81.64,4.23,23.75,40.63,53.68,59.54,10.67
+gasnet_1frame,full_processed_2630,1,2630,340,13.67,43.46,61.41,69.28,3.38,18.46,29.65,43.94,51.57,10.70
+uavreid_convnext_bcgg_mean_head,full_processed_2630,8,2630,340,32.73,72.24,83.23,87.03,7.99,38.04,54.17,67.39,72.77,23.10
+uavreid_convnext_bcgg_mamba,full_processed_2630,8,2630,340,32.22,72.51,83.61,86.65,7.94,37.91,53.68,68.58,72.57,23.07
+uavreid_convnext_rga_mamba,full_processed_2630,8,2630,340,32.71,71.67,83.08,86.92,7.99,37.96,53.32,68.01,73.45,23.35
+uavreid_convnext_bcgg_attn,full_processed_2630,8,2630,340,33.57,72.05,83.69,87.53,7.78,38.63,54.83,69.08,74.52,22.94
+uavreid_convnext_bcgg_mamba_meanpool,full_processed_2630,8,2630,340,33.30,71.44,83.73,87.07,7.97,39.15,55.14,70.36,74.31,24.05

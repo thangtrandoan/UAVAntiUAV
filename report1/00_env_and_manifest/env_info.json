@@ -1,0 +1,38 @@
+{
+  "timestamp_utc": "2026-11-26T09:07:24.703438+00:00",
+  "hostname": "ubuntu",
+  "platform": "Linux-5.15.199-tegra-aarch64-with-glibc2.35",
+  "device_tree_model": "NVIDIA Jetson AGX Orin Developer Kit",
+  "l4t_tegra_release": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+  "python_version": "3.10.12",
+  "pytorch_version": "2.5.0",
+  "cuda_version": "12.6",
+  "cudnn_version": 90300,
+  "tensorrt_version": "10.3.0",
+  "trtexec_exists": true,
+  "gpu": {
+    "available": true,
+    "name": "Orin",
+    "total_vram_MiB": 62827.9,
+    "compute_capability": "8.7",
+    "multi_processor_count": 16
+  },
+  "nvpmodel": {
+    "returncode": 0,
+    "power_mode": "NV Power Mode: MAXN",
+    "raw_output": "NV Power Mode: MAXN\n0",
+    "raw_error": ""
+  },
+  "thermals_c": {
+    "cpu-thermal": 60.84,
+    "gpu-thermal": 61.94,
+    "soc0-thermal": 57.97,
+    "soc1-thermal": 55.56,
+    "soc2-thermal": 57.47,
+    "tj-thermal": 61.94
+  },
+  "git": {
+    "branch": "main",
+    "commit_sha": "a830369780588e4e582cb75c357cdaf875a241de"
+  }
+}
